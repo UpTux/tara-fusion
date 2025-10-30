@@ -84,7 +84,7 @@ dependencies = [
     "sphinx-preview>=0.1.2",
     "sphinx-immaterial>=0.13.6",
 ]
-requires-python = "==3.12"
+requires-python = "==3.12.*"
 `;
 
 const generateConfPy = (projectName: string): string => `
