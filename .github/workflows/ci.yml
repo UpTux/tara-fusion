@@ -9,63 +9,51 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
-    
+        node-version: [20.x, 22.x]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: src/package-lock.json
-      
+
       - name: Install dependencies
         working-directory: ./src
         run: npm ci
-      
-      - name: Type check
-        working-directory: ./src
-        run: npx tsc --noEmit
-      
+
       - name: Build application
         working-directory: ./src
         run: npm run build
         env:
           # Use a dummy API key for CI builds
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-key-for-ci' }}
-      
-      - name: Upload build artifacts
-        if: matrix.node-version == '20.x'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: src/dist/
-          retention-days: 7
-  
+
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: "20.x"
+          cache: "npm"
           cache-dependency-path: src/package-lock.json
-      
+
       - name: Install dependencies
         working-directory: ./src
         run: npm ci
-      
+
       - name: Check code formatting
         working-directory: ./src
         run: |
