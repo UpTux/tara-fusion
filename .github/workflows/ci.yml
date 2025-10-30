@@ -56,7 +56,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: ./src
-        run: npm run lint:ci
+        run: npm run lint
 
       - name: Check code formatting
         working-directory: ./src
