@@ -1,0 +1,5 @@
+{
+  "name": "TARA Fusion - AI-Powered Threat Analysis",
+  "description": "A web-based tool for conducting Threat Analysis and Risk Assessment (TARA). Features include a graphical attack tree editor, threat catalog management, sphinx-needs import/export, and AI-powered threat suggestions using the Gemini API.",
+  "requestFramePermissions": []
+}
