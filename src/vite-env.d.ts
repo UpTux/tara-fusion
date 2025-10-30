@@ -8,3 +8,9 @@ interface ImportMetaEnv {
 interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
+
+// Declare module for raw file imports
+declare module '*.template?raw' {
+    const content: string;
+    export default content;
+}
