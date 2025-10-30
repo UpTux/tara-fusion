@@ -1,29 +1,29 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toPng } from 'html-to-image';
-import { Project, SphinxNeed, NeedType } from '../types';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
-  Background,
-  Node,
-  Edge,
-  BackgroundVariant,
-  ReactFlowProvider,
-  MarkerType,
-  Handle,
-  Position,
-  useReactFlow,
+    Background,
+    BackgroundVariant,
+    Edge,
+    Handle,
+    MarkerType,
+    Node,
+    Position,
+    ReactFlowProvider,
+    useReactFlow,
 } from 'reactflow';
+import { NeedType, Project, SphinxNeed } from '../types';
 
 // --- Helper functions for isolated rendering ---
 
 const getNodeColor = (need: SphinxNeed): string => {
-  if (need.type !== NeedType.ATTACK) return 'bg-gray-700 border-gray-500';
-  if (need.tags.includes('circumvent-root')) return 'bg-teal-700 border-teal-500';
+    if (need.type !== NeedType.ATTACK) return 'bg-gray-700 border-gray-500';
+    if (need.tags.includes('circumvent-root')) return 'bg-teal-700 border-teal-500';
 
-  const isRoot = need.tags.includes('attack-root');
-  const isIntermediate = !!need.logic_gate && !isRoot;
+    const isRoot = need.tags.includes('attack-root');
+    const isIntermediate = !!need.logic_gate && !isRoot;
 
-  if (isIntermediate) return 'bg-blue-600 border-blue-400';
-  return 'bg-red-800 border-red-500';
+    if (isIntermediate) return 'bg-blue-600 border-blue-400';
+    return 'bg-red-800 border-red-500';
 };
 
 const getTreeNodes = (rootId: string, allNeeds: SphinxNeed[]): SphinxNeed[] => {
@@ -33,7 +33,8 @@ const getTreeNodes = (rootId: string, allNeeds: SphinxNeed[]): SphinxNeed[] => {
     treeNodeIds.add(rootId);
 
     while (queue.length > 0) {
-        const currentId = queue.shift()!;
+        const currentId = queue.shift();
+        if (!currentId) continue;
         const currentNode = needsMap.get(currentId);
         if (currentNode && currentNode.links) {
             for (const link of currentNode.links) {
@@ -58,9 +59,10 @@ const getLayoutedElements = (rootId: string, allNeeds: SphinxNeed[], options: { 
     let maxRank = 0;
 
     while (queue.length > 0) {
-        const { id, rank } = queue.shift()!;
+        const { id, rank } = queue.shift() ?? { id: "", rank: 0 };
         if (!ranks.has(rank)) ranks.set(rank, []);
-        ranks.get(rank)!.push(id);
+        const rankList = ranks.get(rank);
+        if (rankList) rankList.push(id);
         maxRank = Math.max(maxRank, rank);
 
         const node = needsMap.get(id);
@@ -91,7 +93,7 @@ const getLayoutedElements = (rootId: string, allNeeds: SphinxNeed[], options: { 
 
     return allNeeds.map(need => {
         if (newPositions.has(need.id)) {
-            return { ...need, position: newPositions.get(need.id)! };
+            return { ...need, position: newPositions.get(need.id) ?? need.position };
         }
         return need;
     });
@@ -100,8 +102,8 @@ const getLayoutedElements = (rootId: string, allNeeds: SphinxNeed[], options: { 
 const StaticNode: React.FC<{ data: SphinxNeed }> = ({ data }) => {
     const isRoot = data.tags.includes('attack-root') || data.tags.includes('circumvent-root');
     const isLeaf = data.type === NeedType.ATTACK && !data.logic_gate && !isRoot;
-    const totalAp = isLeaf ? Object.values(data.attackPotential || {}).reduce((sum, val) => sum + Number(val || 0), 0) : null;
-    
+    const totalAp = isLeaf ? Object.values(data.attackPotential || {}).reduce((sum: number, val) => sum + Number(val || 0), 0) : null;
+
     return (
         <>
             {!isRoot && <Handle type="target" position={Position.Top} className="!bg-gray-700 !border-indigo-400" />}
@@ -114,12 +116,12 @@ const StaticNode: React.FC<{ data: SphinxNeed }> = ({ data }) => {
                 <div className="font-bold text-sm truncate">{data.id}</div>
                 <div className="text-xs text-gray-300 uppercase font-mono tracking-wider mb-2">{data.type}</div>
                 <div className="text-sm">{data.title}</div>
-                 {isLeaf && totalAp !== null && (
-                     <div className="mt-2 pt-2 border-t border-gray-600/50 text-xs font-mono text-gray-300">
+                {isLeaf && totalAp !== null && (
+                    <div className="mt-2 pt-2 border-t border-gray-600/50 text-xs font-mono text-gray-300">
                         <span>AP Total: </span>
                         <span className="font-bold text-indigo-300">{totalAp}</span>
                     </div>
-                 )}
+                )}
             </div>
             <Handle type="source" position={Position.Bottom} className="!bg-gray-700 !border-indigo-400" />
         </>
@@ -163,13 +165,13 @@ const TreeRenderer: React.FC<TreeRendererProps> = ({ project, rootId, onRendered
         const visibleNeedsMap = new Map(visibleNeeds.map(need => [need.id, need]));
 
         const flowNodes: Node<SphinxNeed>[] = visibleNeeds.map(need => ({
-          id: need.id,
-          type: 'static',
-          position: need.position || { x: 0, y: 0 },
-          data: need,
+            id: need.id,
+            type: 'static',
+            position: need.position || { x: 0, y: 0 },
+            data: need,
         }));
 
-        const flowEdges: Edge[] = visibleNeeds.map(need => 
+        const flowEdges: Edge[] = visibleNeeds.map(need =>
             (need.links || []).filter(linkId => visibleNeedsMap.has(linkId)).map(linkId => ({
                 id: `${need.id}-${linkId}`,
                 source: need.id,
@@ -182,7 +184,7 @@ const TreeRenderer: React.FC<TreeRendererProps> = ({ project, rootId, onRendered
 
         return { nodes: flowNodes, edges: flowEdges };
     }, [project, rootId]);
-    
+
     const onInit = useCallback(() => setIsFlowInitialized(true), []);
 
     useEffect(() => {
@@ -191,38 +193,38 @@ const TreeRenderer: React.FC<TreeRendererProps> = ({ project, rootId, onRendered
         }
 
         fitView({ duration: 0, padding: 0.2 });
-        
-        const generateImage = async () => {
-             if (!reactFlowWrapper.current) {
-                 console.error(`Ref for tree ${rootId} was null, could not generate image.`);
-                 onRendered(rootId, 'error-null-ref');
-                 return;
-             }
-             
-             // Temporarily disable the external stylesheet to prevent CORS errors
-             const linkSelector = 'link[href*="reactflow"]';
-             const link = document.querySelector<HTMLLinkElement>(linkSelector);
-             if (link) {
-                 link.disabled = true;
-             }
 
-             try {
-                 const dataUrl = await toPng(reactFlowWrapper.current, {
-                     backgroundColor: '#111827', // bg-gray-900
-                     width: 1920,
-                     height: 1080,
-                     pixelRatio: 1,
-                 });
-                 onRendered(rootId, dataUrl);
-             } catch (error) {
-                 console.error(`Failed to generate image for tree ${rootId}:`, error);
-                 onRendered(rootId, 'error-png-generation');
-             } finally {
-                 // Always re-enable the stylesheet
-                 if (link) {
-                     link.disabled = false;
-                 }
-             }
+        const generateImage = async () => {
+            if (!reactFlowWrapper.current) {
+                console.error(`Ref for tree ${rootId} was null, could not generate image.`);
+                onRendered(rootId, 'error-null-ref');
+                return;
+            }
+
+            // Temporarily disable the external stylesheet to prevent CORS errors
+            const linkSelector = 'link[href*="reactflow"]';
+            const link = document.querySelector<HTMLLinkElement>(linkSelector);
+            if (link) {
+                link.disabled = true;
+            }
+
+            try {
+                const dataUrl = await toPng(reactFlowWrapper.current, {
+                    backgroundColor: '#111827', // bg-gray-900
+                    width: 1920,
+                    height: 1080,
+                    pixelRatio: 1,
+                });
+                onRendered(rootId, dataUrl);
+            } catch (error) {
+                console.error(`Failed to generate image for tree ${rootId}:`, error);
+                onRendered(rootId, 'error-png-generation');
+            } finally {
+                // Always re-enable the stylesheet
+                if (link) {
+                    link.disabled = false;
+                }
+            }
         };
 
         // Use requestAnimationFrame to ensure the layout is painted before capture
@@ -253,13 +255,13 @@ interface AttackTreeImageGeneratorProps {
 }
 
 export const AttackTreeImageGenerator: React.FC<AttackTreeImageGeneratorProps> = ({ project, onComplete }) => {
-    const attackTreeRoots = useMemo(() => 
+    const attackTreeRoots = useMemo(() =>
         project.needs.filter(n => n.type === NeedType.ATTACK && (n.tags.includes('attack-root') || n.tags.includes('circumvent-root'))),
-    [project.needs]);
+        [project.needs]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const imagesRef = useRef<Map<string, string>>(new Map());
-    
+
     const onCompleteRef = useRef(onComplete);
     useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
@@ -275,7 +277,7 @@ export const AttackTreeImageGenerator: React.FC<AttackTreeImageGeneratorProps> =
         } else {
             imagesRef.current.set(rootId, dataUrl);
         }
-        
+
         const nextIndex = currentIndex + 1;
         if (nextIndex >= attackTreeRoots.length) {
             onCompleteRef.current(imagesRef.current);
@@ -293,10 +295,10 @@ export const AttackTreeImageGenerator: React.FC<AttackTreeImageGeneratorProps> =
     return (
         <div style={{ position: 'fixed', top: 0, left: '-9999px', zIndex: -1 }}>
             <ReactFlowProvider key={currentRoot.id}>
-                <TreeRenderer 
-                    project={project} 
-                    rootId={currentRoot.id} 
-                    onRendered={handleCapture} 
+                <TreeRenderer
+                    project={project}
+                    rootId={currentRoot.id}
+                    onRendered={handleCapture}
                 />
             </ReactFlowProvider>
         </div>

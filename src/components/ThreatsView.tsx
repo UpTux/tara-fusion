@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Project, Threat, SecurityProperty, Asset, ThreatScenario } from '../types';
+import { Project, Threat, Asset, ThreatScenario } from '../types';
 import { TrashIcon } from './icons/TrashIcon';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import { InformationCircleIcon } from './icons/InformationCircleIcon';

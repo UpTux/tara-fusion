@@ -154,7 +154,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
             
             <div className="bg-gray-800/50 p-4 rounded-lg border border-indigo-500/30">
                 <h4 className="font-semibold text-indigo-300">What is a Security Claim?</h4>
-                <p className="text-sm text-gray-400 mt-1">A Security Claim is a statement about a risk, used to justify sharing or retaining a risk. One claim must be formulated for each Assumption, and for each risk with treatment `share`.</p>
+                <p className="text-sm text-gray-400 mt-1">A Security Claim is a statement about a risk, used to justify sharing or retaining a risk. One claim must be formulated for each and for each risk with treatment `share`.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

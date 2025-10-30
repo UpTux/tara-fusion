@@ -1,4 +1,4 @@
-import { User, OrganizationMembership, ProjectMembership, OrganizationRole, ProjectRole, Project, Organization } from '../types';
+import { OrganizationMembership, OrganizationRole, Project, ProjectMembership, ProjectRole } from '../types';
 
 export interface Permissions {
   canEditProject: boolean;

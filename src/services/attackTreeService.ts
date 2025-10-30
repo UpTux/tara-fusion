@@ -1,4 +1,4 @@
-import { SphinxNeed, NeedType, AttackPotentialTuple, ToeConfiguration } from '../types';
+import { AttackPotentialTuple, NeedType, SphinxNeed, ToeConfiguration } from '../types';
 import { calculateAP } from './riskService';
 
 type NeedsMap = Map<string, SphinxNeed>;
@@ -9,8 +9,9 @@ function findAttackPathsRecursive(
   memo: Map<string, string[][]>,
   activeToeConfigs: Set<string>
 ): string[][] {
-  if (memo.has(nodeId)) {
-    return memo.get(nodeId)!;
+  const cached = memo.get(nodeId);
+  if (cached) {
+    return cached;
   }
 
   const node = needsMap.get(nodeId);
@@ -18,11 +19,11 @@ function findAttackPathsRecursive(
 
   // Check if node is deactivated by TOE configuration
   if (node.toeConfigurationIds && node.toeConfigurationIds.length > 0) {
-      const isInactive = node.toeConfigurationIds.some(id => !activeToeConfigs.has(id));
-      if (isInactive) {
-          memo.set(nodeId, []);
-          return []; // Prune this branch
-      }
+    const isInactive = node.toeConfigurationIds.some(id => !activeToeConfigs.has(id));
+    if (isInactive) {
+      memo.set(nodeId, []);
+      return []; // Prune this branch
+    }
   }
 
   const isLeaf = node.type === NeedType.ATTACK && !node.logic_gate && !node.tags.includes('attack-root');
@@ -42,7 +43,7 @@ function findAttackPathsRecursive(
 
   if (node.logic_gate === 'AND') {
     const childPaths = node.links.map(childId => findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs));
-    
+
     let combinedPaths: string[][] = [[]];
     for (const paths of childPaths) {
       if (paths.length === 0) continue;
@@ -60,11 +61,11 @@ function findAttackPathsRecursive(
 
   // Default for root nodes with one child and no logic gate
   if (node.tags.includes('attack-root') && node.links.length > 0) {
-     const paths = node.links.flatMap(childId => findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs));
-     memo.set(nodeId, paths);
-     return paths;
+    const paths = node.links.flatMap(childId => findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs));
+    memo.set(nodeId, paths);
+    return paths;
   }
-  
+
   return [];
 }
 
@@ -96,7 +97,7 @@ function calculateAttackPathAP(pathLeaves: SphinxNeed[]): number {
 export function calculateAttackTreeMetrics(rootId: string, allNeeds: SphinxNeed[], toeConfigurations: ToeConfiguration[] = []): { attackPotential: number; criticalPaths: string[][] } | null {
   const needsMap = new Map(allNeeds.map(n => [n.id, n]));
   const memo = new Map<string, string[][]>();
-  
+
   const activeToeConfigs = new Set(
     (toeConfigurations || []).filter(c => c.active).map(c => c.id)
   );
@@ -112,7 +113,7 @@ export function calculateAttackTreeMetrics(rootId: string, allNeeds: SphinxNeed[
 
   for (const path of attackPaths) {
     const uniqueLeaves = [...new Set(path)]; // Remove duplicate leaves if a node is reached twice
-    const leafNodes = uniqueLeaves.map(id => needsMap.get(id)!).filter(Boolean);
+    const leafNodes = uniqueLeaves.map(id => needsMap.get(id)).filter((node): node is SphinxNeed => node !== undefined);
     const ap = calculateAttackPathAP(leafNodes);
     minAP = Math.min(minAP, ap);
     pathDetails.push({ path: uniqueLeaves, ap });
@@ -129,36 +130,40 @@ export function calculateAttackTreeMetrics(rootId: string, allNeeds: SphinxNeed[
 }
 
 export function traceCriticalPaths(rootId: string, criticalLeafSets: string[][], allNeeds: SphinxNeed[]): Set<string> {
-    const childToParentsMap = new Map<string, string[]>();
-    allNeeds.forEach(need => {
-        (need.links || []).forEach(link => {
-            if (!childToParentsMap.has(link)) {
-                childToParentsMap.set(link, []);
-            }
-            childToParentsMap.get(link)!.push(need.id);
-        });
+  const childToParentsMap = new Map<string, string[]>();
+  allNeeds.forEach(need => {
+    (need.links || []).forEach(link => {
+      if (!childToParentsMap.has(link)) {
+        childToParentsMap.set(link, []);
+      }
+      const parents = childToParentsMap.get(link);
+      if (parents) {
+        parents.push(need.id);
+      }
     });
+  });
 
-    const allCriticalNodes = new Set<string>();
+  const allCriticalNodes = new Set<string>();
 
-    for (const leafSet of criticalLeafSets) {
-        const queue = [...leafSet];
-        const visited = new Set<string>(leafSet);
+  for (const leafSet of criticalLeafSets) {
+    const queue = [...leafSet];
+    const visited = new Set<string>(leafSet);
 
-        while (queue.length > 0) {
-            const currentId = queue.shift()!;
-            allCriticalNodes.add(currentId);
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId) continue;
+      allCriticalNodes.add(currentId);
 
-            if (currentId === rootId) continue;
-            
-            const parents = childToParentsMap.get(currentId) || [];
-            for (const parentId of parents) {
-                if (!visited.has(parentId)) {
-                    visited.add(parentId);
-                    queue.push(parentId);
-                }
-            }
+      if (currentId === rootId) continue;
+
+      const parents = childToParentsMap.get(currentId) || [];
+      for (const parentId of parents) {
+        if (!visited.has(parentId)) {
+          visited.add(parentId);
+          queue.push(parentId);
         }
+      }
     }
-    return allCriticalNodes;
+  }
+  return allCriticalNodes;
 }

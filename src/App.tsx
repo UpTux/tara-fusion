@@ -1,15 +1,14 @@
 
 
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { Sidebar } from './components/Sidebar';
+import { useCallback, useMemo, useState } from 'react';
 import { ProjectView } from './components/ProjectView';
+import { Sidebar } from './components/Sidebar';
 import { UserManagementView } from './components/UserManagementView';
-import { CurrentUserSelector } from './components/CurrentUserSelector';
-import { Organization, Project, SphinxNeed, NeedType, NeedStatus, ProjectStatus, SecurityProperty, Impact, ImpactCategorySettings, RiskTreatmentDecision, AttackFeasibilityRating, User, OrganizationRole, ProjectRole, OrganizationMembership, ProjectMembership } from './types';
 import { calculatePermissions, Permissions } from './services/permissionService';
-import { parseProjectJson } from './services/projectImportExportService';
 import { recalculateProject } from './services/projectCalculationService';
+import { parseProjectJson } from './services/projectImportExportService';
+import { AttackFeasibilityRating, Impact, ImpactCategorySettings, NeedStatus, NeedType, Organization, OrganizationMembership, OrganizationRole, Project, ProjectMembership, ProjectRole, ProjectStatus, RiskTreatmentDecision, SecurityProperty, User } from './types';
 
 const defaultImpactCategories: ImpactCategorySettings = {
   categories: [
@@ -206,7 +205,7 @@ Out of scope are:
         initialAFR: AttackFeasibilityRating.HIGH,
         residualAFR: AttackFeasibilityRating.MEDIUM,
       },
-       {
+      {
         id: 'THR_005',
         name: 'Invalidation of Transaction Processing Logic',
         assetId: 'ASSET_002',
@@ -322,55 +321,55 @@ Out of scope are:
     damageScenarios: [],
     threats: [],
     impactCategorySettings: {
-        categories: [ 'Safety', 'Financial', 'Operational', 'Privacy' ],
-        justification: 'For the ECU project, we are using simplified, high-level categories as per the V-Model guidelines for this specific component.'
+      categories: ['Safety', 'Financial', 'Operational', 'Privacy'],
+      justification: 'For the ECU project, we are using simplified, high-level categories as per the V-Model guidelines for this specific component.'
     }
   },
 ];
 
 const initialUsers: User[] = [
-    { id: 'user_1', name: 'Alice Johnson (Org Admin)', email: 'alice@cybersystems.com' },
-    { id: 'user_2', name: 'Bob Williams (Designer)', email: 'bob@cybersystems.com' },
-    { id: 'user_3', name: 'Charlie Brown (Viewer)', email: 'charlie@cybersystems.com' },
-    { id: 'user_4', name: 'Diana Prince (Org 2 Admin)', email: 'diana@securesoft.com' },
+  { id: 'user_1', name: 'Alice Johnson (Org Admin)', email: 'alice@cybersystems.com' },
+  { id: 'user_2', name: 'Bob Williams (Designer)', email: 'bob@cybersystems.com' },
+  { id: 'user_3', name: 'Charlie Brown (Viewer)', email: 'charlie@cybersystems.com' },
+  { id: 'user_4', name: 'Diana Prince (Org 2 Admin)', email: 'diana@securesoft.com' },
 ];
 
 const initialOrganizationMemberships: OrganizationMembership[] = [
-    { userId: 'user_1', organizationId: 'org_1', role: OrganizationRole.ORG_ADMIN },
-    { userId: 'user_2', organizationId: 'org_1', role: OrganizationRole.USER },
-    { userId: 'user_3', organizationId: 'org_1', role: OrganizationRole.USER },
-    { userId: 'user_4', organizationId: 'org_2', role: OrganizationRole.ORG_ADMIN },
+  { userId: 'user_1', organizationId: 'org_1', role: OrganizationRole.ORG_ADMIN },
+  { userId: 'user_2', organizationId: 'org_1', role: OrganizationRole.USER },
+  { userId: 'user_3', organizationId: 'org_1', role: OrganizationRole.USER },
+  { userId: 'user_4', organizationId: 'org_2', role: OrganizationRole.ORG_ADMIN },
 ];
 
 const initialProjectMemberships: ProjectMembership[] = [
-    { userId: 'user_1', projectId: 'proj_1', role: ProjectRole.PROJECT_ADMIN },
-    { userId: 'user_2', projectId: 'proj_1', role: ProjectRole.DESIGNER },
-    { userId: 'user_3', projectId: 'proj_1', role: ProjectRole.VIEWER },
-    { userId: 'user_4', projectId: 'proj_2', role: ProjectRole.PROJECT_ADMIN },
+  { userId: 'user_1', projectId: 'proj_1', role: ProjectRole.PROJECT_ADMIN },
+  { userId: 'user_2', projectId: 'proj_1', role: ProjectRole.DESIGNER },
+  { userId: 'user_3', projectId: 'proj_1', role: ProjectRole.VIEWER },
+  { userId: 'user_4', projectId: 'proj_2', role: ProjectRole.PROJECT_ADMIN },
 ];
 
 
 export default function App() {
-  const [organizations, setOrganizations] = useState<Organization[]>(initialOrganizations);
+  const [organizations] = useState<Organization[]>(initialOrganizations);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [activeProjectId, setActiveProjectId] = useState<string | null>('proj_1');
-  
-  const [users, setUsers] = useState<User[]>(initialUsers);
+
+  const [users] = useState<User[]>(initialUsers);
   const [orgMemberships, setOrgMemberships] = useState<OrganizationMembership[]>(initialOrganizationMemberships);
   const [projectMemberships, setProjectMemberships] = useState<ProjectMembership[]>(initialProjectMemberships);
   const [currentUserId, setCurrentUserId] = useState<string>('user_1');
-  
+
   const [activeMainView, setActiveMainView] = useState<'projects' | 'users'>('projects');
 
   const activeProject = projects.find(p => p.id === activeProjectId) || null;
   const activeOrganization = organizations.find(o => o.id === activeProject?.organizationId) || null;
-  const currentUser = users.find(u => u.id === currentUserId)!;
+  const currentUser = users.find(u => u.id === currentUserId) || users[0];
 
-  const permissions: Permissions = useMemo(() => 
+  const permissions: Permissions = useMemo(() =>
     calculatePermissions(currentUserId, activeProject, orgMemberships, projectMemberships),
     [currentUserId, activeProject, orgMemberships, projectMemberships]
   );
-  
+
   const updateProject = useCallback((updatedProject: Project) => {
     setProjects(prevProjects =>
       prevProjects.map(p => (p.id === updatedProject.id ? updatedProject : p))
@@ -399,11 +398,11 @@ export default function App() {
     setActiveProjectId(newProject.id);
     setActiveMainView('projects');
   }, [projects]);
-  
+
   const handleCreateProjectFromFile = useCallback((jsonString: string, organizationId: string) => {
     try {
       const importedProjectData = parseProjectJson(jsonString);
-      
+
       const existingProjectIds = new Set(projects.map(p => p.id));
       let i = projects.length + 1;
       let newProjectId: string;
@@ -432,15 +431,15 @@ export default function App() {
       alert(`Failed to create project from file. ${error instanceof Error ? error.message : 'Please check file format.'}`);
     }
   }, [projects]);
-  
+
   const handleImportProject = useCallback((jsonString: string) => {
     const activeOrgId = activeOrganization?.id;
     if (!activeOrgId) {
-        alert("Please select a project within an organization first to import a project into it.");
-        return;
+      alert("Please select a project within an organization first to import a project into it.");
+      return;
     }
     handleCreateProjectFromFile(jsonString, activeOrgId);
-}, [activeOrganization, handleCreateProjectFromFile]);
+  }, [activeOrganization, handleCreateProjectFromFile]);
 
   const handleDeleteProject = useCallback((projectId: string) => {
     const projectToDelete = projects.find(p => p.id === projectId);
@@ -487,15 +486,15 @@ export default function App() {
         <header className="flex items-center justify-between p-4 border-b border-gray-700/50 bg-gray-900/30 flex-shrink-0">
           <h1 className="text-2xl font-bold text-white">{mainViewTitle}</h1>
           <div className="flex items-center space-x-2 text-sm">
-             <span className="text-gray-400">Viewing as:</span>
-             <span className="font-semibold text-indigo-300">{currentUser.name}</span>
+            <span className="text-gray-400">Viewing as:</span>
+            <span className="font-semibold text-indigo-300">{currentUser.name}</span>
           </div>
         </header>
 
         <div className="flex-1 overflow-y-auto">
           {activeMainView === 'projects' && activeProject && activeOrganization ? (
-            <ProjectView 
-              key={activeProject.id} 
+            <ProjectView
+              key={activeProject.id}
               project={activeProject}
               organization={activeOrganization}
               onUpdateProject={updateProject}
@@ -503,21 +502,21 @@ export default function App() {
               onImportProject={handleImportProject}
             />
           ) : activeMainView === 'users' ? (
-              <UserManagementView
-                  users={users}
-                  organizations={organizations}
-                  orgMemberships={orgMemberships}
-                  setOrgMemberships={setOrgMemberships}
-                  currentUser={currentUser}
-              />
+            <UserManagementView
+              users={users}
+              organizations={organizations}
+              orgMemberships={orgMemberships}
+              setOrgMemberships={setOrgMemberships}
+              currentUser={currentUser}
+            />
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-500 h-full">
               <div className="text-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-300">No project selected</h3>
-                  <p className="mt-1 text-sm text-gray-500">Please select a project from the sidebar to begin.</p>
+                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-300">No project selected</h3>
+                <p className="mt-1 text-sm text-gray-500">Please select a project from the sidebar to begin.</p>
               </div>
             </div>
           )}

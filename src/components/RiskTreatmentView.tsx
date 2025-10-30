@@ -1,7 +1,7 @@
 
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Project, ThreatScenario, RiskTreatmentDecision, RiskLevel } from '../types';
+import { Project, ThreatScenario, RiskTreatmentDecision } from '../types';
 // FIX: `calculateAFL` is not exported from riskService, `calculateAP` is. `getFeasibilityRating` is not exported, `getAttackFeasibilityRating` is.
 import { calculateHighestImpact, calculateRiskLevel, getRiskColor, calculateAP, getAttackFeasibilityRating } from '../services/riskService';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';

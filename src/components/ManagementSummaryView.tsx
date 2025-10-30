@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Project, ThreatScenario, RiskLevel, RiskTreatmentDecision } from '../types';
+import { Project, RiskLevel, RiskTreatmentDecision } from '../types';
 import { calculateAP, calculateHighestImpact, calculateRiskLevel, getAttackFeasibilityRating, getRiskColor, riskLevelOrder } from '../services/riskService';
 import { BarChart } from './charts/BarChart';
 import { PieChart } from './charts/PieChart';

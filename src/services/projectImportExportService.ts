@@ -25,7 +25,7 @@ export function parseProjectJson(jsonString: string): Omit<Project, 'id' | 'orga
     
     // The imported project shouldn't dictate its own ID or organization.
     // The App component will assign new ones to prevent conflicts.
-    const { id, organizationId, ...projectData } = parsed;
+    const { id: _id, organizationId: _organizationId, ...projectData } = parsed;
 
     return projectData;
 }

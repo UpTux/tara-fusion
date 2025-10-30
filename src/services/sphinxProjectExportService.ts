@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
-import { Project, SphinxNeed, NeedType, RiskTreatmentDecision, AttackPotentialTuple } from '../types';
-import { calculateAP, getAttackFeasibilityRating, calculateHighestImpact, calculateRiskLevel } from './riskService';
+import { AttackPotentialTuple, NeedType, Project, RiskTreatmentDecision } from '../types';
+import { calculateAP, calculateHighestImpact, calculateRiskLevel, getAttackFeasibilityRating } from './riskService';
 
 const rstHeader = (title: string, level: number): string => {
     const underlines = ['=', '-', '`', ':', '.', "'", '"', '~', '^', '_', '*', '+', '#', '<', '>'];
@@ -17,13 +17,13 @@ const rstListTable = (headers: string[], rows: string[][], title?: string, width
         rst += `   :widths: ${widths.join(' ')}\n`;
     }
     rst += `\n`;
-    
+
     rst += `   * - ${headers.join('\n     - ')}\n`;
-    
+
     rows.forEach(row => {
         rst += `   * - ${row.join('\n     - ')}\n`;
     });
-    
+
     return rst + '\n';
 };
 
@@ -40,7 +40,7 @@ const generateNeedRst = (needData: { [key: string]: any }, type: string, title: 
 
         const value = needData[key];
         if (value === undefined || value === null) continue;
-        
+
         const snakeKey = toSnakeCase(key);
 
         if (Array.isArray(value)) {
@@ -48,17 +48,17 @@ const generateNeedRst = (needData: { [key: string]: any }, type: string, title: 
                 content += `   :${snakeKey}: ${value.join(', ')}\n`;
             }
         } else if (typeof value === 'object') {
-             if (key === 'attackPotential' && value) {
-                 const ap = value as AttackPotentialTuple;
-                 const apValues = Object.entries(ap).map(([k,v]) => `${k}:${v}`).join('; ');
-                 content += `   :attack_potential: ${apValues}\n`;
-             }
+            if (key === 'attackPotential' && value) {
+                const ap = value as AttackPotentialTuple;
+                const apValues = Object.entries(ap).map(([k, v]) => `${k}:${v}`).join('; ');
+                content += `   :attack_potential: ${apValues}\n`;
+            }
         }
         else if (value !== '' && typeof value !== 'boolean') {
             content += `   :${snakeKey}: ${value}\n`;
         }
         else if (typeof value === 'boolean') {
-             content += `   :${snakeKey}: ${value ? 'True' : 'False'}\n`;
+            content += `   :${snakeKey}: ${value ? 'True' : 'False'}\n`;
         }
     }
 
@@ -233,7 +233,7 @@ const generateSystemDefRst = (project: Project): string => {
             content += generateNeedRst(a, 'asset', a.name, a.id, desc);
         });
     }
-     if (project.securityControls && project.securityControls.length > 0) {
+    if (project.securityControls && project.securityControls.length > 0) {
         content += rstHeader('Security Controls', 1);
         project.securityControls.forEach(sc => {
             const desc = `${sc.description}\n\n**Comment:** ${sc.comment}`;
@@ -272,22 +272,23 @@ const generateThreatAnalysisRst = (project: Project): string => {
 const generateAttackTreesRst = (project: Project): string => {
     let content = rstHeader('Attack Trees', 0);
     const attackTreeRoots = project.needs.filter(n => n.type === NeedType.ATTACK && (n.tags.includes('attack-root') || n.tags.includes('circumvent-root')));
-    
+
     if (attackTreeRoots.length === 0) {
         content += "No attack trees found in the project.\n";
         return content;
     }
 
     const needsMap = new Map(project.needs.map(n => [n.id, n]));
-    
+
     attackTreeRoots.forEach(root => {
         content += rstHeader(`Tree: ${root.title} (${root.id})`, 1);
-        
+
         const treeNodeIds = new Set<string>();
         const queue: string[] = [root.id];
         treeNodeIds.add(root.id);
         while (queue.length > 0) {
-            const currentId = queue.shift()!;
+            const currentId = queue.shift();
+            if (!currentId) continue;
             const currentNode = needsMap.get(currentId);
             if (currentNode?.links) {
                 for (const link of currentNode.links) {
@@ -298,7 +299,7 @@ const generateAttackTreesRst = (project: Project): string => {
                 }
             }
         }
-        
+
         // Add image directive
         content += `.. image:: /_image/attack_tree_${root.id}.png\n`;
         content += `   :alt: Attack Tree for ${root.id}\n`;
@@ -311,7 +312,7 @@ const generateAttackTreesRst = (project: Project): string => {
         content += `   :columns: id, title, type, logic_gate\n`;
         content += `   :caption: Nodes for tree ${root.id}\n\n`;
     });
-    
+
     return content;
 };
 
@@ -329,15 +330,15 @@ const generateRiskTreatmentRst = (project: Project): string => {
             content += generateNeedRst(sc, 'scl', sc.name, sc.id, sc.comment);
         });
     }
-    
+
     const scenariosWithRisk = (project.threatScenarios || []).map(ts => {
-      const impact = calculateHighestImpact(ts.damageScenarioIds, project.damageScenarios || []);
-      const ap = calculateAP(ts.attackPotential);
-      const rating = getAttackFeasibilityRating(ap);
-      const risk = calculateRiskLevel(rating, impact);
-      return { ...ts, risk };
+        const impact = calculateHighestImpact(ts.damageScenarioIds, project.damageScenarios || []);
+        const ap = calculateAP(ts.attackPotential);
+        const rating = getAttackFeasibilityRating(ap);
+        const risk = calculateRiskLevel(rating, impact);
+        return { ...ts, risk };
     });
-    
+
     if (scenariosWithRisk.length > 0) {
         content += rstHeader('Risk Treatment Decisions', 1);
         const headers = ['Threat Scenario', 'Risk Level', 'Decision', 'Mitigation/Justification'];
@@ -372,7 +373,7 @@ export async function exportProjectToSphinxZip(project: Project, images: Map<str
     source.file('04_threat_analysis.rst', generateThreatAnalysisRst(project));
     source.file('05_attack_trees.rst', generateAttackTreesRst(project));
     source.file('06_risk_treatment.rst', generateRiskTreatmentRst(project));
-    
+
     const imageFolder = source.folder('_image');
     if (!imageFolder) throw new Error("Could not create _image folder in zip.");
 
@@ -383,7 +384,7 @@ export async function exportProjectToSphinxZip(project: Project, images: Map<str
 
     source.folder('_static');
     source.folder('_templates');
-    
+
     const blob = await zip.generateAsync({ type: 'blob' });
     return blob;
 }

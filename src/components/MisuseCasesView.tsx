@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Project, MisuseCase } from '../types';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { MisuseCase, Project } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 
@@ -11,13 +11,13 @@ interface MisuseCasesViewProps {
 }
 
 const Label: React.FC<{ htmlFor?: string; children: React.ReactNode }> = ({ htmlFor, children }) => (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-400 mb-1">{children}</label>
+  <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-400 mb-1">{children}</label>
 );
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-    <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
 );
 const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
-    <textarea {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <textarea {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
 );
 
 export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
@@ -29,11 +29,12 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
     const map = new Map<string, string[]>();
     (project.misuseCases || []).forEach(mc => map.set(mc.id, []));
     (project.threats || []).forEach(threat => {
-        (threat.misuseCaseIds || []).forEach(mcId => {
-            if (map.has(mcId)) {
-                map.get(mcId)!.push(threat.id);
-            }
-        });
+      (threat.misuseCaseIds || []).forEach(mcId => {
+        const threats = map.get(mcId);
+        if (threats) {
+          threats.push(threat.id);
+        }
+      });
     });
     return map;
   }, [project.misuseCases, project.threats]);
@@ -42,7 +43,7 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
     const currentMisuseCases = project.misuseCases || [];
     setMisuseCases(currentMisuseCases);
     if (!selectedId && currentMisuseCases.length > 0) {
-        setSelectedId(currentMisuseCases[0].id)
+      setSelectedId(currentMisuseCases[0].id)
     }
   }, [project.misuseCases, selectedId]);
 
@@ -50,10 +51,10 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
     const selected = misuseCases.find(a => a.id === selectedId);
     setEditorState(selected ? { ...selected } : null);
   }, [selectedId, misuseCases]);
-  
+
   const addHistoryEntry = (proj: Project, message: string): Project => {
-      const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
-      return { ...proj, history: newHistory };
+    const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
+    return { ...proj, history: newHistory };
   };
 
   const handleAdd = useCallback(() => {
@@ -64,26 +65,26 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
     while (existingIds.has(newId)) { i++; newId = `MC_${String(i).padStart(3, '0')}`; }
 
     const newMisuseCase: MisuseCase = {
-        id: newId,
-        name: 'New Misuse Case',
-        description: '',
-        comment: ''
+      id: newId,
+      name: 'New Misuse Case',
+      description: '',
+      comment: ''
     };
-    
+
     const updatedMisuseCases = [...misuseCases, newMisuseCase];
     const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases }, `Created misuse case ${newId}.`);
     onUpdateProject(updatedProject);
     setSelectedId(newId);
   }, [misuseCases, project, onUpdateProject, isReadOnly]);
-  
+
   const handleUpdate = (field: keyof MisuseCase, value: any) => {
     if (isReadOnly || !editorState) return;
 
     const original = misuseCases.find(a => a.id === editorState.id);
     if (original && JSON.stringify(original[field]) !== JSON.stringify(value)) {
-        const updatedMisuseCases = misuseCases.map(a => a.id === editorState.id ? { ...editorState, [field]: value } : a);
-        const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases }, `Updated ${field} for misuse case ${editorState.id}.`);
-        onUpdateProject(updatedProject);
+      const updatedMisuseCases = misuseCases.map(a => a.id === editorState.id ? { ...editorState, [field]: value } : a);
+      const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases }, `Updated ${field} for misuse case ${editorState.id}.`);
+      onUpdateProject(updatedProject);
     }
   };
 
@@ -91,10 +92,10 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
     if (isReadOnly || !selectedId) return;
     if (window.confirm(`Are you sure you want to delete misuse case ${selectedId}? This will also remove links from any threats.`)) {
       const updatedMisuseCases = misuseCases.filter(a => a.id !== selectedId);
-      
+
       const updatedThreats = (project.threats || []).map(t => ({
-          ...t,
-          misuseCaseIds: (t.misuseCaseIds || []).filter(mcId => mcId !== selectedId)
+        ...t,
+        misuseCaseIds: (t.misuseCaseIds || []).filter(mcId => mcId !== selectedId)
       }));
 
       const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases, threats: updatedThreats }, `Deleted misuse case ${selectedId}.`);
@@ -133,10 +134,10 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
                   <td className="p-3 truncate">{mc.name}</td>
                   <td className="p-3">
                     {(linkedThreatsMap.get(mc.id)?.length || 0) > 0
-                        ? <span className="px-2 py-1 text-xs font-medium bg-green-800/50 text-green-300 rounded-full" title={`Linked to: ${linkedThreatsMap.get(mc.id)?.join(', ')}`}>
-                            {linkedThreatsMap.get(mc.id)?.length} Linked
-                          </span>
-                        : <span className="px-2 py-1 text-xs font-medium bg-yellow-800/50 text-yellow-300 rounded-full">Unlinked</span>
+                      ? <span className="px-2 py-1 text-xs font-medium bg-green-800/50 text-green-300 rounded-full" title={`Linked to: ${linkedThreatsMap.get(mc.id)?.join(', ')}`}>
+                        {linkedThreatsMap.get(mc.id)?.length} Linked
+                      </span>
+                      : <span className="px-2 py-1 text-xs font-medium bg-yellow-800/50 text-yellow-300 rounded-full">Unlinked</span>
                     }
                   </td>
                 </tr>
@@ -152,28 +153,28 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
           <div className="space-y-8">
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-bold text-gray-200">{editorState.id}: {editorState.name}</h2>
-               <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
-                    <TrashIcon className="w-4 h-4 mr-2"/>
-                    Delete
-                </button>
+              <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
+                <TrashIcon className="w-4 h-4 mr-2" />
+                Delete
+              </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <Label htmlFor="mcId">ID</Label>
-                    <Input id="mcId" type="text" value={editorState.id} onBlur={e => handleUpdate('id', e.target.value)} onChange={e => setEditorState({...editorState, id: e.target.value})} disabled={isReadOnly} />
-                </div>
-                <div>
-                    <Label htmlFor="mcName">Name</Label>
-                    <Input id="mcName" type="text" value={editorState.name} onBlur={e => handleUpdate('name', e.target.value)} onChange={e => setEditorState({...editorState, name: e.target.value})} disabled={isReadOnly} />
-                </div>
+              <div>
+                <Label htmlFor="mcId">ID</Label>
+                <Input id="mcId" type="text" value={editorState.id} onBlur={e => handleUpdate('id', e.target.value)} onChange={e => setEditorState({ ...editorState, id: e.target.value })} disabled={isReadOnly} />
+              </div>
+              <div>
+                <Label htmlFor="mcName">Name</Label>
+                <Input id="mcName" type="text" value={editorState.name} onBlur={e => handleUpdate('name', e.target.value)} onChange={e => setEditorState({ ...editorState, name: e.target.value })} disabled={isReadOnly} />
+              </div>
             </div>
             <div>
               <Label htmlFor="mcDescription">Description</Label>
-              <Textarea id="mcDescription" rows={6} value={editorState.description} onBlur={e => handleUpdate('description', e.target.value)} onChange={e => setEditorState({...editorState, description: e.target.value})} disabled={isReadOnly} />
+              <Textarea id="mcDescription" rows={6} value={editorState.description} onBlur={e => handleUpdate('description', e.target.value)} onChange={e => setEditorState({ ...editorState, description: e.target.value })} disabled={isReadOnly} />
             </div>
             <div>
               <Label htmlFor="mcComment">Comment (RST)</Label>
-              <Textarea id="mcComment" rows={10} value={editorState.comment} onBlur={e => handleUpdate('comment', e.target.value)} onChange={e => setEditorState({...editorState, comment: e.target.value})} disabled={isReadOnly} />
+              <Textarea id="mcComment" rows={10} value={editorState.comment} onBlur={e => handleUpdate('comment', e.target.value)} onChange={e => setEditorState({ ...editorState, comment: e.target.value })} disabled={isReadOnly} />
             </div>
           </div>
         ) : (

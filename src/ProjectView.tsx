@@ -1,33 +1,33 @@
-import React, { useState, useCallback } from 'react';
-import { Project, SphinxNeed, ProjectViewType, Organization } from '../types';
-import { Permissions } from '../services/permissionService';
-import { AttackTreeEditor } from './AttackTreeEditor';
-import { PropertiesPanel } from './PropertiesPanel';
-import { exportToNeedsJson, importFromNeedsJson } from '../services/sphinxNeedsService';
+import React, { useCallback, useState } from 'react';
 import { exportProjectToJson } from '../services/projectImportExportService';
-import { UploadIcon } from './icons/UploadIcon';
+import { AssetsView } from './AssetsView';
+import { AssumptionsView } from './AssumptionsView';
+import { AttackLeavesView } from './AttackLeavesView';
+import { AttackTreeEditor } from './components/AttackTreeEditor';
+import { PropertiesPanel } from './components/PropertiesPanel';
+import { DamageScenariosView } from './DamageScenariosView';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
+import { UploadIcon } from './icons/UploadIcon';
+import { ManagementSummaryView } from './ManagementSummaryView';
+import { MisuseCasesView } from './MisuseCasesView';
 import { GeminiThreatModal } from './modals/GeminiThreatModal';
-import { ProjectSidebar } from './ProjectSidebar';
 import { PlaceholderView } from './PlaceholderView';
 import { ProjectCockpit } from './ProjectCockpit';
-import { ToeDescriptionView } from './ToeDescriptionView';
-import { ScopeView } from './ScopeView';
-import { AssumptionsView } from './AssumptionsView';
-import { ToeConfigurationView } from './ToeConfigurationView';
-import { SecurityControlsView } from './SecurityControlsView';
-import { AssetsView } from './AssetsView';
-import { DamageScenariosView } from './DamageScenariosView';
-import { ThreatsView } from './ThreatsView';
-import { ThreatScenariosView } from './ThreatScenariosView';
-import { AttackLeavesView } from './AttackLeavesView';
-import { MisuseCasesView } from './MisuseCasesView';
-import { SecurityGoalsView } from './SecurityGoalsView';
-import { SecurityClaimsView } from './SecurityClaimsView';
-import { RiskTreatmentView } from './RiskTreatmentView';
+import { ProjectSidebar } from './ProjectSidebar';
 import { ProjectUsersView } from './ProjectUsersView';
-import { ManagementSummaryView } from './ManagementSummaryView';
+import { RiskTreatmentView } from './RiskTreatmentView';
+import { ScopeView } from './ScopeView';
+import { SecurityClaimsView } from './SecurityClaimsView';
+import { SecurityControlsView } from './SecurityControlsView';
+import { SecurityGoalsView } from './SecurityGoalsView';
+import { Permissions } from './services/permissionService';
+import { exportToNeedsJson, importFromNeedsJson } from './services/sphinxNeedsService';
+import { ThreatScenariosView } from './ThreatScenariosView';
+import { ThreatsView } from './ThreatsView';
+import { ToeConfigurationView } from './ToeConfigurationView';
+import { ToeDescriptionView } from './ToeDescriptionView';
+import { Organization, Project, ProjectStatus, ProjectViewType, SphinxNeed } from './types';
 
 interface ProjectViewProps {
   project: Project;
@@ -44,8 +44,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
   const isReadOnly = !permissions.canEditProject;
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
-      const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
-      return { ...proj, history: newHistory };
+    const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
+    return { ...proj, history: newHistory };
   };
 
   const handleNeedsExport = () => {
@@ -123,7 +123,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
     reader.readAsText(file);
     event.target.value = ''; // Reset file input
   };
-  
+
   const handleThreatsGenerated = (newNeeds: SphinxNeed[]) => {
     if (isReadOnly) return;
     let updatedProject = {
@@ -137,29 +137,29 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
   const handleNeedChange = useCallback((updatedNeed: SphinxNeed) => {
     if (isReadOnly) return;
     if (selectedNeed?.id === updatedNeed.id) {
-        setSelectedNeed(updatedNeed);
+      setSelectedNeed(updatedNeed);
     }
 
     const originalNeed = project.needs.find(n => n.id === updatedNeed.id);
     const changes: string[] = [];
     if (originalNeed) {
-        (Object.keys(updatedNeed) as Array<keyof SphinxNeed>).forEach(key => {
-            if (JSON.stringify(originalNeed[key]) !== JSON.stringify(updatedNeed[key])) {
-                changes.push(String(key));
-            }
-        });
+      (Object.keys(updatedNeed) as Array<keyof SphinxNeed>).forEach(key => {
+        if (JSON.stringify(originalNeed[key]) !== JSON.stringify(updatedNeed[key])) {
+          changes.push(String(key));
+        }
+      });
     }
-    
+
     const updatedProject = {
-        ...project,
-        needs: project.needs.map(n => (n.id === updatedNeed.id ? updatedNeed : n)),
+      ...project,
+      needs: project.needs.map(n => (n.id === updatedNeed.id ? updatedNeed : n)),
     };
-    
+
     if (changes.length > 0) {
-        const historyMessage = `Updated need ${updatedNeed.id} (${changes.join(', ') || 'no changes'}).`;
-        onUpdateProject(addHistoryEntry(updatedProject, historyMessage));
+      const historyMessage = `Updated need ${updatedNeed.id} (${changes.join(', ') || 'no changes'}).`;
+      onUpdateProject(addHistoryEntry(updatedProject, historyMessage));
     } else {
-         onUpdateProject(updatedProject);
+      onUpdateProject(updatedProject);
     }
 
   }, [project, onUpdateProject, selectedNeed, isReadOnly]);
@@ -170,7 +170,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
     onUpdateProject(addHistoryEntry(updatedProject, historyMessage));
   }, [project, onUpdateProject, isReadOnly]);
 
-  const handleProjectDetailsChange = useCallback((field: keyof Project, value: any) => {
+  const handleProjectDetailsChange = useCallback((field: keyof Project, value: string | ProjectStatus) => {
     if (isReadOnly) return;
     const oldValue = project[field] || '""';
     // Avoid logging history for identical values
@@ -179,7 +179,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
     const updatedProject = { ...project, [field]: value };
     onUpdateProject(addHistoryEntry(updatedProject, historyMessage));
   }, [project, onUpdateProject, isReadOnly]);
-  
+
   const renderActiveView = () => {
     switch (activeView) {
       case 'Project Cockpit':
@@ -246,69 +246,69 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
 
   return (
     <div className="flex-1 flex flex-col h-full">
-        <div className="flex items-center justify-end p-2 border-b border-gray-700/50 bg-gray-900/20 space-x-2 flex-shrink-0">
-            <button
-              onClick={() => setIsGeminiModalOpen(true)}
-              disabled={isReadOnly}
-              className="flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md text-xs font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Generate threats and attack steps using AI"
-            >
-              <SparklesIcon className="w-4 h-4 mr-2" />
-              Generate with AI
-            </button>
+      <div className="flex items-center justify-end p-2 border-b border-gray-700/50 bg-gray-900/20 space-x-2 flex-shrink-0">
+        <button
+          onClick={() => setIsGeminiModalOpen(true)}
+          disabled={isReadOnly}
+          className="flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md text-xs font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Generate threats and attack steps using AI"
+        >
+          <SparklesIcon className="w-4 h-4 mr-2" />
+          Generate with AI
+        </button>
 
-            <label className={`flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-              <UploadIcon className="w-4 h-4 mr-2" />
-              Import Needs
-              <input
-                type="file"
-                className="hidden"
-                accept=".json"
-                onChange={handleNeedsImport}
-                disabled={isReadOnly}
-              />
-            </label>
+        <label className={`flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+          <UploadIcon className="w-4 h-4 mr-2" />
+          Import Needs
+          <input
+            type="file"
+            className="hidden"
+            accept=".json"
+            onChange={handleNeedsImport}
+            disabled={isReadOnly}
+          />
+        </label>
 
-            <button
-              onClick={handleNeedsExport}
-              className="flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition-colors"
-              title="Export project data to needs.json"
-            >
-              <DownloadIcon className="w-4 h-4 mr-2" />
-              Export Needs
-            </button>
+        <button
+          onClick={handleNeedsExport}
+          className="flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition-colors"
+          title="Export project data to needs.json"
+        >
+          <DownloadIcon className="w-4 h-4 mr-2" />
+          Export Needs
+        </button>
 
-            <div className="h-5 w-px bg-gray-600 mx-1"></div>
+        <div className="h-5 w-px bg-gray-600 mx-1"></div>
 
-            <label className={`flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-md text-xs font-medium hover:bg-teal-500 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-              <UploadIcon className="w-4 h-4 mr-2" />
-              Import Project
-              <input
-                type="file"
-                className="hidden"
-                accept=".json"
-                onChange={handleProjectImport}
-                disabled={isReadOnly}
-              />
-            </label>
+        <label className={`flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-md text-xs font-medium hover:bg-teal-500 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+          <UploadIcon className="w-4 h-4 mr-2" />
+          Import Project
+          <input
+            type="file"
+            className="hidden"
+            accept=".json"
+            onChange={handleProjectImport}
+            disabled={isReadOnly}
+          />
+        </label>
 
-            <button
-              onClick={handleProjectExport}
-              className="flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-md text-xs font-medium hover:bg-teal-500 transition-colors"
-              title="Export entire project to a single JSON file"
-            >
-              <DownloadIcon className="w-4 h-4 mr-2" />
-              Export Project
-            </button>
-        </div>
-        <div className="flex-1 flex overflow-hidden">
-          <ProjectSidebar activeView={activeView} onSelectView={setActiveView} />
-          <main className="flex-1 flex flex-col overflow-y-auto">
-            {renderActiveView()}
-          </main>
-        </div>
-        
-       {isGeminiModalOpen && (
+        <button
+          onClick={handleProjectExport}
+          className="flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-md text-xs font-medium hover:bg-teal-500 transition-colors"
+          title="Export entire project to a single JSON file"
+        >
+          <DownloadIcon className="w-4 h-4 mr-2" />
+          Export Project
+        </button>
+      </div>
+      <div className="flex-1 flex overflow-hidden">
+        <ProjectSidebar activeView={activeView} onSelectView={setActiveView} />
+        <main className="flex-1 flex flex-col overflow-y-auto">
+          {renderActiveView()}
+        </main>
+      </div>
+
+      {isGeminiModalOpen && (
         <GeminiThreatModal
           onClose={() => setIsGeminiModalOpen(false)}
           onGenerated={handleThreatsGenerated}

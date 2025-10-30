@@ -24,11 +24,11 @@ export enum NeedStatus {
 }
 
 export enum ProjectStatus {
-    IN_PROGRESS = 'In Progress',
-    IN_REVIEW = 'In Review',
-    IN_VETO = 'In Veto',
-    READY_FOR_RELEASE = 'Ready for Release',
-    RELEASED = 'Released',
+  IN_PROGRESS = 'In Progress',
+  IN_REVIEW = 'In Review',
+  IN_VETO = 'In Veto',
+  READY_FOR_RELEASE = 'Ready for Release',
+  RELEASED = 'Released',
 }
 
 export enum SecurityProperty {
@@ -96,7 +96,7 @@ export interface SphinxNeed {
   securityControlId?: string;
   // For graphical editor position
   position?: { x: number; y: number };
-  [key:string]: any; // Allow other custom fields
+  [key: string]: unknown; // Allow other custom fields
 }
 
 export interface Assumption {
@@ -196,7 +196,7 @@ export interface SecurityGoal {
 
 export interface SecurityClaim {
   id: string;
-  name:string;
+  name: string;
   responsible: string;
   assumptionIds: string[];
   comment: string; // rst

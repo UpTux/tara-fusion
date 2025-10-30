@@ -7,7 +7,7 @@ const impactScoreMap: Record<Impact, number> = {
     [Impact.SEVERE]: 4,
 };
 
-const feasibilityScoreMap: Record<AttackFeasibilityRating, number> = {
+const _feasibilityScoreMap: Record<AttackFeasibilityRating, number> = {
     [AttackFeasibilityRating.VERY_LOW]: 1,
     [AttackFeasibilityRating.LOW]: 2,
     [AttackFeasibilityRating.MEDIUM]: 3,

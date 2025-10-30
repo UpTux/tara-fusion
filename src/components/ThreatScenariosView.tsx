@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Project, ThreatScenario, AttackFeasibilityRating, RiskLevel, AttackPotentialTuple } from '../types';
+import { Project, ThreatScenario, AttackPotentialTuple } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
