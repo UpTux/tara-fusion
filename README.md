@@ -141,6 +141,30 @@ The built files will be in the `dist/` directory.
 npm run preview
 ```
 
+### Code Quality
+
+**Linting**
+
+Run ESLint to check for code issues:
+
+```bash
+npm run lint
+```
+
+Automatically fix linting issues:
+
+```bash
+npm run lint:fix
+```
+
+**Type Checking**
+
+Run TypeScript type checking:
+
+```bash
+npm run type-check
+```
+
 ---
 
 ## 📖 Usage Guide

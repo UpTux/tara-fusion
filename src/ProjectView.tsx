@@ -141,7 +141,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
     }
 
     const originalNeed = project.needs.find(n => n.id === updatedNeed.id);
-    let changes: string[] = [];
+    const changes: string[] = [];
     if (originalNeed) {
         (Object.keys(updatedNeed) as Array<keyof SphinxNeed>).forEach(key => {
             if (JSON.stringify(originalNeed[key]) !== JSON.stringify(updatedNeed[key])) {

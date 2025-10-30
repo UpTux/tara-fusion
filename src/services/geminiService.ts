@@ -1,14 +1,12 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { SphinxNeed, NeedType, NeedStatus } from "../types";
+import { NeedStatus, NeedType, SphinxNeed } from "../types";
 
-// This check is to prevent errors in environments where process.env is not defined.
-const apiKey = typeof process !== 'undefined' && process.env && process.env.API_KEY
-  ? process.env.API_KEY
-  : undefined;
+// Use Vite's import.meta.env for environment variables
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 if (!apiKey) {
-    console.warn("API_KEY environment variable not set. Gemini API calls will fail.");
+    console.warn("VITE_GEMINI_API_KEY environment variable not set. Gemini API calls will fail.");
 }
 
 const ai = new GoogleGenAI({ apiKey: apiKey || "MISSING_API_KEY" });
@@ -18,20 +16,20 @@ const threatSchema = {
     items: {
         type: Type.OBJECT,
         properties: {
-            id: { 
-                type: Type.STRING, 
+            id: {
+                type: Type.STRING,
                 description: 'A unique identifier, e.g., ATT_101'
             },
-            type: { 
+            type: {
                 type: Type.STRING,
                 enum: [NeedType.ATTACK],
                 description: 'The type of the element. Must be "attack".'
             },
-            title: { 
+            title: {
                 type: Type.STRING,
                 description: 'A concise title for the attack step.'
             },
-            description: { 
+            description: {
                 type: Type.STRING,
                 description: 'A detailed description of the attack step.'
             },
@@ -49,7 +47,7 @@ export async function suggestThreats(systemDescription: string): Promise<SphinxN
     if (!apiKey) {
         throw new Error("Gemini API key is not configured.");
     }
-  
+
     const prompt = `
         You are a world-class cybersecurity expert specializing in Threat Analysis and Risk Assessment (TARA).
         Based on the following system description, generate a realistic attack tree.

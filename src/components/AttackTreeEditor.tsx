@@ -427,7 +427,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
       markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#818cf8' },
     }, eds));
 
-    let updatedNeeds = [...project.needs];
+    const updatedNeeds = [...project.needs];
     const sourceNeedIndex = updatedNeeds.findIndex(n => n.id === params.source);
     if (sourceNeedIndex !== -1) {
         const sourceNeedToUpdate = { ...updatedNeeds[sourceNeedIndex] };
