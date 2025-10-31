@@ -68,7 +68,7 @@ const apConfig: { [key in keyof AttackPotentialTuple]: { icon: React.FC<any>, op
 const ApEditor: React.FC<{ potential?: AttackPotentialTuple, onUpdate: (field: keyof AttackPotentialTuple, value: string) => void, isReadOnly: boolean }> = ({ potential, onUpdate, isReadOnly }) => {
     if (!potential) return null;
     // FIX: Explicitly cast `val` to Number to prevent type error when summing.
-    const totalAp = Object.values(potential).reduce((sum, val) => sum + Number(val || 0), 0);
+    const totalAp = Object.values(potential).reduce((sum: number, val) => sum + Number(val || 0), 0);
 
     return (
         <div className="mt-2 pt-2 border-t border-gray-600/50 nodrag">
