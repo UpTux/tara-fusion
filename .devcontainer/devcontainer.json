@@ -1,0 +1,29 @@
+{
+    "name": "tara-fusion-dev-container",
+    "image": "mcr.microsoft.com/devcontainers/typescript-node:dev-24-bullseye",
+    "customizations": {
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "ms-vscode.vscode-typescript-next",
+                "msjsdiag.debugger-for-chrome",
+                "msjsdiag.debugger-for-edge",
+                "bradlc.vscode-tailwindcss",
+                "formulahendry.auto-rename-tag",
+                "christian-kohler.path-intellisense",
+                "naumovs.color-highlight",
+                "usernamehw.errorlens",
+                "streetsidesoftware.code-spell-checker"
+            ]
+        }
+    },
+    "portsAttributes": {
+        "3000": {
+            "label": "Tara Fusion App",
+            "onAutoForward": "notify"
+        }
+    },
+    "postCreateCommand": "cd src && npm install"
+}
