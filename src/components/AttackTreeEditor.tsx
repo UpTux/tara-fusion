@@ -17,7 +17,7 @@ import ReactFlow, {
     ReactFlowProvider,
     useReactFlow,
 } from 'reactflow';
-import { calculateAttackTreeMetrics, traceCriticalPaths } from '../services/attackTreeService';
+import { calculateAttackTreeMetrics, calculateNodeMetrics, traceCriticalPaths } from '../services/attackTreeService';
 import { accessOptions, equipmentOptions, expertiseOptions, knowledgeOptions, timeOptions } from '../services/feasibilityOptions';
 import { getAttackFeasibilityRating, getFeasibilityRatingColor } from '../services/riskService';
 import { AttackFeasibilityRating, AttackPotentialTuple, NeedStatus, NeedType, Project, SphinxNeed } from '../types';
@@ -99,9 +99,17 @@ const ApEditor: React.FC<{ potential?: AttackPotentialTuple, onUpdate: (field: k
     );
 };
 
-const CustomNode: React.FC<{ data: SphinxNeed, selected: boolean, isCritical: boolean, onUpdateNeed: (need: SphinxNeed) => void, isReadOnly: boolean }> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly }) => {
+const CustomNode: React.FC<{
+    data: SphinxNeed,
+    selected: boolean,
+    isCritical: boolean,
+    onUpdateNeed: (need: SphinxNeed) => void,
+    isReadOnly: boolean,
+    project: Project
+}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project }) => {
     const isRoot = data.tags.includes('attack-root') || data.tags.includes('circumvent-root');
     const isLeaf = data.type === NeedType.ATTACK && !data.logic_gate && !isRoot;
+    const isIntermediate = data.type === NeedType.ATTACK && !isLeaf && !isRoot;
 
     const handlePotentialChange = (field: keyof AttackPotentialTuple, value: string) => {
         if (isReadOnly) return;
@@ -112,6 +120,14 @@ const CustomNode: React.FC<{ data: SphinxNeed, selected: boolean, isCritical: bo
         };
         onUpdateNeed({ ...data, attackPotential: newPotential });
     };
+
+    // Calculate metrics for intermediate and root nodes
+    const calculatedMetrics = useMemo(() => {
+        if (isIntermediate || isRoot) {
+            return calculateNodeMetrics(data.id, project.needs, project.toeConfigurations);
+        }
+        return null;
+    }, [data.id, data.links, project.needs, project.toeConfigurations, isIntermediate, isRoot]);
 
     return (
         <>
@@ -126,7 +142,7 @@ const CustomNode: React.FC<{ data: SphinxNeed, selected: boolean, isCritical: bo
             <div className={`
                 ${getNodeColor(data)}
                 rounded-lg p-3 w-64 text-white shadow-xl
-                border-2 transition-all relative
+                border-2 transition-all relative cursor-pointer
                 ${selected ? 'ring-4 ring-offset-2 ring-offset-gray-800 ring-indigo-500' : ''}
                 ${isLeaf ? 'border-dashed' : ''}
                 ${isCritical ? 'border-red-400 shadow-red-500/30' : ''}
@@ -139,7 +155,54 @@ const CustomNode: React.FC<{ data: SphinxNeed, selected: boolean, isCritical: bo
                 )}
                 <div className="font-bold text-sm truncate">{data.id}</div>
                 <div className="text-xs text-gray-300 uppercase font-mono tracking-wider mb-2">{data.type}</div>
-                <div className="text-sm">{data.title}</div>
+                <div className="text-sm mb-2">{data.title}</div>
+
+                {/* Calculated metrics for intermediate and root nodes */}
+                {(isIntermediate || isRoot) && calculatedMetrics && calculatedMetrics.hasSubtree && (
+                    <div className="mt-2 pt-2 border-t border-gray-600/50 nodrag">
+                        <div className="flex items-center justify-between text-xs mb-2">
+                            <div className="flex items-center space-x-2">
+                                <span className="text-gray-400">AP:</span>
+                                <span className="font-bold font-mono text-indigo-300">
+                                    {calculatedMetrics.attackPotential === Infinity ? '∞' : calculatedMetrics.attackPotential}
+                                </span>
+                            </div>
+                            <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${getFeasibilityRatingColor(getAttackFeasibilityRating(calculatedMetrics.attackPotential))}`}>
+                                {getAttackFeasibilityRating(calculatedMetrics.attackPotential)}
+                            </span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                            <div className="text-center" title="Time">
+                                <div className="text-gray-500 text-xs">T</div>
+                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.time}</div>
+                            </div>
+                            <div className="text-center" title="Expertise">
+                                <div className="text-gray-500 text-xs">E</div>
+                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.expertise}</div>
+                            </div>
+                            <div className="text-center" title="Knowledge">
+                                <div className="text-gray-500 text-xs">K</div>
+                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.knowledge}</div>
+                            </div>
+                            <div className="text-center" title="Access">
+                                <div className="text-gray-500 text-xs">A</div>
+                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.access}</div>
+                            </div>
+                            <div className="text-center" title="Equipment">
+                                <div className="text-gray-500 text-xs">Eq</div>
+                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.equipment}</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* No paths message for nodes without subtrees */}
+                {(isIntermediate || isRoot) && calculatedMetrics && !calculatedMetrics.hasSubtree && (
+                    <div className="mt-2 pt-2 border-t border-gray-600/50 text-center">
+                        <div className="text-xs text-gray-500">No attack paths</div>
+                    </div>
+                )}
+
                 {isLeaf && <ApEditor potential={data.attackPotential} onUpdate={handlePotentialChange} isReadOnly={isReadOnly} />}
             </div>
             <Handle
@@ -303,8 +366,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     }, [selectedTreeRootId, project.needs, project.toeConfigurations]);
 
     const memoizedNodeTypes = useMemo(() => ({
-        custom: (props: any) => <CustomNode {...props} isCritical={criticalNodeIds.has(props.data.id)} onUpdateNeed={onUpdateNeed} isReadOnly={isReadOnly} />
-    }), [criticalNodeIds, onUpdateNeed, isReadOnly]);
+        custom: (props: any) => <CustomNode {...props} isCritical={criticalNodeIds.has(props.data.id)} onUpdateNeed={onUpdateNeed} isReadOnly={isReadOnly} project={project} />
+    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project]);
 
     useEffect(() => {
         if (!selectedTreeRootId) {
@@ -590,7 +653,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 fitView
                 nodesDraggable={!isReadOnly}
                 nodesConnectable={!isReadOnly}
-                elementsSelectable={!isReadOnly}
+                elementsSelectable={true}
                 panOnDrag={!isReadOnly}
             >
                 <Controls />

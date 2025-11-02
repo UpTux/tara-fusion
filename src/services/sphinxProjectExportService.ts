@@ -3,9 +3,9 @@ import { AttackPotentialTuple, NeedType, Project, RiskTreatmentDecision } from '
 import { calculateAP, calculateHighestImpact, calculateRiskLevel, getAttackFeasibilityRating } from './riskService';
 
 // Import template files
-import pyprojectTomlTemplate from './templates/pyproject.toml.template?raw';
 import confPyTemplate from './templates/conf.py.template?raw';
 import indexRstTemplate from './templates/index.rst.template?raw';
+import pyprojectTomlTemplate from './templates/pyproject.toml.template?raw';
 
 const rstHeader = (title: string, level: number): string => {
     const underlines = ['=', '-', '`', ':', '.', "'", '"', '~', '^', '_', '*', '+', '#', '<', '>'];

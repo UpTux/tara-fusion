@@ -167,3 +167,75 @@ export function traceCriticalPaths(rootId: string, criticalLeafSets: string[][],
   }
   return allCriticalNodes;
 }
+
+/**
+ * Calculate attack metrics for a single node (intermediate or root)
+ */
+export function calculateNodeMetrics(nodeId: string, allNeeds: SphinxNeed[], toeConfigurations: ToeConfiguration[] = []): {
+  attackPotential: number;
+  attackPotentialTuple: AttackPotentialTuple;
+  hasSubtree: boolean;
+} | null {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const node = needsMap.get(nodeId);
+
+  if (!node || node.type !== NeedType.ATTACK) {
+    return null;
+  }
+
+  const activeToeConfigs = new Set(
+    (toeConfigurations || []).filter(c => c.active).map(c => c.id)
+  );
+
+  // Check if this node has any attack paths
+  const memo = new Map<string, string[][]>();
+  const attackPaths = findAttackPathsRecursive(nodeId, needsMap, memo, activeToeConfigs);
+
+  if (attackPaths.length === 0) {
+    return {
+      attackPotential: Infinity,
+      attackPotentialTuple: { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 },
+      hasSubtree: false
+    };
+  }
+
+  // Calculate the minimum AP and the corresponding attack potential tuple
+  let minAP = Infinity;
+  let minAPTuple: AttackPotentialTuple = { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 };
+
+  for (const path of attackPaths) {
+    const uniqueLeaves = [...new Set(path)];
+    const leafNodes = uniqueLeaves.map(id => needsMap.get(id)).filter((n): n is SphinxNeed => n !== undefined);
+
+    // Calculate the max tuple for this path (AND logic across leaves)
+    const pathTuple: AttackPotentialTuple = {
+      time: 0,
+      expertise: 0,
+      knowledge: 0,
+      access: 0,
+      equipment: 0,
+    };
+
+    for (const leaf of leafNodes) {
+      if (leaf.attackPotential) {
+        pathTuple.time = Math.max(pathTuple.time, leaf.attackPotential.time);
+        pathTuple.expertise = Math.max(pathTuple.expertise, leaf.attackPotential.expertise);
+        pathTuple.knowledge = Math.max(pathTuple.knowledge, leaf.attackPotential.knowledge);
+        pathTuple.access = Math.max(pathTuple.access, leaf.attackPotential.access);
+        pathTuple.equipment = Math.max(pathTuple.equipment, leaf.attackPotential.equipment);
+      }
+    }
+
+    const pathAP = calculateAP(pathTuple);
+    if (pathAP < minAP) {
+      minAP = pathAP;
+      minAPTuple = pathTuple;
+    }
+  }
+
+  return {
+    attackPotential: minAP,
+    attackPotentialTuple: minAPTuple,
+    hasSubtree: true
+  };
+}
