@@ -7,31 +7,36 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
     "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives",
     "lint:ci": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "reactflow": "^11.11.4",
-    "react-dom": "^19.2.0",
     "@google/genai": "^1.27.0",
+    "html-to-image": "^1.11.11",
     "jszip": "^3.10.1",
-    "html-to-image": "^1.11.11"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0",
     "@eslint/js": "^9.0.0",
+    "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/ui": "^4.0.7",
     "eslint": "^9.0.0",
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.9",
-    "globals": "^15.0.0"
+    "globals": "^15.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0",
+    "vitest": "^4.0.7"
   }
 }
