@@ -132,6 +132,8 @@ export interface Asset {
   description: string;
   toeConfigurationIds: string[];
   comment: string;
+  source?: 'manual' | 'emb3d'; // Track where the asset came from
+  emb3dPropertyId?: string; // Reference to the MITRE Emb3d device property ID
 }
 
 export interface DamageScenario {
@@ -156,6 +158,8 @@ export interface Threat {
   misuseCaseIds?: string[];
   initialAFR: AttackFeasibilityRating | 'TBD'; // Computed
   residualAFR: AttackFeasibilityRating | 'TBD'; // Computed
+  source?: 'manual' | 'emb3d' | 'ai-generated'; // Track the origin of the threat
+  emb3dThreatId?: string; // Reference to MITRE Emb3d Threat ID (e.g., TID-101)
 }
 
 export enum RiskTreatmentDecision {

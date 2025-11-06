@@ -2,7 +2,12 @@
 
 
 import React, { useEffect, useRef, useState } from 'react';
-import { convertEmb3dAssetsToTaraAssets, getEmb3dAssets } from '../services/emb3dService';
+import {
+  convertEmb3dAssetsToTaraAssets,
+  convertEmb3dThreatsToTaraThreats,
+  getEmb3dAssets,
+  type Emb3dAsset
+} from '../services/emb3dService';
 import { generateThreatName } from '../services/threatGenerator';
 import { Asset, NeedStatus, NeedType, Project, SecurityProperty, SphinxNeed, Threat } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
@@ -252,7 +257,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
     }
   };
 
-  const handleEmb3dImport = (selectedEmb3dAssets: any[]) => {
+  const handleEmb3dImport = (selectedEmb3dAssets: Emb3dAsset[]) => {
     if (isReadOnly) return;
 
     const existingAssets = project.assets || [];
@@ -262,41 +267,31 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
     let updatedThreats = [...(project.threats || [])];
     let updatedNeeds = [...(project.needs || [])];
 
-    const allThreatsAndNeedsIds = new Set([...updatedThreats.map(t => t.id), ...updatedNeeds.map(n => n.id)]);
-    let threatCounter = (project.threats?.length || 0) + 1;
+    let totalNewThreats = 0;
 
-    convertedAssets.forEach(asset => {
-      asset.securityProperties.forEach(prop => {
-        let newId = `THR_${String(threatCounter).padStart(3, '0')}`;
-        while (allThreatsAndNeedsIds.has(newId)) {
-          threatCounter++;
-          newId = `THR_${String(threatCounter).padStart(3, '0')}`;
-        }
-        allThreatsAndNeedsIds.add(newId);
+    // For each imported Emb3d asset, convert its threats from the catalog
+    convertedAssets.forEach((asset, index) => {
+      const emb3dAsset = selectedEmb3dAssets[index];
 
-        const threatName = generateThreatName(prop, asset.name);
+      // Convert Emb3d threats to TARA threats with proper traceability
+      const newThreats = convertEmb3dThreatsToTaraThreats(
+        emb3dAsset,
+        asset.id,
+        updatedThreats
+      );
 
-        const newThreat: Threat = {
-          id: newId,
-          name: threatName,
-          assetId: asset.id,
-          securityProperty: prop,
-          scales: false,
-          initialAFR: 'TBD',
-          residualAFR: 'TBD',
-          reasoningScaling: '',
-          comment: '',
-          damageScenarioIds: []
-        };
-        updatedThreats.push(newThreat);
+      totalNewThreats += newThreats.length;
+      updatedThreats = [...updatedThreats, ...newThreats];
 
+      // Create corresponding SphinxNeed objects for each threat
+      newThreats.forEach(threat => {
         const newNeed: SphinxNeed = {
-          id: newId,
+          id: threat.id,
           type: NeedType.ATTACK,
-          title: threatName,
-          description: `Attack targeting the ${prop} of asset '${asset.name}'.`,
+          title: threat.name,
+          description: `Attack targeting the ${threat.securityProperty} of asset '${asset.name}'. Source: MITRE Emb3d threat ${threat.emb3dThreatId || 'unknown'}.`,
           status: NeedStatus.OPEN,
-          tags: ['threat', 'attack-root'],
+          tags: ['threat', 'attack-root', 'emb3d'],
           links: [],
           position: { x: Math.random() * 100, y: Math.random() * 800 }
         };
@@ -304,7 +299,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
       });
     });
 
-    const historyMessage = `Imported ${convertedAssets.length} assets from MITRE Emb3d with ${updatedThreats.length - (project.threats?.length || 0)} associated threats.`;
+    const historyMessage = `Imported ${convertedAssets.length} assets from MITRE Emb3d with ${totalNewThreats} associated threats from the Emb3d threat catalog.`;
 
     onUpdateProject(addHistoryEntry({
       ...project,
