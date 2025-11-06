@@ -1,0 +1,705 @@
+[
+    {
+        "Device Property ID": "PID-11",
+        "Device Property Description": "Device includes a microprocessor",
+        "asset": "Microprocessor",
+        "threats": [
+            {
+                "Threat ID": "TID-101",
+                "Threat Description": "Power Consumption Analysis Side Channel"
+            },
+            {
+                "Threat ID": "TID-102",
+                "Threat Description": "Electromagnetic Analysis Side Channel"
+            },
+            {
+                "Threat ID": "TID-103",
+                "Threat Description": "Microarchitectural Side Channels"
+            },
+            {
+                "Threat ID": "TID-105",
+                "Threat Description": "Hardware Fault Injection – Control Flow Modification"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-121",
+        "Device Property Description": "Device includes buses for external memory/storage",
+        "asset": "External Memory/Storage Bus",
+        "threats": [
+            {
+                "Threat ID": "TID-106",
+                "Threat Description": "Data Bus Interception"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-122",
+        "Device Property Description": "Device includes discrete chips/devices that have access to the same physical memory",
+        "asset": "Physical Memory",
+        "threats": [
+            {
+                "Threat ID": "TID-107",
+                "Threat Description": "Unauthorized Direct Memory Access (DMA)"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-123",
+        "Device Property Description": "Device includes ROM, VRAM, or removable Storage",
+        "asset": "ROM/NVRAM/Storage Data",
+        "threats": [
+            {
+                "Threat ID": "TID-108",
+                "Threat Description": "ROM/NVRAM Data Extraction or Modification"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-124",
+        "Device Property Description": "Device includes Random Access Memory (RAM) chips",
+        "asset": "RAM Data",
+        "threats": [
+            {
+                "Threat ID": "TID-109",
+                "Threat Description": "RAM Chip Contents Readout"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-1241",
+        "Device Property Description": "Device includes DDR DRAM",
+        "asset": "DDR DRAM Data",
+        "threats": [
+            {
+                "Threat ID": "TID-110",
+                "Threat Description": "Hardware Fault Injection – Data Manipulation"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-13",
+        "Device Property Description": "Device includes peripheral chips and integrated data buses",
+        "asset": "Peripheral Firmware and Data",
+        "threats": [
+            {
+                "Threat ID": "TID-113",
+                "Threat Description": "Unverified Peripheral Firmware Loaded"
+            },
+            {
+                "Threat ID": "TID-114",
+                "Threat Description": "Peripheral Data Bus Interception"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-14",
+        "Device Property Description": "Device includes external peripheral interconnects (e.g., USB, Serial)",
+        "asset": "External Peripheral Interface",
+        "threats": [
+            {
+                "Threat ID": "TID-111",
+                "Threat Description": "Untrusted External Storage"
+            },
+            {
+                "Threat ID": "TID-118",
+                "Threat Description": "Weak Peripheral Port Electrical Damage Protection"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-15",
+        "Device Property Description": "Device includes a hardware access port (e.g., UART, JTAG)",
+        "asset": "Hardware Debug Port",
+        "threats": [
+            {
+                "Threat ID": "TID-115",
+                "Threat Description": "Firmware/Data Extraction via Hardware Interface"
+            },
+            {
+                "Threat ID": "TID-116",
+                "Threat Description": "Latent Privileged Access Port"
+            },
+            {
+                "Threat ID": "TID-119",
+                "Threat Description": "Latent Hardware Debug Port Allows Memory/Code Manipulation"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-21",
+        "Device Property Description": "Device includes a bootloader",
+        "asset": "Bootloader",
+        "threats": [
+            {
+                "Threat ID": "TID-201",
+                "Threat Description": "Inadequate Bootloader Protection and Verification"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-22",
+        "Device Property Description": "Device includes a debugging capabilities",
+        "asset": "Debug Interface",
+        "threats": [
+            {
+                "Threat ID": "TID-224",
+                "Threat Description": "Excessive Access via Software Diagnostic Features"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-23",
+        "Device Property Description": "Device includes OS/kernel",
+        "asset": "Operating System",
+        "threats": [
+            {
+                "Threat ID": "TID-202",
+                "Threat Description": "Exploitable System Network Stack Component"
+            },
+            {
+                "Threat ID": "TID-218",
+                "Threat Description": "Operating System Susceptible to Rootkit"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-231",
+        "Device Property Description": "Device includes an operating system that uses drivers/modules that can be loaded",
+        "asset": "OS Kernel Drivers/Modules",
+        "threats": [
+            {
+                "Threat ID": "TID-203",
+                "Threat Description": "Malicious OS Kernel Driver/Module Installable"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-2321",
+        "Device Property Description": "Device lacks an access enforcement/privilege mechanism",
+        "asset": "System Access Control",
+        "threats": [
+            {
+                "Threat ID": "TID-204",
+                "Threat Description": "Untrusted Programs Can Access Privileged OS Functions"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-23221",
+        "Device Property Description": "Device includes and enforces OS user accounts",
+        "asset": "User Account System",
+        "threats": [
+            {
+                "Threat ID": "TID-205",
+                "Threat Description": "Existing OS Tools Maliciously Used for Device Manipulation"
+            },
+            {
+                "Threat ID": "TID-219",
+                "Threat Description": "OS/Kernel Privilege Escalation"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-23222",
+        "Device Property Description": "Device includes a memory management model, including protections of memory access (read-only/, executable, writable)",
+        "asset": "Memory Management Unit",
+        "threats": [
+            {
+                "Threat ID": "TID-206",
+                "Threat Description": "Memory Management Protections Subverted"
+            },
+            {
+                "Threat ID": "TID-223",
+                "Threat Description": "System Susceptible to RAM Scraping"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-241",
+        "Device Property Description": "Device includes containers",
+        "asset": "Container Runtime",
+        "threats": [
+            {
+                "Threat ID": "TID-207",
+                "Threat Description": "Container Escape"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-242",
+        "Device Property Description": "Device includes hypervisor",
+        "asset": "Hypervisor",
+        "threats": [
+            {
+                "Threat ID": "TID-208",
+                "Threat Description": "Virtual Machine Escape"
+            },
+            {
+                "Threat ID": "TID-209",
+                "Threat Description": "Host Can Manipulate Guest Virtual Machines"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-251",
+        "Device Property Description": "Root of Trust is physically accessible or is not immutable",
+        "asset": "Root of Trust",
+        "threats": [
+            {
+                "Threat ID": "TID-214",
+                "Threat Description": "Secrets Extracted from Device Root of Trust"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-252",
+        "Device Property Description": "Root of Trust is immutable",
+        "asset": "Immutable Root of Trust",
+        "threats": [
+            {
+                "Threat ID": "TID-220",
+                "Threat Description": "Unpatchable Hardware Root of Trust"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-26",
+        "Device Property Description": "Device lacks firmware/software update support",
+        "asset": "Firmware Update Capability",
+        "threats": [
+            {
+                "Threat ID": "TID-210",
+                "Threat Description": "Device Vulnerabilities Unpatchable"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-271",
+        "Device Property Description": "Device has firmware or software that is not cryptographically checked for integrity validation",
+        "asset": "Firmware/Software Integrity",
+        "threats": [
+            {
+                "Threat ID": "TID-211",
+                "Threat Description": "Device Allows Unauthenticated Firmware Installation"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-272",
+        "Device Property Description": "Device includes cryptographic firmware/software integrity protection mechanisms",
+        "asset": "Cryptographic Integrity Protection",
+        "threats": [
+            {
+                "Threat ID": "TID-214",
+                "Threat Description": "Secrets Extracted from Device Root of Trust"
+            },
+            {
+                "Threat ID": "TID-330",
+                "Threat Description": "Cryptographic Timing Side-Channel"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-2721",
+        "Device Property Description": "Device includes a shared key for firmware integrity validation",
+        "asset": "Firmware Validation Shared Key",
+        "threats": [
+            {
+                "Threat ID": "TID-212",
+                "Threat Description": "FW/SW Update Integrity Shared Secrets Extraction"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-2722",
+        "Device Property Description": "Device includes digitally signed firmware (with private key)",
+        "asset": "Firmware Digital Signature",
+        "threats": [
+            {
+                "Threat ID": "TID-213",
+                "Threat Description": "Faulty FW/SW Update Integrity Verification"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-273",
+        "Device Property Description": "Device has unencrypted firmware updates",
+        "asset": "Firmware Update Content",
+        "threats": [
+            {
+                "Threat ID": "TID-215",
+                "Threat Description": "Unencrypted SW/FW Updates"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-274",
+        "Device Property Description": "Device includes user firmware/software version selection during updates",
+        "asset": "Firmware Version Control",
+        "threats": [
+            {
+                "Threat ID": "TID-216",
+                "Threat Description": "Firmware Update Rollbacks Allowed"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-275",
+        "Device Property Description": "Device includes remotely-initiated firmware/software updates",
+        "asset": "Remote Update Mechanism",
+        "threats": [
+            {
+                "Threat ID": "TID-217",
+                "Threat Description": "Remotely Initiated Updates Can Cause DoS"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-28",
+        "Device Property Description": "Device stores logs of system events and information",
+        "asset": "System Event Logs",
+        "threats": [
+            {
+                "Threat ID": "TID-225",
+                "Threat Description": "Logs can be manipulated on the device"
+            },
+            {
+                "Threat ID": "TID-226",
+                "Threat Description": "Device leaks security information in logs"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-31",
+        "Device Property Description": "Application-level software is present and running on the device",
+        "asset": "Application Software",
+        "threats": [
+            {
+                "Threat ID": "TID-301",
+                "Threat Description": "Applications Binaries Modified"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-311",
+        "Device Property Description": "Device includes the usage of a web/HTTP applications",
+        "asset": "Web/HTTP Application",
+        "threats": [
+            {
+                "Threat ID": "TID-319",
+                "Threat Description": "Cross Site Scripting (XSS)"
+            },
+            {
+                "Threat ID": "TID-320",
+                "Threat Description": "SQL Injection"
+            },
+            {
+                "Threat ID": "TID-321",
+                "Threat Description": "HTTP Application Session Hijacking"
+            },
+            {
+                "Threat ID": "TID-322",
+                "Threat Description": "Cross Site Request Forgery (CSRF)"
+            },
+            {
+                "Threat ID": "TID-323",
+                "Threat Description": "Path Traversal"
+            },
+            {
+                "Threat ID": "TID-324",
+                "Threat Description": "HTTP Direct Object Reference"
+            },
+            {
+                "Threat ID": "TID-325",
+                "Threat Description": "HTTP Injection/Response Splitting"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-3121",
+        "Device Property Description": "Device includes application software that is written using Python",
+        "asset": "Python Application",
+        "threats": [
+            {
+                "Threat ID": "TID-326",
+                "Threat Description": "Insecure Deserialization"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-3122",
+        "Device Property Description": "Device includes application software that is written using a compiled programming language (e.g., C/C++)",
+        "asset": "Compiled Application",
+        "threats": [
+            {
+                "Threat ID": "TID-327",
+                "Threat Description": "Out of Bounds Memory Access"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-32",
+        "Device Property Description": "Device includes the ability to deploy custom or external programs (e.g., ladder logic, compiled binaries)",
+        "asset": "Custom Program Deployment",
+        "threats": [
+            {
+                "Threat ID": "TID-302",
+                "Threat Description": "Install Untrusted Application"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-321",
+        "Device Property Description": "Device includes ability to deploy custom programs from engineering software or IDE",
+        "asset": "IDE Program Deployment",
+        "threats": [
+            {
+                "Threat ID": "TID-303",
+                "Threat Description": "Excessive Trust in Offboard Management/IDE Software"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-322",
+        "Device Property Description": "Device includes a program runtime environment for custom or external programs",
+        "asset": "Program Runtime Environment",
+        "threats": [
+            {
+                "Threat ID": "TID-304",
+                "Threat Description": "Manipulate Runtime Environment"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-3231",
+        "Device Property Description": "Device includes ability to run custom/external programs as native binary without a confined/restricted environment",
+        "asset": "Native Binary Execution",
+        "threats": [
+            {
+                "Threat ID": "TID-305",
+                "Threat Description": "Program Executes Dangerous System Calls"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-3232",
+        "Device Property Description": "Device includes ability to run custom/external programs/processes through an execution sandboxed environment",
+        "asset": "Sandboxed Execution Environment",
+        "threats": [
+            {
+                "Threat ID": "TID-306",
+                "Threat Description": "Sandboxed Environments Escaped"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-324",
+        "Device Property Description": "Device includes support for \"\"program uploads\"\" to retrieve programs from the device from an engineering workstation",
+        "asset": "Program Upload Capability",
+        "threats": [
+            {
+                "Threat ID": "TID-307",
+                "Threat Description": "Device Code Representations Inconsistent"
+            },
+            {
+                "Threat ID": "TID-308",
+                "Threat Description": "Code Overwritten to Avoid Detection"
+            },
+            {
+                "Threat ID": "TID-309",
+                "Threat Description": "Device Exploits Engineering Workstation"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-331",
+        "Device Property Description": "Device includes unauthenticated services",
+        "asset": "Unauthenticated Services",
+        "threats": [
+            {
+                "Threat ID": "TID-310",
+                "Threat Description": "Remotely Accessible Unauthenticated Services"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-332",
+        "Device Property Description": "Device includes authenticated services",
+        "asset": "Authenticated Services",
+        "threats": [
+            {
+                "Threat ID": "TID-311",
+                "Threat Description": "Default Credentials"
+            },
+            {
+                "Threat ID": "TID-312",
+                "Threat Description": "Credential Change Mechanism Can Be Abused"
+            },
+            {
+                "Threat ID": "TID-313",
+                "Threat Description": "Unauthenticated Session Changes Credential"
+            },
+            {
+                "Threat ID": "TID-328",
+                "Threat Description": "Hardcoded Credentials"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-3321",
+        "Device Property Description": "Device includes passwords to authenticate the users",
+        "asset": "Password Authentication",
+        "threats": [
+            {
+                "Threat ID": "TID-314",
+                "Threat Description": "Passwords Can Be Guessed Using Brute-Force Attempts"
+            },
+            {
+                "Threat ID": "TID-315",
+                "Threat Description": "Password Retrieval Mechanism Abused"
+            },
+            {
+                "Threat ID": "TID-329",
+                "Threat Description": "Improper Password Storage"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-3322",
+        "Device Property Description": "Device includes cryptographic mechanism to authenticate users and sessions",
+        "asset": "Cryptographic Authentication",
+        "threats": [
+            {
+                "Threat ID": "TID-316",
+                "Threat Description": "Incorrect Certificate Verification Allows Authentication Bypass"
+            },
+            {
+                "Threat ID": "TID-317",
+                "Threat Description": "Predictable Cryptographic Key"
+            },
+            {
+                "Threat ID": "TID-318",
+                "Threat Description": "Insecure Cryptographic Implementation"
+            },
+            {
+                "Threat ID": "TID-330",
+                "Threat Description": "Cryptographic Timing Side-Channel"
+            },
+            {
+                "Threat ID": "TID-411",
+                "Threat Description": "Weak/Insecure Cryptographic Protocol"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-34",
+        "Device Property Description": "Device stores logs of application events and information",
+        "asset": "Application Event Logs",
+        "threats": [
+            {
+                "Threat ID": "TID-225",
+                "Threat Description": "Logs can be manipulated on the device"
+            },
+            {
+                "Threat ID": "TID-226",
+                "Threat Description": "Device leaks security information in logs"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-41",
+        "Device Property Description": "Device exposes remote network services",
+        "asset": "Remote Network Services",
+        "threats": [
+            {
+                "Threat ID": "TID-222",
+                "Threat Description": "Critical System Service May Be Disabled"
+            },
+            {
+                "Threat ID": "TID-310",
+                "Threat Description": "Remotely Accessible Unauthenticated Services"
+            },
+            {
+                "Threat ID": "TID-401",
+                "Threat Description": "Undocumented Protocol Features"
+            },
+            {
+                "Threat ID": "TID-404",
+                "Threat Description": "Remotely Triggerable Deadlock/DoS"
+            },
+            {
+                "Threat ID": "TID-405",
+                "Threat Description": "Network Stack Resource Exhaustion"
+            },
+            {
+                "Threat ID": "TID-407",
+                "Threat Description": "Missing Message Replay Protection"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-4111",
+        "Device Property Description": "Device lacks protocol support for message authentication",
+        "asset": "Network Message Authentication",
+        "threats": [
+            {
+                "Threat ID": "TID-406",
+                "Threat Description": "Unauthorized Messages or Connections"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-4112",
+        "Device Property Description": "Device lacks protocol support for message encryption",
+        "asset": "Network Message Encryption",
+        "threats": [
+            {
+                "Threat ID": "TID-408",
+                "Threat Description": "Unencrypted Sensitive Data Communication"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-4113",
+        "Device Property Description": "Device includes cryptographic functions for sensitive data, such as encryption or authentication",
+        "asset": "Network Cryptographic Functions",
+        "threats": [
+            {
+                "Threat ID": "TID-221",
+                "Threat Description": "Authentication Bypass By Message Replay"
+            },
+            {
+                "Threat ID": "TID-316",
+                "Threat Description": "Incorrect Certificate Verification Allows Authentication Bypass"
+            },
+            {
+                "Threat ID": "TID-317",
+                "Threat Description": "Predictable Cryptographic Key"
+            },
+            {
+                "Threat ID": "TID-318",
+                "Threat Description": "Insecure Cryptographic Implementation"
+            },
+            {
+                "Threat ID": "TID-410",
+                "Threat Description": "Cryptographic Protocol Side Channel"
+            },
+            {
+                "Threat ID": "TID-411",
+                "Threat Description": "Weak/Insecure Cryptographic Protocol"
+            }
+        ]
+    },
+    {
+        "Device Property ID": "PID-42",
+        "Device Property Description": "Device includes procedure to forward or route network messages",
+        "asset": "Network Routing Capability",
+        "threats": [
+            {
+                "Threat ID": "TID-412",
+                "Threat Description": "Network Routing Capability Abuse"
+            }
+        ]
+    }
+]
