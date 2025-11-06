@@ -1,12 +1,15 @@
 
 
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Project, Asset, SecurityProperty, Threat, SphinxNeed, NeedType, NeedStatus } from '../types';
+import React, { useEffect, useRef, useState } from 'react';
+import { convertEmb3dAssetsToTaraAssets, getEmb3dAssets } from '../services/emb3dService';
+import { generateThreatName } from '../services/threatGenerator';
+import { Asset, NeedStatus, NeedType, Project, SecurityProperty, SphinxNeed, Threat } from '../types';
+import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { DatabaseIcon } from './icons/DatabaseIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { ChevronDownIcon } from './icons/ChevronDownIcon';
-import { generateThreatName } from '../services/threatGenerator';
+import { Emb3dAssetModal } from './modals/Emb3dAssetModal';
 
 interface AssetsViewProps {
   project: Project;
@@ -15,55 +18,55 @@ interface AssetsViewProps {
 }
 
 const Label: React.FC<{ htmlFor?: string; children: React.ReactNode }> = ({ htmlFor, children }) => (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-400 mb-1">{children}</label>
+  <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-400 mb-1">{children}</label>
 );
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-    <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
 );
 const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
-    <textarea {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <textarea {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
 );
 
-const MultiSelectDropdown: React.FC<{options: string[], selected: string[], onUpdate: (selected: string[]) => void, label: string, disabled?: boolean}> = ({ options, selected, onUpdate, label, disabled = false }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
+const MultiSelectDropdown: React.FC<{ options: string[], selected: string[], onUpdate: (selected: string[]) => void, label: string, disabled?: boolean }> = ({ options, selected, onUpdate, label, disabled = false }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [ref]);
-
-    const handleSelect = (option: string) => {
-        const newSelected = selected.includes(option)
-            ? selected.filter(item => item !== option)
-            : [...selected, option];
-        onUpdate(newSelected);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
     };
-    
-    return (
-        <div className="relative" ref={ref}>
-            <Label>{label}</Label>
-            <button onClick={() => !disabled && setIsOpen(!isOpen)} disabled={disabled} className="w-full flex justify-between items-center px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-left disabled:opacity-50 disabled:cursor-not-allowed">
-                <span>{selected.length > 0 ? `${selected.length} selected` : 'Select...'}</span>
-                <ChevronDownIcon className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {isOpen && (
-                <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                    {options.map(option => (
-                        <label key={option} className="flex items-center px-3 py-2 text-sm text-white hover:bg-indigo-600/20 cursor-pointer">
-                            <input type="checkbox" checked={selected.includes(option)} onChange={() => handleSelect(option)} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500" />
-                            <span className="ml-3">{option}</span>
-                        </label>
-                    ))}
-                </div>
-            )}
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [ref]);
+
+  const handleSelect = (option: string) => {
+    const newSelected = selected.includes(option)
+      ? selected.filter(item => item !== option)
+      : [...selected, option];
+    onUpdate(newSelected);
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <Label>{label}</Label>
+      <button onClick={() => !disabled && setIsOpen(!isOpen)} disabled={disabled} className="w-full flex justify-between items-center px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-left disabled:opacity-50 disabled:cursor-not-allowed">
+        <span>{selected.length > 0 ? `${selected.length} selected` : 'Select...'}</span>
+        <ChevronDownIcon className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {options.map(option => (
+            <label key={option} className="flex items-center px-3 py-2 text-sm text-white hover:bg-indigo-600/20 cursor-pointer">
+              <input type="checkbox" checked={selected.includes(option)} onChange={() => handleSelect(option)} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500" />
+              <span className="ml-3">{option}</span>
+            </label>
+          ))}
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
@@ -71,12 +74,13 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
   const [selectedId, setSelectedId] = useState<string | null>(assets[0]?.id || null);
   const [editorState, setEditorState] = useState<Asset | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [showEmb3dModal, setShowEmb3dModal] = useState(false);
 
   useEffect(() => {
     const currentAssets = project.assets || [];
     setAssets(currentAssets);
     if (!selectedId && currentAssets.length > 0) {
-        setSelectedId(currentAssets[0].id)
+      setSelectedId(currentAssets[0].id)
     }
   }, [project.assets, selectedId]);
 
@@ -84,10 +88,10 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
     const selected = assets.find(a => a.id === selectedId);
     setEditorState(selected ? { ...selected } : null);
   }, [selectedId, assets]);
-  
+
   const addHistoryEntry = (proj: Project, message: string): Project => {
-      const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
-      return { ...proj, history: newHistory };
+    const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
+    return { ...proj, history: newHistory };
   };
 
   const handleAdd = () => {
@@ -98,27 +102,27 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
     while (existingIds.has(newId)) { i++; newId = `ASSET_${String(i).padStart(3, '0')}`; }
 
     const newAsset: Asset = {
-        id: newId,
-        name: 'New Asset',
-        securityProperties: [],
-        description: '',
-        toeConfigurationIds: [],
-        comment: ''
+      id: newId,
+      name: 'New Asset',
+      securityProperties: [],
+      description: '',
+      toeConfigurationIds: [],
+      comment: ''
     };
-    
+
     const updatedAssets = [...assets, newAsset];
     const updatedProject = addHistoryEntry({ ...project, assets: updatedAssets }, `Created Asset ${newId}.`);
     onUpdateProject(updatedProject);
     setSelectedId(newId);
   };
-  
+
   const handleUpdate = (field: keyof Asset, value: any) => {
     if (isReadOnly || !editorState) return;
     setEditorState(prev => prev ? { ...prev, [field]: value } : null);
 
     const originalAsset = assets.find(a => a.id === editorState.id);
     if (!originalAsset || JSON.stringify(originalAsset[field]) === JSON.stringify(value)) {
-        return;
+      return;
     }
 
     if (field === 'securityProperties') {
@@ -129,123 +133,187 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
       onUpdateProject(updatedProject);
     }
   };
-  
+
   const handleSecurityPropertiesUpdate = (assetId: string, newProperties: SecurityProperty[], oldProperties: SecurityProperty[]) => {
-      if (isReadOnly) return;
-      const currentAsset = project.assets?.find(a => a.id === assetId);
-      if (!currentAsset) return;
+    if (isReadOnly) return;
+    const currentAsset = project.assets?.find(a => a.id === assetId);
+    if (!currentAsset) return;
 
-      const projectThreats = project.threats || [];
-      const projectNeeds = project.needs || [];
+    const projectThreats = project.threats || [];
+    const projectNeeds = project.needs || [];
 
-      const addedProperties = newProperties.filter(p => !oldProperties.includes(p));
-      const removedProperties = oldProperties.filter(p => !newProperties.includes(p));
+    const addedProperties = newProperties.filter(p => !oldProperties.includes(p));
+    const removedProperties = oldProperties.filter(p => !newProperties.includes(p));
 
-      let updatedThreats = [...projectThreats];
-      let updatedNeeds = [...projectNeeds];
+    let updatedThreats = [...projectThreats];
+    let updatedNeeds = [...projectNeeds];
 
-      // Handle removals
-      if (removedProperties.length > 0) {
-          const idsToRemove = updatedThreats
-              .filter(t => t.assetId === assetId && removedProperties.includes(t.securityProperty))
-              .map(t => t.id);
+    // Handle removals
+    if (removedProperties.length > 0) {
+      const idsToRemove = updatedThreats
+        .filter(t => t.assetId === assetId && removedProperties.includes(t.securityProperty))
+        .map(t => t.id);
 
-          updatedThreats = updatedThreats.filter(t => !idsToRemove.includes(t.id));
-          updatedNeeds = updatedNeeds.filter(n => !idsToRemove.includes(n.id));
-      }
+      updatedThreats = updatedThreats.filter(t => !idsToRemove.includes(t.id));
+      updatedNeeds = updatedNeeds.filter(n => !idsToRemove.includes(n.id));
+    }
 
-      // Handle additions
-      if (addedProperties.length > 0) {
-          const allThreatsAndNeedsIds = new Set([...updatedThreats.map(t => t.id), ...updatedNeeds.map(n => n.id)]);
-          let counter = (project.threats?.length || 0) + 1;
+    // Handle additions
+    if (addedProperties.length > 0) {
+      const allThreatsAndNeedsIds = new Set([...updatedThreats.map(t => t.id), ...updatedNeeds.map(n => n.id)]);
+      let counter = (project.threats?.length || 0) + 1;
 
-          addedProperties.forEach(prop => {
-              let newId = `THR_${String(counter).padStart(3, '0')}`;
-              while (allThreatsAndNeedsIds.has(newId)) {
-                  counter++;
-                  newId = `THR_${String(counter).padStart(3, '0')}`;
-              }
-              allThreatsAndNeedsIds.add(newId);
+      addedProperties.forEach(prop => {
+        let newId = `THR_${String(counter).padStart(3, '0')}`;
+        while (allThreatsAndNeedsIds.has(newId)) {
+          counter++;
+          newId = `THR_${String(counter).padStart(3, '0')}`;
+        }
+        allThreatsAndNeedsIds.add(newId);
 
-              const threatName = generateThreatName(prop, currentAsset.name);
+        const threatName = generateThreatName(prop, currentAsset.name);
 
-              const newThreat: Threat = {
-                  id: newId,
-                  name: threatName,
-                  assetId: assetId,
-                  securityProperty: prop,
-                  scales: false,
-// FIX: The property name is `initialAFR`, not `initialAFL`.
-                  initialAFR: 'TBD',
-// FIX: The property name is `residualAFR`, not `residualAFL`.
-                  residualAFR: 'TBD',
-                  reasoningScaling: '',
-                  comment: '',
-                  damageScenarioIds: []
-              };
-              updatedThreats.push(newThreat);
+        const newThreat: Threat = {
+          id: newId,
+          name: threatName,
+          assetId: assetId,
+          securityProperty: prop,
+          scales: false,
+          // FIX: The property name is `initialAFR`, not `initialAFL`.
+          initialAFR: 'TBD',
+          // FIX: The property name is `residualAFR`, not `residualAFL`.
+          residualAFR: 'TBD',
+          reasoningScaling: '',
+          comment: '',
+          damageScenarioIds: []
+        };
+        updatedThreats.push(newThreat);
 
-              const newNeed: SphinxNeed = {
-                  id: newId,
-                  type: NeedType.ATTACK,
-                  title: threatName,
-                  description: `Attack targeting the ${prop} of asset '${currentAsset.name}'.`,
-                  status: NeedStatus.OPEN,
-                  tags: ['threat', 'attack-root'],
-                  links: [],
-                  position: { x: Math.random() * 100, y: Math.random() * 800 }
-              };
-              updatedNeeds.push(newNeed);
-          });
-      }
+        const newNeed: SphinxNeed = {
+          id: newId,
+          type: NeedType.ATTACK,
+          title: threatName,
+          description: `Attack targeting the ${prop} of asset '${currentAsset.name}'.`,
+          status: NeedStatus.OPEN,
+          tags: ['threat', 'attack-root'],
+          links: [],
+          position: { x: Math.random() * 100, y: Math.random() * 800 }
+        };
+        updatedNeeds.push(newNeed);
+      });
+    }
 
-      const updatedAssets = (project.assets || []).map(a => a.id === assetId ? { ...a, securityProperties: newProperties } : a);
-      const historyMessage = `Updated security properties for asset ${assetId}. Added: ${addedProperties.join(', ') || 'None'}. Removed: ${removedProperties.join(', ') || 'None'}.`;
+    const updatedAssets = (project.assets || []).map(a => a.id === assetId ? { ...a, securityProperties: newProperties } : a);
+    const historyMessage = `Updated security properties for asset ${assetId}. Added: ${addedProperties.join(', ') || 'None'}. Removed: ${removedProperties.join(', ') || 'None'}.`;
 
-      onUpdateProject(addHistoryEntry({
-          ...project,
-          assets: updatedAssets,
-          threats: updatedThreats,
-          needs: updatedNeeds,
-      }, historyMessage));
+    onUpdateProject(addHistoryEntry({
+      ...project,
+      assets: updatedAssets,
+      threats: updatedThreats,
+      needs: updatedNeeds,
+    }, historyMessage));
   };
 
 
   const handleCommentSave = () => {
-    if(isReadOnly || !editorState) return;
+    if (isReadOnly || !editorState) return;
     setSaveStatus('saving');
-    
+
     const field: keyof Asset = 'comment';
     const value = editorState.comment;
     const updatedAssets = assets.map(a => a.id === editorState.id ? { ...editorState, [field]: value } : a);
     const updatedProject = addHistoryEntry({ ...project, assets: updatedAssets }, `Updated ${field} for Asset ${editorState.id}.`);
     onUpdateProject(updatedProject);
-    
+
     setTimeout(() => {
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     }, 500);
   };
 
   const handleDelete = () => {
     if (isReadOnly || !selectedId) return;
     if (window.confirm(`Are you sure you want to delete Asset ${selectedId}? Any related threats will also be removed.`)) {
-      
+
       const updatedAssets = assets.filter(a => a.id !== selectedId);
       const threatsToRemove = (project.threats || []).filter(t => t.assetId === selectedId).map(t => t.id);
       const updatedThreats = (project.threats || []).filter(t => t.assetId !== selectedId);
       const updatedNeeds = (project.needs || []).filter(n => !threatsToRemove.includes(n.id));
 
-      const updatedProject = addHistoryEntry({ 
-          ...project, 
-          assets: updatedAssets,
-          threats: updatedThreats,
-          needs: updatedNeeds
-        }, `Deleted Asset ${selectedId} and its ${threatsToRemove.length} associated threats.`);
-      
+      const updatedProject = addHistoryEntry({
+        ...project,
+        assets: updatedAssets,
+        threats: updatedThreats,
+        needs: updatedNeeds
+      }, `Deleted Asset ${selectedId} and its ${threatsToRemove.length} associated threats.`);
+
       onUpdateProject(updatedProject);
       setSelectedId(updatedAssets[0]?.id || null);
     }
+  };
+
+  const handleEmb3dImport = (selectedEmb3dAssets: any[]) => {
+    if (isReadOnly) return;
+
+    const existingAssets = project.assets || [];
+    const convertedAssets = convertEmb3dAssetsToTaraAssets(selectedEmb3dAssets, existingAssets);
+
+    let updatedAssets = [...(project.assets || []), ...convertedAssets];
+    let updatedThreats = [...(project.threats || [])];
+    let updatedNeeds = [...(project.needs || [])];
+
+    const allThreatsAndNeedsIds = new Set([...updatedThreats.map(t => t.id), ...updatedNeeds.map(n => n.id)]);
+    let threatCounter = (project.threats?.length || 0) + 1;
+
+    convertedAssets.forEach(asset => {
+      asset.securityProperties.forEach(prop => {
+        let newId = `THR_${String(threatCounter).padStart(3, '0')}`;
+        while (allThreatsAndNeedsIds.has(newId)) {
+          threatCounter++;
+          newId = `THR_${String(threatCounter).padStart(3, '0')}`;
+        }
+        allThreatsAndNeedsIds.add(newId);
+
+        const threatName = generateThreatName(prop, asset.name);
+
+        const newThreat: Threat = {
+          id: newId,
+          name: threatName,
+          assetId: asset.id,
+          securityProperty: prop,
+          scales: false,
+          initialAFR: 'TBD',
+          residualAFR: 'TBD',
+          reasoningScaling: '',
+          comment: '',
+          damageScenarioIds: []
+        };
+        updatedThreats.push(newThreat);
+
+        const newNeed: SphinxNeed = {
+          id: newId,
+          type: NeedType.ATTACK,
+          title: threatName,
+          description: `Attack targeting the ${prop} of asset '${asset.name}'.`,
+          status: NeedStatus.OPEN,
+          tags: ['threat', 'attack-root'],
+          links: [],
+          position: { x: Math.random() * 100, y: Math.random() * 800 }
+        };
+        updatedNeeds.push(newNeed);
+      });
+    });
+
+    const historyMessage = `Imported ${convertedAssets.length} assets from MITRE Emb3d with ${updatedThreats.length - (project.threats?.length || 0)} associated threats.`;
+
+    onUpdateProject(addHistoryEntry({
+      ...project,
+      assets: updatedAssets,
+      threats: updatedThreats,
+      needs: updatedNeeds,
+    }, historyMessage));
+
+    setShowEmb3dModal(false);
   };
 
   return (
@@ -254,9 +322,24 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
       <div className="w-1/3 border-r border-gray-700/50 flex flex-col">
         <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
           <h2 className="text-lg font-semibold">Assets</h2>
-          <button onClick={handleAdd} title="Add new asset" className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
-            <PlusIcon className="w-5 h-5" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowEmb3dModal(true)}
+              title="Import from MITRE Emb3d"
+              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isReadOnly}
+            >
+              <DatabaseIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleAdd}
+              title="Add new asset"
+              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isReadOnly}
+            >
+              <PlusIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-sm text-left">
@@ -288,61 +371,61 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
           <div className="space-y-8">
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-bold text-gray-200">{editorState.id}: {editorState.name}</h2>
-               <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
-                    <TrashIcon className="w-4 h-4 mr-2"/>
-                    Delete
-                </button>
+              <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
+                <TrashIcon className="w-4 h-4 mr-2" />
+                Delete
+              </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <Label htmlFor="assetId">ID</Label>
-                    <Input id="assetId" type="text" value={editorState.id} onBlur={e => handleUpdate('id', e.target.value)} onChange={e => setEditorState({...editorState, id: e.target.value})} disabled={isReadOnly} />
-                </div>
-                <div>
-                    <Label htmlFor="assetName">Name</Label>
-                    <Input id="assetName" type="text" value={editorState.name} onBlur={e => handleUpdate('name', e.target.value)} onChange={e => setEditorState({...editorState, name: e.target.value})} disabled={isReadOnly} />
-                </div>
-                 <div className="col-span-2">
-                    <Label htmlFor="assetDesc">Description</Label>
-                    <Textarea id="assetDesc" rows={3} value={editorState.description} onBlur={e => handleUpdate('description', e.target.value)} onChange={e => setEditorState({...editorState, description: e.target.value})} disabled={isReadOnly} />
-                </div>
-                 <div>
-                    <MultiSelectDropdown 
-                        label="Security Properties"
-                        options={Object.values(SecurityProperty)}
-                        selected={editorState.securityProperties}
-                        onUpdate={(selected) => handleUpdate('securityProperties', selected)}
-                        disabled={isReadOnly}
-                    />
-                 </div>
-                 <div>
-                    <MultiSelectDropdown 
-                        label="TOE Configurations"
-                        options={(project.toeConfigurations || []).map(c => c.id)}
-                        selected={editorState.toeConfigurationIds}
-                        onUpdate={(selected) => handleUpdate('toeConfigurationIds', selected)}
-                        disabled={isReadOnly}
-                    />
-                 </div>
+              <div>
+                <Label htmlFor="assetId">ID</Label>
+                <Input id="assetId" type="text" value={editorState.id} onBlur={e => handleUpdate('id', e.target.value)} onChange={e => setEditorState({ ...editorState, id: e.target.value })} disabled={isReadOnly} />
+              </div>
+              <div>
+                <Label htmlFor="assetName">Name</Label>
+                <Input id="assetName" type="text" value={editorState.name} onBlur={e => handleUpdate('name', e.target.value)} onChange={e => setEditorState({ ...editorState, name: e.target.value })} disabled={isReadOnly} />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="assetDesc">Description</Label>
+                <Textarea id="assetDesc" rows={3} value={editorState.description} onBlur={e => handleUpdate('description', e.target.value)} onChange={e => setEditorState({ ...editorState, description: e.target.value })} disabled={isReadOnly} />
+              </div>
+              <div>
+                <MultiSelectDropdown
+                  label="Security Properties"
+                  options={Object.values(SecurityProperty)}
+                  selected={editorState.securityProperties}
+                  onUpdate={(selected) => handleUpdate('securityProperties', selected)}
+                  disabled={isReadOnly}
+                />
+              </div>
+              <div>
+                <MultiSelectDropdown
+                  label="TOE Configurations"
+                  options={(project.toeConfigurations || []).map(c => c.id)}
+                  selected={editorState.toeConfigurationIds}
+                  onUpdate={(selected) => handleUpdate('toeConfigurationIds', selected)}
+                  disabled={isReadOnly}
+                />
+              </div>
             </div>
 
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Label htmlFor="assetComment">Comment (RST)</Label>
                 <button
-                    onClick={handleCommentSave}
-                    disabled={saveStatus !== 'idle' || isReadOnly}
-                    className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors disabled:opacity-50
+                  onClick={handleCommentSave}
+                  disabled={saveStatus !== 'idle' || isReadOnly}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors disabled:opacity-50
                         ${saveStatus === 'saved' ? 'bg-green-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50'}
                     `}
                 >
-                    {saveStatus === 'idle' && 'Save Comment'}
-                    {saveStatus === 'saving' && 'Saving...'}
-                    {saveStatus === 'saved' && 'Saved!'}
+                  {saveStatus === 'idle' && 'Save Comment'}
+                  {saveStatus === 'saving' && 'Saving...'}
+                  {saveStatus === 'saved' && 'Saved!'}
                 </button>
               </div>
-              <Textarea id="assetComment" rows={10} value={editorState.comment} onChange={e => setEditorState({...editorState, comment: e.target.value})} disabled={isReadOnly} />
+              <Textarea id="assetComment" rows={10} value={editorState.comment} onChange={e => setEditorState({ ...editorState, comment: e.target.value })} disabled={isReadOnly} />
             </div>
           </div>
         ) : (
@@ -354,6 +437,15 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
           </div>
         )}
       </div>
+
+      {/* MITRE Emb3d Import Modal */}
+      {showEmb3dModal && (
+        <Emb3dAssetModal
+          availableAssets={getEmb3dAssets()}
+          onConfirm={handleEmb3dImport}
+          onClose={() => setShowEmb3dModal(false)}
+        />
+      )}
     </div>
   );
 };
