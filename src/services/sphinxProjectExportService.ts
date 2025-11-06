@@ -198,6 +198,12 @@ const generateAttackTreesRst = (project: Project): string => {
             }
         }
 
+        // Add needflow directive
+        content += `.. needflow:: Attack Tree Flow for ${root.id}\n`;
+        content += `   :root_id: ${root.id}\n`;
+        content += `   :show_link_names:\n`;
+        content += `   :align: center\n\n`;
+
         // Add image directive
         content += `.. image:: /_image/attack_tree_${root.id}.png\n`;
         content += `   :alt: Attack Tree for ${root.id}\n`;
@@ -205,10 +211,11 @@ const generateAttackTreesRst = (project: Project): string => {
         content += `   :width: 100%\n\n`;
 
         // Add table of nodes
-        content += `.. needtable::\n`;
-        content += `   :ids: ${Array.from(treeNodeIds).join(',')}\n`;
+        const nodeIdsList = Array.from(treeNodeIds).map(id => `'${id}'`).join(', ');
+        content += `.. needtable:: Nodes for tree ${root.id}\n`;
+        content += `   :filter: id in [${nodeIdsList}]\n`;
         content += `   :columns: id, title, type, logic_gate\n`;
-        content += `   :caption: Nodes for tree ${root.id}\n\n`;
+        content += `   :style: table\n\n`;
     });
 
     return content;
