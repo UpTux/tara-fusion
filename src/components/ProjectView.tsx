@@ -1,37 +1,38 @@
-import React, { useState, useCallback } from 'react';
-import { Project, SphinxNeed, ProjectViewType, Organization } from '../types';
+import React, { useCallback, useState } from 'react';
 import { Permissions } from '../services/permissionService';
-import { AttackTreeEditor } from './AttackTreeEditor';
-import { PropertiesPanel } from './PropertiesPanel';
-import { exportToNeedsJson, importFromNeedsJson } from '../services/sphinxNeedsService';
 import { exportProjectToJson } from '../services/projectImportExportService';
+import { exportToNeedsJson, importFromNeedsJson } from '../services/sphinxNeedsService';
 import { exportProjectToSphinxZip } from '../services/sphinxProjectExportService';
-import { UploadIcon } from './icons/UploadIcon';
+import { Organization, Project, ProjectViewType, SphinxNeed } from '../types';
+import { AssetsView } from './AssetsView';
+import { AssumptionsView } from './AssumptionsView';
+import { AttackLeavesView } from './AttackLeavesView';
+import { AttackTreeEditor } from './AttackTreeEditor';
+import { AttackTreeImageGenerator } from './AttackTreeImageGenerator';
+import { CircumventTreesView } from './CircumventTreesView';
+import { DamageScenariosView } from './DamageScenariosView';
+import { BookOpenIcon } from './icons/BookOpenIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
+import { MenuIcon } from './icons/MenuIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
+import { UploadIcon } from './icons/UploadIcon';
+import { ManagementSummaryView } from './ManagementSummaryView';
+import { MisuseCasesView } from './MisuseCasesView';
 import { GeminiThreatModal } from './modals/GeminiThreatModal';
-import { ProjectSidebar } from './ProjectSidebar';
 import { PlaceholderView } from './PlaceholderView';
 import { ProjectCockpit } from './ProjectCockpit';
-import { ToeDescriptionView } from './ToeDescriptionView';
-import { ScopeView } from './ScopeView';
-import { AssumptionsView } from './AssumptionsView';
-import { ToeConfigurationView } from './ToeConfigurationView';
-import { SecurityControlsView } from './SecurityControlsView';
-import { AssetsView } from './AssetsView';
-import { DamageScenariosView } from './DamageScenariosView';
-import { ThreatsView } from './ThreatsView';
-import { ThreatScenariosView } from './ThreatScenariosView';
-import { AttackLeavesView } from './AttackLeavesView';
-import { MisuseCasesView } from './MisuseCasesView';
-import { SecurityGoalsView } from './SecurityGoalsView';
-import { SecurityClaimsView } from './SecurityClaimsView';
-import { RiskTreatmentView } from './RiskTreatmentView';
+import { ProjectSidebar } from './ProjectSidebar';
 import { ProjectUsersView } from './ProjectUsersView';
-import { ManagementSummaryView } from './ManagementSummaryView';
-import { CircumventTreesView } from './CircumventTreesView';
-import { BookOpenIcon } from './icons/BookOpenIcon';
-import { AttackTreeImageGenerator } from './AttackTreeImageGenerator';
+import { PropertiesPanel } from './PropertiesPanel';
+import { RiskTreatmentView } from './RiskTreatmentView';
+import { ScopeView } from './ScopeView';
+import { SecurityClaimsView } from './SecurityClaimsView';
+import { SecurityControlsView } from './SecurityControlsView';
+import { SecurityGoalsView } from './SecurityGoalsView';
+import { ThreatScenariosView } from './ThreatScenariosView';
+import { ThreatsView } from './ThreatsView';
+import { ToeConfigurationView } from './ToeConfigurationView';
+import { ToeDescriptionView } from './ToeDescriptionView';
 
 interface ProjectViewProps {
   project: Project;
@@ -46,11 +47,12 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
   const [isGeminiModalOpen, setIsGeminiModalOpen] = useState(false);
   const [activeView, setActiveView] = useState<ProjectViewType>('Project Cockpit');
   const [isExporting, setIsExporting] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isReadOnly = !permissions.canEditProject;
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
-      const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
-      return { ...proj, history: newHistory };
+    const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
+    return { ...proj, history: newHistory };
   };
 
   const handleNeedsExport = () => {
@@ -109,28 +111,28 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
       alert('Failed to export project data.');
     }
   };
-  
+
   const startSphinxProjectExport = () => {
     if (isExporting) return;
     setIsExporting(true);
   };
 
   const onImagesGeneratedForExport = async (images: Map<string, string>) => {
-     try {
-        const blob = await exportProjectToSphinxZip(project, images);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${project.name.replace(/\s/g, '_')}_sphinx_project.zip`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    try {
+      const blob = await exportProjectToSphinxZip(project, images);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project.name.replace(/\s/g, '_')}_sphinx_project.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error) {
-        console.error('Failed to export Sphinx project:', error);
-        alert('Failed to export Sphinx project.');
+      console.error('Failed to export Sphinx project:', error);
+      alert('Failed to export Sphinx project.');
     } finally {
-        setIsExporting(false);
+      setIsExporting(false);
     }
   }
 
@@ -152,7 +154,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
     reader.readAsText(file);
     event.target.value = ''; // Reset file input
   };
-  
+
   const handleThreatsGenerated = (newNeeds: SphinxNeed[]) => {
     if (isReadOnly) return;
     let updatedProject = {
@@ -166,29 +168,29 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
   const handleNeedChange = useCallback((updatedNeed: SphinxNeed) => {
     if (isReadOnly) return;
     if (selectedNeed?.id === updatedNeed.id) {
-        setSelectedNeed(updatedNeed);
+      setSelectedNeed(updatedNeed);
     }
 
     const originalNeed = project.needs.find(n => n.id === updatedNeed.id);
     const changes: string[] = [];
     if (originalNeed) {
-        (Object.keys(updatedNeed) as Array<keyof SphinxNeed>).forEach(key => {
-            if (JSON.stringify(originalNeed[key]) !== JSON.stringify(updatedNeed[key])) {
-                changes.push(String(key));
-            }
-        });
+      (Object.keys(updatedNeed) as Array<keyof SphinxNeed>).forEach(key => {
+        if (JSON.stringify(originalNeed[key]) !== JSON.stringify(updatedNeed[key])) {
+          changes.push(String(key));
+        }
+      });
     }
-    
+
     const updatedProject = {
-        ...project,
-        needs: project.needs.map(n => (n.id === updatedNeed.id ? updatedNeed : n)),
+      ...project,
+      needs: project.needs.map(n => (n.id === updatedNeed.id ? updatedNeed : n)),
     };
-    
+
     if (changes.length > 0) {
-        const historyMessage = `Updated need ${updatedNeed.id} (${changes.join(', ') || 'no changes'}).`;
-        onUpdateProject(addHistoryEntry(updatedProject, historyMessage));
+      const historyMessage = `Updated need ${updatedNeed.id} (${changes.join(', ') || 'no changes'}).`;
+      onUpdateProject(addHistoryEntry(updatedProject, historyMessage));
     } else {
-         onUpdateProject(updatedProject);
+      onUpdateProject(updatedProject);
     }
 
   }, [project, onUpdateProject, selectedNeed, isReadOnly]);
@@ -208,7 +210,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
     const updatedProject = { ...project, [field]: value };
     onUpdateProject(addHistoryEntry(updatedProject, historyMessage));
   }, [project, onUpdateProject, isReadOnly]);
-  
+
   const renderActiveView = () => {
     switch (activeView) {
       case 'Project Cockpit':
@@ -277,91 +279,142 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
 
   return (
     <div className="flex-1 flex flex-col h-full">
-        <div className="flex items-center justify-end p-2 border-b border-gray-700/50 bg-gray-900/20 space-x-2 flex-shrink-0">
-            <button
-              onClick={() => setIsGeminiModalOpen(true)}
-              disabled={isReadOnly}
-              className="flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md text-xs font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Generate threats and attack steps using AI"
-            >
-              <SparklesIcon className="w-4 h-4 mr-2" />
-              Generate with AI
-            </button>
-            
-            <button
-              onClick={startSphinxProjectExport}
-              disabled={isExporting}
-              className="flex items-center px-3 py-1.5 bg-cyan-600 text-white rounded-md text-xs font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-wait"
-              title="Export project to a Sphinx documentation ZIP file"
-            >
-              <BookOpenIcon className="w-4 h-4 mr-2" />
-              {isExporting ? 'Exporting...' : 'Export Sphinx Project'}
-            </button>
+      <div className="flex items-center justify-end p-2 border-b border-gray-700/50 bg-gray-900/20 flex-shrink-0">
+        {/* Burger Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex items-center px-3 py-1.5 bg-gray-700 text-white rounded-md text-xs font-medium hover:bg-gray-600 transition-colors"
+            title="Menu"
+          >
+            <MenuIcon className="w-4 h-4" />
+          </button>
 
-            <div className="h-5 w-px bg-gray-600 mx-1"></div>
-
-            <label className={`flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-              <UploadIcon className="w-4 h-4 mr-2" />
-              Import Needs
-              <input
-                type="file"
-                className="hidden"
-                accept=".json"
-                onChange={handleNeedsImport}
-                disabled={isReadOnly}
+          {/* Dropdown Menu */}
+          {isMenuOpen && (
+            <>
+              {/* Backdrop to close menu when clicking outside */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setIsMenuOpen(false)}
               />
-            </label>
 
-            <button
-              onClick={handleNeedsExport}
-              className="flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition-colors"
-              title="Export project data to needs.json"
-            >
-              <DownloadIcon className="w-4 h-4 mr-2" />
-              Export Needs
-            </button>
+              {/* Menu Items */}
+              <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-20">
+                <div className="py-1">
+                  {/* Generate with AI */}
+                  <button
+                    onClick={() => {
+                      setIsGeminiModalOpen(true);
+                      setIsMenuOpen(false);
+                    }}
+                    disabled={isReadOnly}
+                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Generate threats and attack steps using AI"
+                  >
+                    <SparklesIcon className="w-4 h-4 mr-3" />
+                    Generate with AI
+                  </button>
 
-            <div className="h-5 w-px bg-gray-600 mx-1"></div>
+                  {/* Export Sphinx Project */}
+                  <button
+                    onClick={() => {
+                      startSphinxProjectExport();
+                      setIsMenuOpen(false);
+                    }}
+                    disabled={isExporting}
+                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                    title="Export project to a Sphinx documentation ZIP file"
+                  >
+                    <BookOpenIcon className="w-4 h-4 mr-3" />
+                    {isExporting ? 'Exporting...' : 'Export Sphinx Project'}
+                  </button>
 
-            <label className={`flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-md text-xs font-medium hover:bg-teal-500 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-              <UploadIcon className="w-4 h-4 mr-2" />
-              Import Project
-              <input
-                type="file"
-                className="hidden"
-                accept=".json"
-                onChange={handleProjectImport}
-                disabled={isReadOnly}
-              />
-            </label>
+                  <div className="border-t border-gray-700 my-1"></div>
 
-            <button
-              onClick={handleProjectExport}
-              className="flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-md text-xs font-medium hover:bg-teal-500 transition-colors"
-              title="Export entire project to a single JSON file"
-            >
-              <DownloadIcon className="w-4 h-4 mr-2" />
-              Export Project
-            </button>
+                  {/* Import Needs */}
+                  <label className={`w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <UploadIcon className="w-4 h-4 mr-3" />
+                    Import Needs
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".json"
+                      onChange={(e) => {
+                        handleNeedsImport(e);
+                        setIsMenuOpen(false);
+                      }}
+                      disabled={isReadOnly}
+                    />
+                  </label>
+
+                  {/* Export Needs */}
+                  <button
+                    onClick={() => {
+                      handleNeedsExport();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors"
+                    title="Export project data to needs.json"
+                  >
+                    <DownloadIcon className="w-4 h-4 mr-3" />
+                    Export Needs
+                  </button>
+
+                  <div className="border-t border-gray-700 my-1"></div>
+
+                  {/* Import Project */}
+                  <label className={`w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <UploadIcon className="w-4 h-4 mr-3" />
+                    Import Project
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".json"
+                      onChange={(e) => {
+                        handleProjectImport(e);
+                        setIsMenuOpen(false);
+                      }}
+                      disabled={isReadOnly}
+                    />
+                  </label>
+
+                  {/* Export Project */}
+                  <button
+                    onClick={() => {
+                      handleProjectExport();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors"
+                    title="Export entire project to a single JSON file"
+                  >
+                    <DownloadIcon className="w-4 h-4 mr-3" />
+                    Export Project
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-        <div className="flex-1 flex overflow-hidden">
-          <ProjectSidebar activeView={activeView} onSelectView={setActiveView} />
-          <main className="flex-1 flex flex-col overflow-y-auto">
-            {renderActiveView()}
-          </main>
-        </div>
-        
-       {isGeminiModalOpen && (
+      </div>
+      <div className="flex-1 flex overflow-hidden">
+        <ProjectSidebar activeView={activeView} onSelectView={setActiveView} />
+        <main className="flex-1 flex flex-col overflow-y-auto">
+          {renderActiveView()}
+        </main>
+      </div>
+
+      {isGeminiModalOpen && (
         <GeminiThreatModal
           onClose={() => setIsGeminiModalOpen(false)}
           onGenerated={handleThreatsGenerated}
         />
       )}
       {isExporting && (
-          <AttackTreeImageGenerator 
-            project={project}
-            onComplete={onImagesGeneratedForExport}
-          />
+        <AttackTreeImageGenerator
+          project={project}
+          onComplete={onImagesGeneratedForExport}
+        />
       )}
     </div>
   );
