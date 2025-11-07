@@ -247,13 +247,13 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  organizationId: string;
+  role: OrganizationRole; // Role in the organization
 }
 
 export enum OrganizationRole {
   ORG_ADMIN = 'Organization Admin',
-  CISO = 'Chief Information Security Officer',
-  PRODUCT_SECURITY_OFFICER = 'Product Security Officer',
-  USER = 'User',
+  MEMBER = 'Member',
 }
 
 export enum ProjectRole {
@@ -261,12 +261,6 @@ export enum ProjectRole {
   DESIGNER = 'Designer',
   USER = 'User',
   VIEWER = 'Viewer',
-}
-
-export interface OrganizationMembership {
-  userId: string;
-  organizationId: string;
-  role: OrganizationRole;
 }
 
 export interface ProjectMembership {

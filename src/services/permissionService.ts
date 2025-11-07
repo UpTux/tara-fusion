@@ -1,4 +1,4 @@
-import { OrganizationMembership, OrganizationRole, Project, ProjectMembership, ProjectRole } from '../types';
+import { OrganizationRole, Project, ProjectMembership, ProjectRole, User } from '../types';
 
 export interface Permissions {
   canEditProject: boolean;
@@ -14,31 +14,32 @@ export const getProjectMembership = (
   return projectMemberships.find(pm => pm.userId === userId && pm.projectId === projectId);
 };
 
-export const getOrganizationMembership = (
+export const getUserOrganizationRole = (
   userId: string,
   organizationId: string,
-  organizationMemberships: OrganizationMembership[]
-): OrganizationMembership | undefined => {
-  return organizationMemberships.find(om => om.userId === userId && om.organizationId === organizationId);
+  users: User[]
+): OrganizationRole | undefined => {
+  const user = users.find(u => u.id === userId && u.organizationId === organizationId);
+  return user?.role;
 };
-
 
 export const calculatePermissions = (
   userId: string,
   project: Project | null,
-  orgMemberships: OrganizationMembership[],
+  users: User[],
   projMemberships: ProjectMembership[]
 ): Permissions => {
   if (!project) {
     // Default permissions when no project is selected
-    const isAnyOrgAdmin = orgMemberships.some(om => om.userId === userId && om.role === OrganizationRole.ORG_ADMIN);
-    return { canEditProject: false, isProjectAdmin: false, isOrgAdmin: isAnyOrgAdmin };
+    const currentUser = users.find(u => u.id === userId);
+    const isAnyOrgAdmin = currentUser?.role === OrganizationRole.ORG_ADMIN;
+    return { canEditProject: false, isProjectAdmin: false, isOrgAdmin: isAnyOrgAdmin || false };
   }
 
-  const orgMembership = getOrganizationMembership(userId, project.organizationId, orgMemberships);
+  const userRole = getUserOrganizationRole(userId, project.organizationId, users);
   const projectMembership = getProjectMembership(userId, project.id, projMemberships);
 
-  const isOrgAdmin = orgMembership?.role === OrganizationRole.ORG_ADMIN;
+  const isOrgAdmin = userRole === OrganizationRole.ORG_ADMIN;
   const isProjectAdmin = projectMembership?.role === ProjectRole.PROJECT_ADMIN;
 
   const canEdit = isOrgAdmin || isProjectAdmin || projectMembership?.role === ProjectRole.DESIGNER;

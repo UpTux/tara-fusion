@@ -2,14 +2,14 @@
 
 
 import React from 'react';
-import { Organization, Project, User, OrganizationMembership, ProjectMembership } from '../types';
-import { PlusIcon } from './icons/PlusIcon';
-import { UsersIcon } from './icons/UsersIcon';
-import { FolderIcon } from './icons/FolderIcon';
-import { CurrentUserSelector } from './CurrentUserSelector';
-import { UploadIcon } from './icons/UploadIcon';
-import { TrashIcon } from './icons/TrashIcon';
 import { calculatePermissions } from '../services/permissionService';
+import { Organization, Project, ProjectMembership, User } from '../types';
+import { CurrentUserSelector } from './CurrentUserSelector';
+import { FolderIcon } from './icons/FolderIcon';
+import { PlusIcon } from './icons/PlusIcon';
+import { TrashIcon } from './icons/TrashIcon';
+import { UploadIcon } from './icons/UploadIcon';
+import { UsersIcon } from './icons/UsersIcon';
 
 interface SidebarProps {
   organizations: Organization[];
@@ -24,7 +24,6 @@ interface SidebarProps {
   onSelectUser: (userId: string) => void;
   activeView: 'projects' | 'users';
   onSelectView: (view: 'projects' | 'users') => void;
-  orgMemberships: OrganizationMembership[];
   projectMemberships: ProjectMembership[];
 }
 
@@ -41,7 +40,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectUser,
   activeView,
   onSelectView,
-  orgMemberships,
   projectMemberships,
 }) => {
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>, organizationId: string) => {
@@ -72,21 +70,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <h1 className="text-xl font-bold text-white">TARA Fusion</h1>
         </div>
       </div>
-      
+
       <div className="px-4 pb-2 border-b border-gray-700/50">
         <div className="flex bg-gray-800/50 rounded-lg p-1">
-            <button 
-                onClick={() => onSelectView('projects')}
-                className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'projects' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
-            >
-                <FolderIcon className="w-5 h-5 mr-2" /> Projects
-            </button>
-            <button 
-                onClick={() => onSelectView('users')}
-                className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'users' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
-            >
-                <UsersIcon className="w-5 h-5 mr-2" /> Users
-            </button>
+          <button
+            onClick={() => onSelectView('projects')}
+            className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'projects' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+          >
+            <FolderIcon className="w-5 h-5 mr-2" /> Projects
+          </button>
+          <button
+            onClick={() => onSelectView('users')}
+            className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'users' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+          >
+            <UsersIcon className="w-5 h-5 mr-2" /> Users
+          </button>
         </div>
       </div>
 
@@ -110,12 +108,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onChange={(e) => handleFileImport(e, org.id)}
                       />
                     </label>
-                    <button 
+                    <button
                       onClick={() => onAddProject(org.id)}
                       className="text-gray-500 hover:text-indigo-400 transition-colors"
                       title={`Add project to ${org.name}`}
                     >
-                       <PlusIcon className="w-4 h-4" />
+                      <PlusIcon className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -123,42 +121,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {projects
                     .filter((p) => p.organizationId === org.id)
                     .map((proj) => {
-                      const permissions = calculatePermissions(currentUser.id, proj, orgMemberships, projectMemberships);
+                      const permissions = calculatePermissions(currentUser.id, proj, users, projectMemberships);
                       return (
-                      <li key={proj.id} className="group flex items-center justify-between rounded-md transition-colors hover:bg-gray-800/30">
-                        <button
-                          onClick={() => onSelectProject(proj.id)}
-                          className={`flex-grow text-left px-3 py-2 rounded-md text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                            activeProjectId === proj.id
-                              ? 'bg-indigo-600 text-white shadow-lg'
-                              : 'text-gray-300 group-hover:bg-gray-700/50 group-hover:text-white'
-                          }`}
-                        >
-                          {proj.name}
-                        </button>
-                        {permissions.isProjectAdmin && (
+                        <li key={proj.id} className="group flex items-center justify-between rounded-md transition-colors hover:bg-gray-800/30">
+                          <button
+                            onClick={() => onSelectProject(proj.id)}
+                            className={`flex-grow text-left px-3 py-2 rounded-md text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 ${activeProjectId === proj.id
+                                ? 'bg-indigo-600 text-white shadow-lg'
+                                : 'text-gray-300 group-hover:bg-gray-700/50 group-hover:text-white'
+                              }`}
+                          >
+                            {proj.name}
+                          </button>
+                          {permissions.isProjectAdmin && (
                             <button
-                                onClick={() => onDeleteProject(proj.id)}
-                                className="ml-1 mr-1 p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 flex-shrink-0"
-                                title={`Delete ${proj.name}`}
+                              onClick={() => onDeleteProject(proj.id)}
+                              className="ml-1 mr-1 p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 flex-shrink-0"
+                              title={`Delete ${proj.name}`}
                             >
-                                <TrashIcon className="w-4 h-4" />
+                              <TrashIcon className="w-4 h-4" />
                             </button>
-                        )}
-                      </li>
-                    )})}
+                          )}
+                        </li>
+                      )
+                    })}
                 </ul>
               </div>
             ))}
           </>
         ) : (
-             <div className="p-4 text-center text-gray-500 text-sm">
-                <p>User Management is active.</p>
-                <p className="mt-2">Use the main panel to manage users for each organization.</p>
-            </div>
+          <div className="p-4 text-center text-gray-500 text-sm">
+            <p>User Management is active.</p>
+            <p className="mt-2">Use the main panel to manage users for each organization.</p>
+          </div>
         )}
       </div>
-      
+
       <CurrentUserSelector users={users} currentUser={currentUser} onSelectUser={onSelectUser} />
     </aside>
   );

@@ -8,7 +8,7 @@ import { UserManagementView } from './components/UserManagementView';
 import { calculatePermissions, Permissions } from './services/permissionService';
 import { recalculateProject } from './services/projectCalculationService';
 import { parseProjectJson } from './services/projectImportExportService';
-import { AttackFeasibilityRating, Impact, ImpactCategorySettings, NeedStatus, NeedType, Organization, OrganizationMembership, OrganizationRole, Project, ProjectMembership, ProjectRole, ProjectStatus, RiskTreatmentDecision, SecurityProperty, User } from './types';
+import { AttackFeasibilityRating, Impact, ImpactCategorySettings, NeedStatus, NeedType, Organization, OrganizationRole, Project, ProjectMembership, ProjectRole, ProjectStatus, RiskTreatmentDecision, SecurityProperty, User } from './types';
 
 const defaultImpactCategories: ImpactCategorySettings = {
   categories: [
@@ -23,7 +23,6 @@ const defaultImpactCategories: ImpactCategorySettings = {
 
 const initialOrganizations: Organization[] = [
   { id: 'org_1', name: 'CyberSystems Inc.', impactCategorySettings: defaultImpactCategories },
-  { id: 'org_2', name: 'SecureSoft Solutions', impactCategorySettings: defaultImpactCategories },
 ];
 
 const initialProjects: Project[] = [
@@ -328,24 +327,15 @@ Out of scope are:
 ];
 
 const initialUsers: User[] = [
-  { id: 'user_1', name: 'Alice Johnson (Org Admin)', email: 'alice@cybersystems.com' },
-  { id: 'user_2', name: 'Bob Williams (Designer)', email: 'bob@cybersystems.com' },
-  { id: 'user_3', name: 'Charlie Brown (Viewer)', email: 'charlie@cybersystems.com' },
-  { id: 'user_4', name: 'Diana Prince (Org 2 Admin)', email: 'diana@securesoft.com' },
-];
-
-const initialOrganizationMemberships: OrganizationMembership[] = [
-  { userId: 'user_1', organizationId: 'org_1', role: OrganizationRole.ORG_ADMIN },
-  { userId: 'user_2', organizationId: 'org_1', role: OrganizationRole.USER },
-  { userId: 'user_3', organizationId: 'org_1', role: OrganizationRole.USER },
-  { userId: 'user_4', organizationId: 'org_2', role: OrganizationRole.ORG_ADMIN },
+  { id: 'user_1', name: 'Alice Johnson (Org Admin)', email: 'alice@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.ORG_ADMIN },
+  { id: 'user_2', name: 'Bob Williams (Designer)', email: 'bob@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.MEMBER },
+  { id: 'user_3', name: 'Charlie Brown (Viewer)', email: 'charlie@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.MEMBER },
 ];
 
 const initialProjectMemberships: ProjectMembership[] = [
   { userId: 'user_1', projectId: 'proj_1', role: ProjectRole.PROJECT_ADMIN },
   { userId: 'user_2', projectId: 'proj_1', role: ProjectRole.DESIGNER },
   { userId: 'user_3', projectId: 'proj_1', role: ProjectRole.VIEWER },
-  { userId: 'user_4', projectId: 'proj_2', role: ProjectRole.PROJECT_ADMIN },
 ];
 
 
@@ -355,7 +345,6 @@ export default function App() {
   const [activeProjectId, setActiveProjectId] = useState<string | null>('proj_1');
 
   const [users] = useState<User[]>(initialUsers);
-  const [orgMemberships, setOrgMemberships] = useState<OrganizationMembership[]>(initialOrganizationMemberships);
   const [projectMemberships, setProjectMemberships] = useState<ProjectMembership[]>(initialProjectMemberships);
   const [currentUserId, setCurrentUserId] = useState<string>('user_1');
 
@@ -366,8 +355,8 @@ export default function App() {
   const currentUser = users.find(u => u.id === currentUserId) || users[0];
 
   const permissions: Permissions = useMemo(() =>
-    calculatePermissions(currentUserId, activeProject, orgMemberships, projectMemberships),
-    [currentUserId, activeProject, orgMemberships, projectMemberships]
+    calculatePermissions(currentUserId, activeProject, users, projectMemberships),
+    [currentUserId, activeProject, users, projectMemberships]
   );
 
   const updateProject = useCallback((updatedProject: Project) => {
@@ -479,7 +468,6 @@ export default function App() {
         onSelectUser={setCurrentUserId}
         activeView={activeMainView}
         onSelectView={setActiveMainView}
-        orgMemberships={orgMemberships}
         projectMemberships={projectMemberships}
       />
       <main className="flex-1 flex flex-col bg-gray-800/50">
@@ -505,8 +493,6 @@ export default function App() {
             <UserManagementView
               users={users}
               organizations={organizations}
-              orgMemberships={orgMemberships}
-              setOrgMemberships={setOrgMemberships}
               currentUser={currentUser}
             />
           ) : (
