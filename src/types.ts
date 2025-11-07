@@ -249,10 +249,12 @@ export interface User {
   email: string;
   organizationId: string;
   role: OrganizationRole; // Role in the organization
+  active: boolean; // Whether the user is active or deactivated
 }
 
 export enum OrganizationRole {
   ORG_ADMIN = 'Organization Admin',
+  DESIGNER = 'Designer',
   MEMBER = 'Member',
 }
 

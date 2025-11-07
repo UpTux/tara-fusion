@@ -327,9 +327,9 @@ Out of scope are:
 ];
 
 const initialUsers: User[] = [
-  { id: 'user_1', name: 'Alice Johnson (Org Admin)', email: 'alice@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.ORG_ADMIN },
-  { id: 'user_2', name: 'Bob Williams (Designer)', email: 'bob@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.MEMBER },
-  { id: 'user_3', name: 'Charlie Brown (Viewer)', email: 'charlie@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.MEMBER },
+  { id: 'user_1', name: 'Alice Johnson (Org Admin)', email: 'alice@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.ORG_ADMIN, active: true },
+  { id: 'user_2', name: 'Bob Williams (Designer)', email: 'bob@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.DESIGNER, active: true },
+  { id: 'user_3', name: 'Charlie Brown (Viewer)', email: 'charlie@cybersystems.com', organizationId: 'org_1', role: OrganizationRole.MEMBER, active: true },
 ];
 
 const initialProjectMemberships: ProjectMembership[] = [
@@ -344,7 +344,7 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [activeProjectId, setActiveProjectId] = useState<string | null>('proj_1');
 
-  const [users] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>(initialUsers);
   const [projectMemberships, setProjectMemberships] = useState<ProjectMembership[]>(initialProjectMemberships);
   const [currentUserId, setCurrentUserId] = useState<string>('user_1');
 
@@ -444,6 +444,52 @@ export default function App() {
     }
   }, [projects, activeProjectId]);
 
+  // User Management Functions
+  const handleAddUser = useCallback((user: Omit<User, 'id'>) => {
+    const existingUserIds = new Set(users.map(u => u.id));
+    let i = users.length + 1;
+    let newUserId: string;
+    do {
+      newUserId = `user_${i}`;
+      i++;
+    } while (existingUserIds.has(newUserId));
+
+    const newUser: User = {
+      ...user,
+      id: newUserId,
+    };
+
+    setUsers(prev => [...prev, newUser]);
+  }, [users]);
+
+  const handleUpdateUser = useCallback((userId: string, updates: Partial<User>) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
+  }, []);
+
+  const handleDeleteUser = useCallback((userId: string) => {
+    const userToDelete = users.find(u => u.id === userId);
+    if (!userToDelete) return;
+
+    if (userId === currentUserId) {
+      alert('You cannot delete yourself!');
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to permanently delete user "${userToDelete.name}"? This will also remove their project memberships.`)) {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      setProjectMemberships(prev => prev.filter(pm => pm.userId !== userId));
+    }
+  }, [users, currentUserId]);
+
+  const handleToggleUserActive = useCallback((userId: string) => {
+    if (userId === currentUserId) {
+      alert('You cannot deactivate yourself!');
+      return;
+    }
+
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, active: !u.active } : u));
+  }, [currentUserId]);
+
   const mainViewTitle = useMemo(() => {
     if (activeMainView === 'users') return 'User Management';
     if (activeProject) return activeProject.name;
@@ -494,6 +540,10 @@ export default function App() {
               users={users}
               organizations={organizations}
               currentUser={currentUser}
+              onAddUser={handleAddUser}
+              onUpdateUser={handleUpdateUser}
+              onDeleteUser={handleDeleteUser}
+              onToggleUserActive={handleToggleUserActive}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-500 h-full">

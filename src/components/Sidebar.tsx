@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { calculatePermissions } from '../services/permissionService';
-import { Organization, Project, ProjectMembership, User } from '../types';
+import { Organization, OrganizationRole, Project, ProjectMembership, User } from '../types';
 import { CurrentUserSelector } from './CurrentUserSelector';
 import { FolderIcon } from './icons/FolderIcon';
 import { PlusIcon } from './icons/PlusIcon';
@@ -60,6 +60,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     event.target.value = ''; // Reset file input to allow re-uploading the same file
   };
 
+  // Check if user can add projects (Org Admin or Designer)
+  const canAddProjects = currentUser.role === OrganizationRole.ORG_ADMIN || currentUser.role === OrganizationRole.DESIGNER;
+
   return (
     <aside className="w-72 bg-gray-900/80 border-r border-gray-700/50 flex flex-col">
       <div className="p-4">
@@ -75,16 +78,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex bg-gray-800/50 rounded-lg p-1">
           <button
             onClick={() => onSelectView('projects')}
-            className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'projects' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+            className={`${currentUser.role === 'Organization Admin' ? 'w-1/2' : 'w-full'} py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'projects' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
           >
             <FolderIcon className="w-5 h-5 mr-2" /> Projects
           </button>
-          <button
-            onClick={() => onSelectView('users')}
-            className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'users' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
-          >
-            <UsersIcon className="w-5 h-5 mr-2" /> Users
-          </button>
+          {currentUser.role === 'Organization Admin' && (
+            <button
+              onClick={() => onSelectView('users')}
+              className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'users' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+            >
+              <UsersIcon className="w-5 h-5 mr-2" /> Users
+            </button>
+          )}
         </div>
       </div>
 
@@ -95,27 +100,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div key={org.id} className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{org.name}</h2>
-                  <div className="flex items-center space-x-2">
-                    <label
-                      className="text-gray-500 hover:text-indigo-400 transition-colors cursor-pointer"
-                      title={`Create project from file in ${org.name}`}
-                    >
-                      <UploadIcon className="w-4 h-4" />
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".json"
-                        onChange={(e) => handleFileImport(e, org.id)}
-                      />
-                    </label>
-                    <button
-                      onClick={() => onAddProject(org.id)}
-                      className="text-gray-500 hover:text-indigo-400 transition-colors"
-                      title={`Add project to ${org.name}`}
-                    >
-                      <PlusIcon className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {canAddProjects && (
+                    <div className="flex items-center space-x-2">
+                      <label
+                        className="text-gray-500 hover:text-indigo-400 transition-colors cursor-pointer"
+                        title={`Create project from file in ${org.name}`}
+                      >
+                        <UploadIcon className="w-4 h-4" />
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".json"
+                          onChange={(e) => handleFileImport(e, org.id)}
+                        />
+                      </label>
+                      <button
+                        onClick={() => onAddProject(org.id)}
+                        className="text-gray-500 hover:text-indigo-400 transition-colors"
+                        title={`Add project to ${org.name}`}
+                      >
+                        <PlusIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <ul className="space-y-1">
                   {projects
@@ -127,8 +134,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           <button
                             onClick={() => onSelectProject(proj.id)}
                             className={`flex-grow text-left px-3 py-2 rounded-md text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 ${activeProjectId === proj.id
-                                ? 'bg-indigo-600 text-white shadow-lg'
-                                : 'text-gray-300 group-hover:bg-gray-700/50 group-hover:text-white'
+                              ? 'bg-indigo-600 text-white shadow-lg'
+                              : 'text-gray-300 group-hover:bg-gray-700/50 group-hover:text-white'
                               }`}
                           >
                             {proj.name}
@@ -150,9 +157,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             ))}
           </>
         ) : (
-          <div className="p-4 text-center text-gray-500 text-sm">
-            <p>User Management is active.</p>
-            <p className="mt-2">Use the main panel to manage users for each organization.</p>
+          <div className="p-4 text-center text-gray-400 text-sm">
+            {currentUser.role === 'Organization Admin' ? (
+              <>
+                <p>User Management is active.</p>
+                <p className="mt-2">Use the main panel to manage users for your organization.</p>
+              </>
+            ) : (
+              <p>You must be an Organization Admin to access user management.</p>
+            )}
           </div>
         )}
       </div>
