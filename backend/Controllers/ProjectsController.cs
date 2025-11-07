@@ -22,7 +22,10 @@ public class ProjectsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetProjects()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim);
         var projects = await _context.ProjectMemberships
             .Where(pm => pm.UserId == userId)
             .Select(pm => pm.Project)
@@ -34,7 +37,10 @@ public class ProjectsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProject(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim);
         var project = await _context.Projects
             .FirstOrDefaultAsync(p => p.Id == id && p.ProjectMemberships.Any(pm => pm.UserId == userId));
 
@@ -49,7 +55,10 @@ public class ProjectsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateProject(Project project)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim);
         project.UserId = userId;
 
         _context.Projects.Add(project);

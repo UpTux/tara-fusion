@@ -14,13 +14,13 @@ public class PermissionService
         _context = context;
     }
 
-    public async Task<ProjectMembership> GetProjectMembership(Guid userId, Guid projectId)
+    public async Task<ProjectMembership?> GetProjectMembership(Guid userId, Guid projectId)
     {
         return await _context.ProjectMemberships
             .FirstOrDefaultAsync(pm => pm.UserId == userId && pm.ProjectId == projectId);
     }
 
-    public async Task<OrganizationMembership> GetOrganizationMembership(Guid userId, Guid organizationId)
+    public async Task<OrganizationMembership?> GetOrganizationMembership(Guid userId, Guid organizationId)
     {
         return await _context.OrganizationMemberships
             .FirstOrDefaultAsync(om => om.UserId == userId && om.OrganizationId == organizationId);

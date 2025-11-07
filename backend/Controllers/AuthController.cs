@@ -50,8 +50,14 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
+        var jwtKey = _configuration["Jwt:Key"];
+        if (jwtKey == null)
+        {
+            return StatusCode(500, "JWT configuration error");
+        }
+
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+        var key = Encoding.ASCII.GetBytes(jwtKey);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]

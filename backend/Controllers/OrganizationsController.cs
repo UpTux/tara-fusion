@@ -22,7 +22,10 @@ public class OrganizationsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetOrganizations()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim);
         var organizations = await _context.OrganizationMemberships
             .Where(om => om.UserId == userId)
             .Select(om => om.Organization)
@@ -34,7 +37,10 @@ public class OrganizationsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrganization(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim);
         var organization = await _context.Organizations
             .FirstOrDefaultAsync(o => o.Id == id && o.OrganizationMemberships.Any(om => om.UserId == userId));
 
@@ -49,7 +55,10 @@ public class OrganizationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrganization(Organization organization)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim);
         organization.UserId = userId;
 
         _context.Organizations.Add(organization);
