@@ -8,4 +8,5 @@ public class Project
     public Organization Organization { get; set; }
     public Guid UserId { get; set; }
     public User User { get; set; }
+    public ICollection<ProjectMembership> ProjectMemberships { get; set; } = new List<ProjectMembership>();
 }
