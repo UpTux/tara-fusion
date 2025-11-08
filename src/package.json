@@ -16,6 +16,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.8.0",
     "@google/genai": "^1.27.0",
     "html-to-image": "^1.11.11",
     "jszip": "^3.10.1",

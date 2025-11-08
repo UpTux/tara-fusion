@@ -9,6 +9,11 @@ import { calculatePermissions, Permissions } from './services/permissionService'
 import { recalculateProject } from './services/projectCalculationService';
 import { parseProjectJson } from './services/projectImportExportService';
 import { AttackFeasibilityRating, Impact, ImpactCategorySettings, NeedStatus, NeedType, Organization, OrganizationRole, Project, ProjectMembership, ProjectRole, ProjectStatus, RiskTreatmentDecision, SecurityProperty, User } from './types';
+import {useAuth0} from "@auth0/auth0-react";
+import {useAuthenticatedUser} from "@/services/useAuthenticatedUser.ts";
+import {Profile} from "@/components/Auth/Profile.tsx";
+import {LogoutButton} from "@/components/Auth/LogoutButton.tsx";
+import {LoginButton} from "@/components/Auth/LoginButton.tsx";
 
 const defaultImpactCategories: ImpactCategorySettings = {
   categories: [
@@ -496,6 +501,8 @@ export default function App() {
     return 'No Project Selected';
   }, [activeMainView, activeProject]);
 
+  const {user, isAuthenticated, isLoading} = useAuthenticatedUser();
+
   return (
     <div className="flex h-screen w-screen bg-gray-900 text-gray-200 font-sans">
       <Sidebar
@@ -520,8 +527,20 @@ export default function App() {
         <header className="flex items-center justify-between p-4 border-b border-gray-700/50 bg-gray-900/30 flex-shrink-0">
           <h1 className="text-2xl font-bold text-white">{mainViewTitle}</h1>
           <div className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-400">Viewing as:</span>
-            <span className="font-semibold text-indigo-300">{currentUser.name}</span>
+            {/*<span className="font-semibold text-indigo-300">{currentUser.name}</span>*/}
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-400">Viewing as:</span>
+                <div className="">
+                  <Profile/>
+                </div>
+                <LogoutButton/>
+              </div>
+            ) : (
+              <div className="action-card">
+                <LoginButton/>
+              </div>
+            )}
           </div>
         </header>
 
