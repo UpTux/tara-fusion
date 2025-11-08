@@ -151,11 +151,33 @@ const generateThreatAnalysisRst = (project: Project): string => {
         });
     }
     if (project.threats && project.threats.length > 0) {
-        content += rstHeader('Threats', 1);
+        content += rstHeader('Threats Overview', 1);
+        content += 'The following threats have been identified. Click on a threat to see detailed analysis including attack trees.\n\n';
+
+        // Create table of contents for threat detail pages
+        content += '.. toctree::\n';
+        content += '   :maxdepth: 1\n';
+        content += '   :caption: Detailed Threat Analysis:\n\n';
+
         project.threats.forEach(t => {
-            const desc = `${t.comment}\n\n**Reasoning for scaling:**\n${t.reasoningScaling}`;
-            content += generateNeedRst(t, 'threat', t.name, t.id, desc);
+            content += `   threats/${t.id}\n`;
         });
+        content += '\n';
+
+        // Summary table of threats
+        const headers = ['Threat ID', 'Name', 'Asset', 'Security Property', 'Initial AFR', 'Residual AFR'];
+        const rows = project.threats.map(t => {
+            const asset = (project.assets || []).find(a => a.id === t.assetId);
+            return [
+                `:need:\`${t.id}\``,
+                t.name,
+                asset?.name || t.assetId,
+                t.securityProperty,
+                t.initialAFR,
+                t.residualAFR
+            ];
+        });
+        content += rstListTable(headers, rows, 'Threats Summary', [15, 25, 20, 15, 12, 13]);
     }
     if (project.threatScenarios && project.threatScenarios.length > 0) {
         content += rstHeader('Threat Scenarios', 1);
@@ -262,6 +284,137 @@ const generateRiskTreatmentRst = (project: Project): string => {
     return content;
 }
 
+const generateThreatDetailRst = (threat: any, project: Project): string => {
+    const asset = (project.assets || []).find(a => a.id === threat.assetId);
+    const damageScenarios = (project.damageScenarios || []).filter(ds => threat.damageScenarioIds.includes(ds.id));
+    const threatScenarios = (project.threatScenarios || []).filter(ts => ts.threatId === threat.id);
+    const misuseCases = (project.misuseCases || []).filter(mc => threat.misuseCaseIds?.includes(mc.id));
+
+    let content = rstHeader(`Threat: ${threat.name}`, 0);
+
+    // Threat details
+    content += rstHeader('Threat Details', 1);
+    content += generateNeedRst(threat, 'threat', threat.name, threat.id, `${threat.comment}\n\n**Reasoning for scaling:**\n${threat.reasoningScaling}`);
+
+    // Asset information
+    if (asset) {
+        content += rstHeader('Affected Asset', 1);
+        content += `This threat targets the **${threat.securityProperty}** of the following asset:\n\n`;
+        content += `* **Asset:** :need:\`${asset.id}\` - ${asset.name}\n`;
+        content += `* **Description:** ${asset.description}\n\n`;
+    }
+
+    // Damage scenarios
+    if (damageScenarios.length > 0) {
+        content += rstHeader('Related Damage Scenarios', 1);
+        const headers = ['ID', 'Name', 'Impact', 'Category'];
+        const rows = damageScenarios.map(ds => [
+            `:need:\`${ds.id}\``,
+            ds.name,
+            ds.impact,
+            ds.impactCategory
+        ]);
+        content += rstListTable(headers, rows, undefined, [15, 35, 15, 35]);
+    }
+
+    // Attack tree from needs
+    const attackTreeRoot = project.needs.find(n => n.id === threat.id && n.type === NeedType.ATTACK);
+    if (attackTreeRoot) {
+        content += rstHeader('Attack Tree', 1);
+        content += `The following attack tree visualizes the potential attack paths for this threat.\n\n`;
+
+        // Collect all nodes in the attack tree
+        const needsMap = new Map(project.needs.map(n => [n.id, n]));
+        const treeNodeIds = new Set<string>();
+        const queue: string[] = [threat.id];
+        treeNodeIds.add(threat.id);
+
+        while (queue.length > 0) {
+            const currentId = queue.shift();
+            if (!currentId) continue;
+            const currentNode = needsMap.get(currentId);
+            if (currentNode?.links) {
+                for (const link of currentNode.links) {
+                    if (needsMap.has(link) && !treeNodeIds.has(link)) {
+                        treeNodeIds.add(link);
+                        queue.push(link);
+                    }
+                }
+            }
+        }
+
+        // Add needflow directive for visualization
+        content += `.. needflow:: Attack Tree Flow for ${threat.id}\n`;
+        content += `   :root_id: ${threat.id}\n`;
+        content += `   :show_link_names:\n`;
+        content += `   :align: center\n\n`;
+
+        // Add image directive
+        content += `.. image:: ../_image/attack_tree_${threat.id}.png\n`;
+        content += `   :alt: Attack Tree for ${threat.id}\n`;
+        content += `   :align: center\n`;
+        content += `   :width: 100%\n\n`;
+
+        // Add table of attack tree nodes
+        if (treeNodeIds.size > 0) {
+            content += rstHeader('Attack Tree Nodes', 2);
+            const nodeIdsList = Array.from(treeNodeIds).map(id => `'${id}'`).join(', ');
+            content += `.. needtable:: Attack nodes for ${threat.id}\n`;
+            content += `   :filter: id in [${nodeIdsList}]\n`;
+            content += `   :columns: id, title, type, logic_gate, status\n`;
+            content += `   :style: table\n\n`;
+        }
+    }
+
+    // Misuse cases
+    if (misuseCases.length > 0) {
+        content += rstHeader('Related Misuse Cases', 1);
+        misuseCases.forEach(mc => {
+            content += generateNeedRst(mc, 'mc', mc.name, mc.id, `${mc.description}\n\n**Comment:**\n${mc.comment}`);
+        });
+    }
+
+    // Threat scenarios
+    if (threatScenarios.length > 0) {
+        content += rstHeader('Threat Scenarios', 1);
+        content += `The following scenarios describe specific attack instances for this threat:\n\n`;
+
+        const scenariosWithRisk = threatScenarios.map(ts => {
+            const impact = calculateHighestImpact(ts.damageScenarioIds, project.damageScenarios || []);
+            const ap = calculateAP(ts.attackPotential);
+            const rating = getAttackFeasibilityRating(ap);
+            const risk = calculateRiskLevel(rating, impact);
+            return { ...ts, rating, risk };
+        });
+
+        // Scenario summary table
+        const headers = ['Scenario ID', 'Name', 'AFR', 'Risk Level', 'Treatment'];
+        const rows = scenariosWithRisk.map(ts => [
+            `:need:\`${ts.id}\``,
+            ts.name,
+            ts.rating,
+            ts.risk,
+            ts.treatmentDecision || 'TBD'
+        ]);
+        content += rstListTable(headers, rows, undefined, [15, 30, 15, 15, 15]);
+
+        // Detailed scenario information
+        content += rstHeader('Scenario Details', 2);
+        scenariosWithRisk.forEach(ts => {
+            content += generateNeedRst(ts, 'ts', ts.name, ts.id, `${ts.description}\n\n**Comment:**\n${ts.comment}`);
+
+            // Risk treatment information
+            if (ts.treatmentDecision === RiskTreatmentDecision.REDUCE && ts.securityGoalIds && ts.securityGoalIds.length > 0) {
+                content += `**Risk Reduction via Security Goals:** ${ts.securityGoalIds.map(id => `:need:\`${id}\``).join(', ')}\n\n`;
+            } else if ((ts.treatmentDecision === RiskTreatmentDecision.ACCEPT || ts.treatmentDecision === RiskTreatmentDecision.TRANSFER) && ts.securityClaimIds && ts.securityClaimIds.length > 0) {
+                content += `**Risk ${ts.treatmentDecision} based on Security Claims:** ${ts.securityClaimIds.map(id => `:need:\`${id}\``).join(', ')}\n\n`;
+            }
+        });
+    }
+
+    return content;
+};
+
 export async function exportProjectToSphinxZip(project: Project, images: Map<string, string>): Promise<Blob> {
     const zip = new JSZip();
 
@@ -278,6 +431,16 @@ export async function exportProjectToSphinxZip(project: Project, images: Map<str
     source.file('04_threat_analysis.rst', generateThreatAnalysisRst(project));
     source.file('05_attack_trees.rst', generateAttackTreesRst(project));
     source.file('06_risk_treatment.rst', generateRiskTreatmentRst(project));
+
+    // Generate individual threat detail pages
+    const threatsFolder = source.folder('threats');
+    if (!threatsFolder) throw new Error("Could not create threats folder in zip.");
+
+    if (project.threats && project.threats.length > 0) {
+        project.threats.forEach(threat => {
+            threatsFolder.file(`${threat.id}.rst`, generateThreatDetailRst(threat, project));
+        });
+    }
 
     const imageFolder = source.folder('_image');
     if (!imageFolder) throw new Error("Could not create _image folder in zip.");
