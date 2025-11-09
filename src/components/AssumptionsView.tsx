@@ -122,7 +122,7 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
       {/* Assumptions List */}
       <div className="w-1/3 border-r border-vscode-border flex flex-col">
         <div className="p-4 border-b border-vscode-border flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Assumptions</h2>
+          <h2 className="text-2xl font-bold text-vscode-text-primary">Assumptions</h2>
           <button onClick={handleAdd} disabled={isReadOnly} title="Add new assumption (Ctrl + N)" className="p-1.5 text-vscode-text-secondary hover:text-vscode-text-primary hover:bg-vscode-bg-hover rounded disabled:opacity-50 disabled:cursor-not-allowed">
             <PlusIcon className="w-5 h-5" />
           </button>

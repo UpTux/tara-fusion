@@ -14,19 +14,19 @@ interface AttackLeavesViewProps {
 }
 
 const Label: React.FC<{ htmlFor?: string; children: React.ReactNode }> = ({ htmlFor, children }) => (
-  <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-400 mb-1">{children}</label>
+  <label htmlFor={htmlFor} className="block text-sm font-medium text-vscode-text-secondary mb-1">{children}</label>
 );
 
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <input {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
-  <textarea {...props} rows={4} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <textarea {...props} rows={4} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) => (
-  <select {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <select {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
@@ -193,12 +193,12 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
   return (
     <div className="flex h-full text-white">
       {/* Left Pane: Table */}
-      <div className="w-2/5 border-r border-gray-700/50 flex flex-col">
-        <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Attack Leaves</h2>
+      <div className="w-2/5 border-r border-vscode-border flex flex-col">
+        <div className="p-4 border-b border-vscode-border flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-vscode-text-primary">Attack Leaves</h2>
           <div className="flex items-center space-x-2">
             <label
-              className={`p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              className={`p-1.5 text-vscode-text-secondary hover:text-vscode-text-primary hover:bg-vscode-bg-hover rounded transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               title="Import Threat Catalog (XML)"
             >
               <UploadIcon className="w-5 h-5" />
@@ -213,7 +213,7 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
             <button
               onClick={handleAddLeaf}
               disabled={isReadOnly}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1.5 text-vscode-text-secondary hover:text-vscode-text-primary hover:bg-vscode-bg-hover rounded disabled:opacity-50 disabled:cursor-not-allowed"
               title="Add new attack leaf"
             >
               <PlusIcon className="w-5 h-5" />
@@ -223,7 +223,7 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
         <div className="flex-1 overflow-y-auto">
           {attackLeaves.length > 0 ? (
             <table className="w-full text-sm text-left">
-              <thead className="sticky top-0 bg-gray-800/80 backdrop-blur-sm">
+              <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
                 <tr>
                   <th className="p-3 font-semibold tracking-wider">ID</th>
                   <th className="p-3 font-semibold tracking-wider">Title</th>
@@ -236,7 +236,7 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
                   <tr
                     key={leaf.id}
                     onClick={() => setSelectedId(leaf.id)}
-                    className={`border-t border-gray-700/50 cursor-pointer transition-colors ${selectedId === leaf.id ? 'bg-indigo-600/20' : 'hover:bg-gray-800/50'}`}
+                    className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === leaf.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}
                   >
                     <td className="p-3 font-mono text-indigo-400">{leaf.id}</td>
                     <td className="p-3 truncate">{leaf.title}</td>
@@ -251,7 +251,7 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
               </tbody>
             </table>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500 p-4">
+            <div className="flex items-center justify-center h-full text-vscode-text-secondary p-4">
               <div className="text-center">
                 <h3 className="text-lg">No Attack Leaves Found</h3>
                 <p>Create attack trees and define leaf nodes to see them here.</p>
@@ -266,7 +266,7 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
         {editorState ? (
           <div className="space-y-8">
             <div className="flex justify-between items-start">
-              <h2 className="text-2xl font-bold text-gray-200">{editorState.id}: {editorState.title}</h2>
+              <h2 className="text-2xl font-bold text-vscode-text-primary">{editorState.id}: {editorState.title}</h2>
               <button
                 onClick={handleDelete}
                 disabled={isReadOnly}
@@ -287,7 +287,7 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
             </div>
             <div>
               <Label>Attack Potential (AP)</Label>
-              <div className="space-y-3 p-3 bg-gray-800/50 rounded-md border border-gray-700/50">
+              <div className="space-y-3 p-3 bg-vscode-bg-sidebar rounded-md border border-vscode-border">
                 <div>
                   <Label htmlFor="potential-time"><span className="capitalize">Time</span></Label>
                   <Select id="potential-time" value={editorState.attackPotential?.time || 0} onChange={e => handlePotentialChange('time', e.target.value)} disabled={isReadOnly}>
@@ -322,22 +322,22 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
             </div>
             <div>
               <Label>Linked By ({linkingNodes.length})</Label>
-              <div className="text-sm text-gray-300 p-2 bg-gray-900/50 rounded-md border border-gray-700/50 max-h-40 overflow-y-auto">
+              <div className="text-sm text-vscode-text-primary p-2 bg-vscode-bg-sidebar rounded-md border border-vscode-border max-h-40 overflow-y-auto">
                 {linkingNodes.length > 0 ? (
                   <ul className="space-y-1">
                     {linkingNodes.map(n => (
                       <li key={n.id} className="truncate">
                         <span className="font-mono text-indigo-400 mr-2">{n.id}</span>
-                        <span className="text-gray-400">{n.title}</span>
+                        <span className="text-vscode-text-secondary">{n.title}</span>
                       </li>
                     ))}
                   </ul>
-                ) : <span className="text-gray-500 italic">Not linked by any nodes.</span>}
+                ) : <span className="text-vscode-text-secondary italic">Not linked by any nodes.</span>}
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-vscode-text-secondary">
             <div className="text-center">
               <h3 className="text-lg">No Attack Leaf Selected</h3>
               <p>Select a leaf from the list to view and edit its details.</p>

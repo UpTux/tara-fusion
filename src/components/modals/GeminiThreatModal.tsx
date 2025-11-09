@@ -35,12 +35,12 @@ export const GeminiThreatModal: React.FC<GeminiThreatModalProps> = ({ onClose, o
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 transition-opacity">
-      <div className="bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl transform transition-all" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-vscode-bg-sidebar rounded-lg shadow-xl p-8 w-full max-w-2xl transform transition-all" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center mb-6">
-          <SparklesIcon className="w-8 h-8 text-purple-400 mr-4"/>
+          <SparklesIcon className="w-8 h-8 text-purple-400 mr-4" />
           <h2 className="text-2xl font-bold text-white">Generate Threats with AI</h2>
         </div>
-        <p className="text-gray-400 mb-4">
+        <p className="text-vscode-text-secondary mb-4">
           Describe your system, application, or component. The more detail you provide, the better the threat suggestions will be.
           Consider including information about technologies used, data handled, and user roles.
         </p>
@@ -48,7 +48,7 @@ export const GeminiThreatModal: React.FC<GeminiThreatModalProps> = ({ onClose, o
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g., A customer-facing web application for online banking, built with React and a Java backend, handling sensitive financial data..."
-          className="w-full h-40 p-3 bg-gray-900 border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+          className="w-full h-40 p-3 bg-vscode-bg-sidebar border border-vscode-border rounded-md text-vscode-text-primary focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
           disabled={isLoading}
         />
         {error && <p className="text-red-400 mt-2">{error}</p>}
@@ -56,7 +56,7 @@ export const GeminiThreatModal: React.FC<GeminiThreatModalProps> = ({ onClose, o
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-6 py-2 rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors disabled:opacity-50"
+            className="px-6 py-2 rounded-md text-vscode-text-primary bg-vscode-bg-input hover:bg-vscode-bg-hover transition-colors disabled:opacity-50"
           >
             Cancel
           </button>

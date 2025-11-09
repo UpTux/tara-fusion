@@ -23,10 +23,10 @@ const PieSlice: React.FC<{
 
 export const PieChart: React.FC<PieChartProps> = ({ data }) => {
     const total = data.reduce((sum, item) => sum + item.value, 0);
-    if (total === 0) return <div className="text-center text-gray-500">No data to display.</div>;
+    if (total === 0) return <div className="text-center text-vscode-text-secondary">No data to display.</div>;
 
     let cumulativePercentage = 0;
-    
+
     const getCoordinatesForPercent = (percent: number) => {
         const x = Math.cos(2 * Math.PI * percent);
         const y = Math.sin(2 * Math.PI * percent);
@@ -41,7 +41,7 @@ export const PieChart: React.FC<PieChartProps> = ({ data }) => {
         const largeArcFlag = percentage > 0.5 ? 1 : 0;
 
         const path = `M ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} L 0 0`;
-        
+
         return {
             path,
             color: item.color,
@@ -64,7 +64,7 @@ export const PieChart: React.FC<PieChartProps> = ({ data }) => {
                             className="w-3.5 h-3.5 rounded-sm mr-2"
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-gray-300">{item.label}:</span>
+                        <span className="text-vscode-text-primary">{item.label}:</span>
                         <span className="font-semibold ml-auto pl-4 text-white">{(item.value / total * 100).toFixed(0)}%</span>
                     </div>
                 ))}

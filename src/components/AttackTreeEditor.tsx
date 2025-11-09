@@ -141,7 +141,7 @@ const CustomNode: React.FC<{
             )}
             <div className={`
                 ${getNodeColor(data)}
-                rounded-lg p-3 w-64 text-white shadow-xl
+                rounded-lg p-3 w-64 text-vscode-text-primary shadow-xl
                 border-2 transition-all relative cursor-pointer
                 ${selected ? 'ring-4 ring-offset-2 ring-offset-vscode-bg-main ring-vscode-accent' : ''}
                 ${isLeaf ? 'border-dashed' : ''}
@@ -174,23 +174,23 @@ const CustomNode: React.FC<{
                         <div className="flex justify-between text-xs">
                             <div className="text-center" title="Time">
                                 <div className="text-vscode-text-secondary text-xs">T</div>
-                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.time}</div>
+                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.time}</div>
                             </div>
                             <div className="text-center" title="Expertise">
                                 <div className="text-vscode-text-secondary text-xs">E</div>
-                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.expertise}</div>
+                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.expertise}</div>
                             </div>
                             <div className="text-center" title="Knowledge">
                                 <div className="text-vscode-text-secondary text-xs">K</div>
-                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.knowledge}</div>
+                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.knowledge}</div>
                             </div>
                             <div className="text-center" title="Access">
                                 <div className="text-vscode-text-secondary text-xs">A</div>
-                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.access}</div>
+                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.access}</div>
                             </div>
                             <div className="text-center" title="Equipment">
                                 <div className="text-vscode-text-secondary text-xs">Eq</div>
-                                <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.equipment}</div>
+                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.equipment}</div>
                             </div>
                         </div>
                     </div>
@@ -901,7 +901,7 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
         <div className="flex h-full w-full">
             <aside className="w-1/4 max-w-xs border-r border-vscode-border flex flex-col">
                 <div className="p-4 border-b border-vscode-border">
-                    <h2 className="text-lg font-semibold text-white">Tree Explorer</h2>
+                    <h2 className="text-2xl font-bold text-vscode-text-primary text-vscode-text-bright">Tree Explorer</h2>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2">
                     {attackTreeRoots.length > 0 && (

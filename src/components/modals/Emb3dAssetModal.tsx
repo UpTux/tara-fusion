@@ -58,19 +58,19 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-700">
+            <div className="bg-vscode-bg-sidebar rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-vscode-border">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-700">
+                <div className="p-6 border-b border-vscode-border">
                     <div className="flex justify-between items-start">
                         <div>
                             <h2 className="text-2xl font-bold text-white">Import from MITRE Emb3d</h2>
-                            <p className="text-sm text-gray-400 mt-1">
+                            <p className="text-sm text-vscode-text-secondary mt-1">
                                 Select embedded system assets to import into your project
                             </p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-white transition-colors"
+                            className="text-vscode-text-secondary hover:text-vscode-text-primary transition-colors"
                         >
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -86,13 +86,13 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                                 placeholder="Search assets..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-white placeholder-vscode-text-secondary focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
@@ -108,7 +108,7 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                         >
                             {selectedAssetNames.size === filteredAssets.length ? 'Deselect All' : 'Select All'}
                         </button>
-                        <span className="text-sm text-gray-400">
+                        <span className="text-sm text-vscode-text-secondary">
                             {selectedAssetNames.size} selected
                         </span>
                     </div>
@@ -120,24 +120,24 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                         {filteredAssets.map(asset => (
                             <label
                                 key={asset.name}
-                                className="flex items-start p-3 bg-gray-800/50 hover:bg-gray-800 rounded-md cursor-pointer transition-colors border border-gray-700/50"
+                                className="flex items-start p-3 bg-vscode-bg-sidebar hover:bg-vscode-bg-hover rounded-md cursor-pointer transition-colors border border-vscode-border"
                             >
                                 <input
                                     type="checkbox"
                                     checked={selectedAssetNames.has(asset.name)}
                                     onChange={() => handleToggle(asset.name)}
-                                    className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-gray-900"
+                                    className="mt-1 h-4 w-4 rounded border-vscode-border bg-vscode-bg-input text-indigo-600 focus:ring-indigo-500 focus:ring-offset-vscode-bg-sidebar"
                                 />
                                 <div className="ml-3 flex-1">
                                     <div className="flex items-center gap-2">
                                         <span className="font-medium text-white">{asset.name}</span>
                                         {asset.category && (
-                                            <span className="px-2 py-0.5 text-xs bg-gray-700 text-gray-300 rounded">
+                                            <span className="px-2 py-0.5 text-xs bg-vscode-bg-input text-vscode-text-primary rounded">
                                                 {asset.category}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-sm text-gray-400 mt-1">{asset.description}</p>
+                                    <p className="text-sm text-vscode-text-secondary mt-1">{asset.description}</p>
                                     <div className="flex gap-2 mt-2">
                                         {asset.properties.confidentiality && (
                                             <span className="px-2 py-0.5 text-xs bg-blue-600/20 text-blue-300 rounded">
@@ -162,10 +162,10 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-700 flex justify-end gap-3">
+                <div className="p-6 border-t border-vscode-border flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+                        className="px-4 py-2 bg-vscode-bg-input text-white rounded-md hover:bg-vscode-bg-hover transition-colors"
                     >
                         Cancel
                     </button>

@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Project, ProjectStatus } from '../types';
 import { ClockIcon } from './icons/ClockIcon';
 
@@ -11,19 +11,19 @@ interface ProjectCockpitProps {
 }
 
 const Label: React.FC<{ htmlFor: string; children: React.ReactNode }> = ({ htmlFor, children }) => (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-400 mb-1">{children}</label>
+  <label htmlFor={htmlFor} className="block text-sm font-medium text-vscode-text-secondary mb-1">{children}</label>
 );
 
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-    <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <input {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
-    <textarea {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <textarea {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) => (
-     <select {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <select {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 
@@ -38,7 +38,7 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
     setSecurityManager(project.securityManager || '');
     setComment(project.comment || '');
   }, [project]);
-  
+
   const handleBlur = (field: keyof Project, value: any) => {
     if (isReadOnly) return;
     onProjectChange(field, value);
@@ -48,24 +48,24 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
     <div className="p-8 text-white space-y-8 max-w-4xl mx-auto w-full">
       {/* Project Details Section */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-300">Project Details</h2>
+        <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary">Project Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mt-4">
           <div>
             <Label htmlFor="projectName">Project Name</Label>
-            <Input 
+            <Input
               id="projectName"
-              type="text" 
-              value={name} 
+              type="text"
+              value={name}
               onBlur={(e) => handleBlur('name', e.target.value)}
               onChange={(e) => setName(e.target.value)}
               disabled={isReadOnly}
-              />
+            />
           </div>
           <div>
             <Label htmlFor="securityManager">Security Manager</Label>
-            <Input 
+            <Input
               id="securityManager"
-              type="text" 
+              type="text"
               value={securityManager}
               placeholder="Enter name"
               onBlur={(e) => handleBlur('securityManager', e.target.value)}
@@ -76,12 +76,12 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
           <div>
             <Label htmlFor="projectStatus">Project Status</Label>
             <Select
-                id="projectStatus"
-                value={project.projectStatus}
-                onChange={(e) => onProjectChange('projectStatus', e.target.value as ProjectStatus)}
-                disabled={isReadOnly}
+              id="projectStatus"
+              value={project.projectStatus}
+              onChange={(e) => onProjectChange('projectStatus', e.target.value as ProjectStatus)}
+              disabled={isReadOnly}
             >
-                {Object.values(ProjectStatus).map(status => <option key={status} value={status}>{status}</option>)}
+              {Object.values(ProjectStatus).map(status => <option key={status} value={status}>{status}</option>)}
             </Select>
           </div>
         </div>
@@ -89,8 +89,8 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
 
       {/* Comment Section */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-300">Comment</h2>
-        <Textarea 
+        <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary">Comment</h2>
+        <Textarea
           value={comment}
           onBlur={(e) => handleBlur('comment', e.target.value)}
           onChange={(e) => setComment(e.target.value)}
@@ -102,22 +102,22 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
 
       {/* History Section */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-300 flex items-center">
-            <ClockIcon className="w-5 h-5 mr-3 text-gray-400" />
-            Project History
+        <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary flex items-center">
+          <ClockIcon className="w-5 h-5 mr-3 text-vscode-text-secondary" />
+          Project History
         </h2>
-        <div className="bg-gray-900/50 rounded-lg p-4 h-80 overflow-y-auto border border-gray-700/50">
+        <div className="bg-vscode-bg-sidebar rounded-lg p-4 h-80 overflow-y-auto border border-vscode-border">
           {project.history && project.history.length > 0 ? (
             <ul className="space-y-2">
               {project.history.slice().reverse().map((entry, index) => (
-                <li key={index} className="text-sm text-gray-400 font-mono break-words leading-relaxed border-b border-gray-800 pb-1">
-                    {entry}
+                <li key={index} className="text-sm text-vscode-text-secondary font-mono break-words leading-relaxed border-b border-vscode-border pb-1">
+                  {entry}
                 </li>
               ))}
             </ul>
           ) : (
             <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">No history recorded yet.</p>
+              <p className="text-vscode-text-secondary">No history recorded yet.</p>
             </div>
           )}
         </div>

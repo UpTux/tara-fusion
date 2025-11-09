@@ -143,8 +143,8 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ need, project,
     }, [need.id, project.needs, project.toeConfigurations, isIntermediate, isRoot]);
 
     return (
-        <aside className="w-96 bg-gray-900/80 border-l border-gray-700/50 p-6 overflow-y-auto flex-shrink-0">
-            <h2 className="text-lg font-bold text-white mb-6">Properties</h2>
+        <aside className="w-96 bg-vscode-bg-sidebar border-l border-vscode-border p-6 overflow-y-auto flex-shrink-0">
+            <h2 className="text-lg font-bold text-vscode-text-bright mb-6">Properties</h2>
             <div className="space-y-6">
                 <div>
                     <Label htmlFor="id">ID</Label>
@@ -184,75 +184,75 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ need, project,
                             <option value="AND">Intermediate (AND)</option>
                         </Select>
                         {need.tags.includes('attack-root') && (
-                            <p className="text-xs text-gray-500 mt-1">Root nodes cannot change their logic gate type</p>
+                            <p className="text-xs text-vscode-text-secondary mt-1">Root nodes cannot change their logic gate type</p>
                         )}
                     </div>
                 )}
                 {(isIntermediate || isRoot) && calculatedMetrics && calculatedMetrics.hasSubtree && (
                     <div>
                         <Label>Calculated Attack Metrics</Label>
-                        <div className="space-y-3 p-3 bg-gray-800/50 rounded-md border border-gray-700/50">
-                            <div className="flex justify-between items-center pb-2 border-b border-gray-600/50">
-                                <span className="text-sm font-medium text-gray-300">Total AP:</span>
+                        <div className="space-y-3 p-3 bg-vscode-bg-input rounded-md border border-vscode-border">
+                            <div className="flex justify-between items-center pb-2 border-b border-vscode-border">
+                                <span className="text-sm font-medium text-vscode-text-primary">Total AP:</span>
                                 <span className="text-lg font-bold font-mono text-indigo-300">
                                     {calculatedMetrics.attackPotential === Infinity ? '∞' : calculatedMetrics.attackPotential}
                                 </span>
                             </div>
-                            <div className="flex justify-between items-center pb-2 border-b border-gray-600/50">
-                                <span className="text-sm font-medium text-gray-300">Feasibility (AFR):</span>
+                            <div className="flex justify-between items-center pb-2 border-b border-vscode-border">
+                                <span className="text-sm font-medium text-vscode-text-primary">Feasibility (AFR):</span>
                                 <span className={`px-2 py-1 rounded text-sm font-bold ${getFeasibilityRatingColor(getAttackFeasibilityRating(calculatedMetrics.attackPotential))}`}>
                                     {getAttackFeasibilityRating(calculatedMetrics.attackPotential)}
                                 </span>
                             </div>
-                            <div className="text-xs text-gray-400 mb-2">Critical Path Properties:</div>
+                            <div className="text-xs text-vscode-text-secondary mb-2">Critical Path Properties:</div>
                             <div className="space-y-1 text-xs">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Time:</span>
-                                    <span className="ml-1 font-mono text-white">
+                                    <span className="text-vscode-text-secondary">Time:</span>
+                                    <span className="ml-1 font-mono text-vscode-text-primary">
                                         {calculatedMetrics.attackPotentialTuple.time}
-                                        <span className="ml-1 text-gray-500 font-normal">
+                                        <span className="ml-1 text-vscode-text-secondary font-normal">
                                             ({timeOptions.find(opt => opt.value === calculatedMetrics.attackPotentialTuple.time)?.label.split(': ')[1] || 'Unknown'})
                                         </span>
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Expertise:</span>
-                                    <span className="ml-1 font-mono text-white">
+                                    <span className="text-vscode-text-secondary">Expertise:</span>
+                                    <span className="ml-1 font-mono text-vscode-text-primary">
                                         {calculatedMetrics.attackPotentialTuple.expertise}
-                                        <span className="ml-1 text-gray-500 font-normal">
+                                        <span className="ml-1 text-vscode-text-secondary font-normal">
                                             ({expertiseOptions.find(opt => opt.value === calculatedMetrics.attackPotentialTuple.expertise)?.label.split(': ')[1] || 'Unknown'})
                                         </span>
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Knowledge:</span>
-                                    <span className="ml-1 font-mono text-white">
+                                    <span className="text-vscode-text-secondary">Knowledge:</span>
+                                    <span className="ml-1 font-mono text-vscode-text-primary">
                                         {calculatedMetrics.attackPotentialTuple.knowledge}
-                                        <span className="ml-1 text-gray-500 font-normal">
+                                        <span className="ml-1 text-vscode-text-secondary font-normal">
                                             ({knowledgeOptions.find(opt => opt.value === calculatedMetrics.attackPotentialTuple.knowledge)?.label.split(': ')[1] || 'Unknown'})
                                         </span>
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Access:</span>
-                                    <span className="ml-1 font-mono text-white">
+                                    <span className="text-vscode-text-secondary">Access:</span>
+                                    <span className="ml-1 font-mono text-vscode-text-primary">
                                         {calculatedMetrics.attackPotentialTuple.access}
-                                        <span className="ml-1 text-gray-500 font-normal">
+                                        <span className="ml-1 text-vscode-text-secondary font-normal">
                                             ({accessOptions.find(opt => opt.value === calculatedMetrics.attackPotentialTuple.access)?.label.split(': ')[1] || 'Unknown'})
                                         </span>
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Equipment:</span>
-                                    <span className="ml-1 font-mono text-white">
+                                    <span className="text-vscode-text-secondary">Equipment:</span>
+                                    <span className="ml-1 font-mono text-vscode-text-primary">
                                         {calculatedMetrics.attackPotentialTuple.equipment}
-                                        <span className="ml-1 text-gray-500 font-normal">
+                                        <span className="ml-1 text-vscode-text-secondary font-normal">
                                             ({equipmentOptions.find(opt => opt.value === calculatedMetrics.attackPotentialTuple.equipment)?.label.split(': ')[1] || 'Unknown'})
                                         </span>
                                     </span>
                                 </div>
                             </div>
-                            <div className="text-xs text-gray-500 italic mt-2">
+                            <div className="text-xs text-vscode-text-secondary italic mt-2">
                                 Values represent the critical (lowest AP) attack path through this subtree.
                             </div>
                         </div>
@@ -261,9 +261,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ need, project,
                 {(isIntermediate || isRoot) && calculatedMetrics && !calculatedMetrics.hasSubtree && (
                     <div>
                         <Label>Calculated Attack Metrics</Label>
-                        <div className="p-3 bg-gray-800/50 rounded-md border border-gray-700/50 text-center">
-                            <div className="text-sm text-gray-400">No attack paths available</div>
-                            <div className="text-xs text-gray-500 mt-1">This node has no reachable attack leaves or all paths are blocked by TOE configurations.</div>
+                        <div className="p-3 bg-vscode-bg-input rounded-md border border-vscode-border text-center">
+                            <div className="text-sm text-vscode-text-secondary">No attack paths available</div>
+                            <div className="text-xs text-vscode-text-secondary mt-1">This node has no reachable attack leaves or all paths are blocked by TOE configurations.</div>
                         </div>
                     </div>
                 )}
@@ -283,7 +283,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ need, project,
                 {isLeaf && (
                     <div>
                         <Label>Attack Potential (AP)</Label>
-                        <div className="space-y-3 p-3 bg-gray-800/50 rounded-md border border-gray-700/50">
+                        <div className="space-y-3 p-3 bg-vscode-bg-input rounded-md border border-vscode-border">
                             <div>
                                 <Label htmlFor="potential-time"><span className="capitalize">Time</span></Label>
                                 <Select id="potential-time" value={need.attackPotential?.time || 0} onChange={e => handlePotentialChange('time', e.target.value)} disabled={isReadOnly}>
@@ -334,7 +334,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ need, project,
                 </div>
                 <div>
                     <Label htmlFor="links">Links</Label>
-                    <div className="text-sm text-gray-300 p-2 bg-gray-700/50 rounded">
+                    <div className="text-sm text-vscode-text-primary p-2 bg-vscode-bg-input rounded">
                         {need.links.length > 0 ? need.links.join(', ') : 'No links'}
                     </div>
                 </div>

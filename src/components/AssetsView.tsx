@@ -316,7 +316,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
       {/* Assets List */}
       <div className="w-1/3 border-r border-vscode-border flex flex-col">
         <div className="p-4 border-b border-vscode-border flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Assets</h2>
+          <h2 className="text-2xl font-bold text-vscode-text-primary">Assets</h2>
           <div className="flex gap-2">
             <button
               onClick={() => setShowEmb3dModal(true)}

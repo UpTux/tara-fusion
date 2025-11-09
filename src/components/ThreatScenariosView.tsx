@@ -15,16 +15,16 @@ interface ThreatScenariosViewProps {
 }
 
 const Label: React.FC<{ htmlFor?: string; children: React.ReactNode; className?: string }> = ({ htmlFor, children, className }) => (
-  <label htmlFor={htmlFor} className={`block text-sm font-medium text-gray-400 mb-1 ${className}`}>{children}</label>
+  <label htmlFor={htmlFor} className={`block text-sm font-medium text-vscode-text-secondary mb-1 ${className}`}>{children}</label>
 );
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <input {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
-  <textarea {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <textarea {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) => (
-  <select {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <select {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 const MultiSelectDropdown: React.FC<{ options: { id: string, name: string }[], selected: string[], onUpdate: (selected: string[]) => void, label: string, disabled?: boolean }> = ({ options, selected, onUpdate, label, disabled = false }) => {
@@ -54,16 +54,16 @@ const MultiSelectDropdown: React.FC<{ options: { id: string, name: string }[], s
       <button
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className="w-full flex justify-between items-center px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-left disabled:bg-gray-700/50 disabled:cursor-not-allowed"
+        className="w-full flex justify-between items-center px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-left disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed"
       >
         <span className="truncate">{selected.length > 0 ? `${selected.length} selected` : 'Select...'}</span>
         <ChevronDownIcon className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && !disabled && (
-        <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-10 w-full mt-1 bg-vscode-bg-sidebar border border-vscode-border rounded-md shadow-lg max-h-60 overflow-y-auto">
           {options.map(option => (
-            <label key={option.id} className="flex items-center px-3 py-2 text-sm text-white hover:bg-indigo-600/20 cursor-pointer">
-              <input type="checkbox" checked={selected.includes(option.id)} onChange={() => handleSelect(option.id)} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500" />
+            <label key={option.id} className="flex items-center px-3 py-2 text-sm text-vscode-text-primary hover:bg-vscode-accent/20 cursor-pointer">
+              <input type="checkbox" checked={selected.includes(option.id)} onChange={() => handleSelect(option.id)} className="h-4 w-4 rounded border-vscode-border bg-vscode-bg-input text-vscode-accent focus:ring-vscode-accent" />
               <span className="ml-3 truncate" title={option.name}>{option.name}</span>
             </label>
           ))}
@@ -233,14 +233,14 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
   return (
     <div className="flex h-full text-white">
       {/* List */}
-      <div className="w-2/5 border-r border-gray-700/50 flex flex-col">
-        <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Threat Scenarios</h2>
+      <div className="w-2/5 border-r border-vscode-border flex flex-col">
+        <div className="p-4 border-b border-vscode-border flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-vscode-text-primary">Threat Scenarios</h2>
           {/* Add button removed */}
         </div>
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-sm text-left">
-            <thead className="sticky top-0 bg-gray-800/80 backdrop-blur-sm">
+            <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
               <tr>
                 <th className="p-3 font-semibold tracking-wider">ID</th>
                 <th className="p-3 font-semibold tracking-wider">Name</th>
@@ -252,7 +252,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
                 <tr
                   key={ts.id}
                   onClick={() => setSelectedId(ts.id)}
-                  className={`border-t border-gray-700/50 cursor-pointer transition-colors ${selectedId === ts.id ? 'bg-indigo-600/20' : 'hover:bg-gray-800/50'}`}
+                  className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === ts.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}
                 >
                   <td className="p-3 font-mono text-indigo-400">{ts.id}</td>
                   <td className="p-3 truncate">{ts.name}</td>
@@ -273,7 +273,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
         {editorState ? (
           <div className="space-y-8">
             <div className="flex justify-between items-start">
-              <h2 className="text-2xl font-bold text-gray-200">{editorState.id}: {editorState.name}</h2>
+              <h2 className="text-2xl font-bold text-vscode-text-primary">{editorState.id}: {editorState.name}</h2>
               <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
                 <TrashIcon className="w-4 h-4 mr-2" />
                 Delete
@@ -291,7 +291,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
               </div>
               <div className="col-span-2">
                 <Label>Threat</Label>
-                <p className="p-2 bg-gray-800 rounded-md text-gray-300">
+                <p className="p-2 bg-vscode-bg-sidebar rounded-md text-vscode-text-primary">
                   {project.threats?.find(t => t.id === editorState.threatId)?.name || editorState.threatId}
                 </p>
               </div>
@@ -307,7 +307,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
               <div className="col-span-2">
                 <div className="flex items-center mb-1">
                   <Label>Attack Potential</Label>
-                  <button onClick={() => setIsGuideModalOpen(true)} className="ml-2 text-gray-400 hover:text-white" title="Open Attacker Capability Rating Guide">
+                  <button onClick={() => setIsGuideModalOpen(true)} className="ml-2 text-vscode-text-secondary hover:text-vscode-text-primary" title="Open Attacker Capability Rating Guide">
                     <InformationCircleIcon className="w-5 h-5" />
                   </button>
                   {attackTreeMetrics && (
@@ -318,25 +318,25 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
                 </div>
 
                 {attackTreeMetrics ? (
-                  <div className="p-4 bg-gray-800/50 rounded-md border border-gray-700/50">
+                  <div className="p-4 bg-vscode-bg-sidebar rounded-md border border-vscode-border">
                     <div className="text-center mb-3">
-                      <div className="text-sm text-gray-400 mb-1">Total Attack Potential</div>
+                      <div className="text-sm text-vscode-text-secondary mb-1">Total Attack Potential</div>
                       <div className="text-2xl font-bold font-mono text-indigo-300">
                         {attackTreeMetrics.attackPotential === Infinity ? '∞' : attackTreeMetrics.attackPotential}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-vscode-text-secondary mt-1">
                         Calculated from critical attack path in attack tree
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xs text-gray-400 mb-2">Individual values not available from attack tree calculation</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-vscode-text-secondary mb-2">Individual values not available from attack tree calculation</div>
+                      <div className="text-xs text-vscode-text-secondary">
                         The attack tree provides the optimal total attack potential based on the critical path analysis.
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4 p-4 bg-gray-800/50 rounded-md border border-gray-700/50">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4 p-4 bg-vscode-bg-sidebar rounded-md border border-vscode-border">
                     <div>
                       <Label htmlFor="feasibility-time" className="capitalize text-xs">Time</Label>
                       <Select id="feasibility-time" value={editorState.attackPotential.time} onChange={e => handleFeasibilityChange('time', parseInt(e.target.value, 10))} disabled={isReadOnly}>
@@ -372,11 +372,11 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
               </div>
               <div>
                 <Label>Derived Impact</Label>
-                <p className="p-2 bg-gray-800 rounded-md text-gray-300 font-semibold">{derivedImpact}</p>
+                <p className="p-2 bg-vscode-bg-sidebar rounded-md text-vscode-text-primary font-semibold">{derivedImpact}</p>
               </div>
               <div>
                 <Label>Calculated AFR (AP)</Label>
-                <p className="p-2 bg-gray-800 rounded-md text-gray-300 font-semibold">
+                <p className="p-2 bg-vscode-bg-sidebar rounded-md text-vscode-text-primary font-semibold">
                   {effectiveFeasibilityRating} ({effectiveAttackPotential === Infinity ? '∞' : effectiveAttackPotential})
                 </p>
               </div>
@@ -396,7 +396,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-vscode-text-secondary">
             <div className="text-center">
               <h3 className="text-lg">No Threat Scenario Selected</h3>
               <p>Threat Scenarios are created automatically by linking Damage Scenarios to Threats in the 'Threats' view.</p>

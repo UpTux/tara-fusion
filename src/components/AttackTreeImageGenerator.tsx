@@ -16,7 +16,7 @@ import { NeedType, Project, SphinxNeed } from '../types';
 // --- Helper functions for isolated rendering ---
 
 const getNodeColor = (need: SphinxNeed): string => {
-    if (need.type !== NeedType.ATTACK) return 'bg-gray-700 border-gray-500';
+    if (need.type !== NeedType.ATTACK) return 'bg-vscode-bg-input border-vscode-border';
     if (need.tags.includes('circumvent-root')) return 'bg-teal-700 border-teal-500';
 
     const isRoot = need.tags.includes('attack-root');
@@ -106,24 +106,24 @@ const StaticNode: React.FC<{ data: SphinxNeed }> = ({ data }) => {
 
     return (
         <>
-            {!isRoot && <Handle type="target" position={Position.Top} className="!bg-gray-700 !border-indigo-400" />}
+            {!isRoot && <Handle type="target" position={Position.Top} className="!bg-vscode-bg-input !border-indigo-400" />}
             <div className={`${getNodeColor(data)} rounded-lg p-3 w-64 text-white shadow-xl border-2`}>
                 {data.logic_gate && (
-                    <div className="absolute -top-3 -right-3 bg-gray-900 border-2 border-indigo-400 rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs text-indigo-300">
+                    <div className="absolute -top-3 -right-3 bg-vscode-bg-sidebar border-2 border-indigo-400 rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs text-indigo-300">
                         {data.logic_gate}
                     </div>
                 )}
                 <div className="font-bold text-sm truncate">{data.id}</div>
-                <div className="text-xs text-gray-300 uppercase font-mono tracking-wider mb-2">{data.type}</div>
+                <div className="text-xs text-vscode-text-primary uppercase font-mono tracking-wider mb-2">{data.type}</div>
                 <div className="text-sm">{data.title}</div>
                 {isLeaf && totalAp !== null && (
-                    <div className="mt-2 pt-2 border-t border-gray-600/50 text-xs font-mono text-gray-300">
+                    <div className="mt-2 pt-2 border-t border-vscode-border text-xs font-mono text-vscode-text-primary">
                         <span>AP Total: </span>
                         <span className="font-bold text-indigo-300">{totalAp}</span>
                     </div>
                 )}
             </div>
-            <Handle type="source" position={Position.Bottom} className="!bg-gray-700 !border-indigo-400" />
+            <Handle type="source" position={Position.Bottom} className="!bg-vscode-bg-input !border-indigo-400" />
         </>
     );
 };
@@ -210,7 +210,7 @@ const TreeRenderer: React.FC<TreeRendererProps> = ({ project, rootId, onRendered
 
             try {
                 const dataUrl = await toPng(reactFlowWrapper.current, {
-                    backgroundColor: '#111827', // bg-gray-900
+                    backgroundColor: '#1e1e1e', // vscode dark background
                     width: 1920,
                     height: 1080,
                     pixelRatio: 1,
@@ -234,7 +234,7 @@ const TreeRenderer: React.FC<TreeRendererProps> = ({ project, rootId, onRendered
 
 
     return (
-        <div ref={reactFlowWrapper} style={{ width: 1920, height: 1080, background: '#111827' }}>
+        <div ref={reactFlowWrapper} style={{ width: 1920, height: 1080, background: '#1e1e1e' }}>
             {reactFlowStyles && <style>{reactFlowStyles}</style>}
             <ReactFlow
                 nodes={nodes}
