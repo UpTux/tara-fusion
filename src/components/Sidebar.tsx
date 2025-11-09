@@ -17,6 +17,7 @@ interface SidebarProps {
   activeProjectId: string | null;
   onSelectProject: (id: string) => void;
   onAddProject: (organizationId: string) => void;
+  onAddDemoProject: (organizationId: string) => void;
   onCreateProjectFromFile: (jsonString: string, organizationId: string) => void;
   onDeleteProject: (projectId: string) => void;
   users: User[];
@@ -33,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeProjectId,
   onSelectProject,
   onAddProject,
+  onAddDemoProject,
   onCreateProjectFromFile,
   onDeleteProject,
   users,
@@ -102,6 +104,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <h2 className="text-xs font-semibold text-vscode-text-secondary uppercase tracking-wider">{org.name}</h2>
                   {canAddProjects && (
                     <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => onAddDemoProject(org.id)}
+                        className="text-vscode-text-secondary hover:text-vscode-accent transition-colors text-xs px-2 py-0.5 rounded-sm border border-vscode-border hover:border-vscode-accent"
+                        title={`Import "Project Phoenix" demo project to ${org.name}`}
+                      >
+                        Demo
+                      </button>
                       <label
                         className="text-vscode-text-secondary hover:text-vscode-accent transition-colors cursor-pointer"
                         title={`Create project from file in ${org.name}`}
@@ -117,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <button
                         onClick={() => onAddProject(org.id)}
                         className="text-vscode-text-secondary hover:text-vscode-accent transition-colors"
-                        title={`Add project to ${org.name}`}
+                        title={`Add empty project to ${org.name}`}
                       >
                         <PlusIcon className="w-4 h-4" />
                       </button>
