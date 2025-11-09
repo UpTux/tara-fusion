@@ -8,6 +8,7 @@ import { useAuthenticatedUser } from "@/services/useAuthenticatedUser.ts";
 import { useCallback, useMemo, useState } from 'react';
 import { ProjectView } from './components/ProjectView';
 import { Sidebar } from './components/Sidebar';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { UserManagementView } from './components/UserManagementView';
 import { calculatePermissions, Permissions } from './services/permissionService';
 import { recalculateProject } from './services/projectCalculationService';
@@ -527,6 +528,7 @@ export default function App() {
           <h1 className="text-2xl font-bold text-vscode-text-bright">{mainViewTitle}</h1>
           <div className="flex items-center space-x-2 text-sm">
             {/*<span className="font-semibold text-indigo-300">{currentUser.name}</span>*/}
+            <ThemeSwitcher />
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-vscode-text-secondary">Viewing as:</span>

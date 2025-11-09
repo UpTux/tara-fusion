@@ -1,5 +1,7 @@
-/* VS Code Dark Theme Color Palette */
-:root {
+/* VS Code Theme Color Palettes */
+/* Dark Theme (Default) */
+:root,
+:root[data-theme="dark"] {
     /* Background colors */
     --vscode-bg-main: #1e1e1e;
     --vscode-bg-sidebar: #252526;
@@ -35,6 +37,43 @@
     --vscode-info: #75beff;
 }
 
+/* Light Theme */
+:root[data-theme="light"] {
+    /* Background colors */
+    --vscode-bg-main: #ffffff;
+    --vscode-bg-sidebar: #f3f3f3;
+    --vscode-bg-activity: #e8e8e8;
+    --vscode-bg-panel: #ffffff;
+    --vscode-bg-input: #ffffff;
+    --vscode-bg-dropdown: #ffffff;
+    --vscode-bg-hover: #e8e8e8;
+    --vscode-bg-selected: #cce7ff;
+
+    /* Text colors */
+    --vscode-text-primary: #3b3b3b;
+    --vscode-text-secondary: #6c6c6c;
+    --vscode-text-disabled: #a0a0a0;
+    --vscode-text-bright: #000000;
+
+    /* Border colors */
+    --vscode-border: #d4d4d4;
+    --vscode-border-light: #e0e0e0;
+
+    /* Accent colors */
+    --vscode-accent-blue: #007acc;
+    --vscode-accent-blue-hover: #005a9e;
+    --vscode-accent-green: #16825d;
+    --vscode-accent-red: #e51400;
+    --vscode-accent-orange: #ca5010;
+    --vscode-accent-yellow: #c19c00;
+
+    /* Status colors */
+    --vscode-success: #388a34;
+    --vscode-warning: #c19c00;
+    --vscode-error: #e51400;
+    --vscode-info: #005a9e;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -60,12 +99,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #424242;
+    background: var(--vscode-text-disabled);
     border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #4e4e4e;
+    background: var(--vscode-text-secondary);
 }
 
 /* Custom Tailwind utilities using VS Code colors */

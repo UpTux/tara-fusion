@@ -1,7 +1,8 @@
+import { Auth0Provider } from "@auth0/auth0-react";
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import {Auth0Provider} from "@auth0/auth0-react";
+import { ThemeProvider } from './contexts/ThemeContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -18,7 +19,9 @@ root.render(
         redirect_uri: window.location.origin
       }}
     >
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </Auth0Provider>
   </React.StrictMode>
 );
