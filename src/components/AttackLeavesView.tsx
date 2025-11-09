@@ -225,10 +225,10 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
             <table className="w-full text-sm text-left">
               <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
                 <tr>
-                  <th className="p-3 font-semibold tracking-wider">ID</th>
-                  <th className="p-3 font-semibold tracking-wider">Title</th>
-                  <th className="p-3 font-semibold tracking-wider text-center">AP</th>
-                  <th className="p-3 font-semibold tracking-wider">AFR</th>
+                  <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th>
+                  <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Title</th>
+                  <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-center">AP</th>
+                  <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">AFR</th>
                 </tr>
               </thead>
               <tbody>
@@ -239,7 +239,7 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
                     className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === leaf.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}
                   >
                     <td className="p-3 font-mono text-indigo-400">{leaf.id}</td>
-                    <td className="p-3 truncate">{leaf.title}</td>
+                    <td className="p-3 text-vscode-text-primary">{leaf.title}</td>
                     <td className="p-3 font-mono text-center">{leaf.ap}</td>
                     <td className="p-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getFeasibilityRatingColor(leaf.rating)}`}>

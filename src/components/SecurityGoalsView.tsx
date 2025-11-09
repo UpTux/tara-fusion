@@ -101,16 +101,16 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
           <table className="w-full text-sm text-left">
             <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
               <tr>
-                <th className="p-3 font-semibold tracking-wider">ID</th>
-                <th className="p-3 font-semibold tracking-wider">Name</th>
-                <th className="p-3 font-semibold tracking-wider">Responsible</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Name</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Responsible</th>
               </tr>
             </thead>
             <tbody>
               {goals.map(goal => (
                 <tr key={goal.id} onClick={() => setSelectedId(goal.id)} className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === goal.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}>
                   <td className="p-3 font-mono text-indigo-400">{goal.id}</td>
-                  <td className="p-3 truncate">{goal.name}</td>
+                  <td className="p-3 text-vscode-text-primary">{goal.name}</td>
                   <td className="p-3 text-vscode-text-secondary truncate">{goal.responsible}</td>
                 </tr>
               ))}

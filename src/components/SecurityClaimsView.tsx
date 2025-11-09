@@ -130,13 +130,13 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-sm text-left">
             <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
-              <tr><th className="p-3 font-semibold tracking-wider">ID</th><th className="p-3 font-semibold tracking-wider">Name</th></tr>
+              <tr><th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th><th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Name</th></tr>
             </thead>
             <tbody>
               {claims.map(claim => (
                 <tr key={claim.id} onClick={() => setSelectedId(claim.id)} className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === claim.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}>
                   <td className="p-3 font-mono text-indigo-400">{claim.id}</td>
-                  <td className="p-3 truncate">{claim.name}</td>
+                  <td className="p-3 text-vscode-text-primary">{claim.name}</td>
                 </tr>
               ))}
             </tbody>

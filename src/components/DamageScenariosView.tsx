@@ -136,9 +136,9 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
           <table className="w-full text-sm text-left">
             <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
               <tr>
-                <th className="p-3 font-semibold tracking-wider">ID</th>
-                <th className="p-3 font-semibold tracking-wider">Name</th>
-                <th className="p-3 font-semibold tracking-wider">Impact</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Name</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Impact</th>
               </tr>
             </thead>
             <tbody>

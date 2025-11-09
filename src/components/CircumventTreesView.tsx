@@ -95,10 +95,10 @@ export const CircumventTreesView: React.FC<CircumventTreesViewProps> = ({ projec
         <table className="w-full text-sm text-left">
           <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
             <tr>
-              <th className="p-3 font-semibold tracking-wider w-1/4">Security Control ID</th>
-              <th className="p-3 font-semibold tracking-wider w-1/3">Security Control Name</th>
-              <th className="p-3 font-semibold tracking-wider w-1/4">Circumvent Tree Status</th>
-              <th className="p-3 font-semibold tracking-wider text-center">Actions</th>
+              <th className="p-3 font-semibold tracking-wider text-vscode-text-primary w-1/4">Security Control ID</th>
+              <th className="p-3 font-semibold tracking-wider text-vscode-text-primary w-1/3">Security Control Name</th>
+              <th className="p-3 font-semibold tracking-wider text-vscode-text-primary w-1/4">Circumvent Tree Status</th>
+              <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-vscode-border">

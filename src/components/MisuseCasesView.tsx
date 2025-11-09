@@ -118,9 +118,9 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
           <table className="w-full text-sm text-left">
             <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
               <tr>
-                <th className="p-3 font-semibold tracking-wider">ID</th>
-                <th className="p-3 font-semibold tracking-wider">Name</th>
-                <th className="p-3 font-semibold tracking-wider">Status</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Name</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -131,7 +131,7 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
                   className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === mc.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}
                 >
                   <td className="p-3 font-mono text-indigo-400">{mc.id}</td>
-                  <td className="p-3 truncate">{mc.name}</td>
+                  <td className="p-3 text-vscode-text-primary">{mc.name}</td>
                   <td className="p-3">
                     {(linkedThreatsMap.get(mc.id)?.length || 0) > 0
                       ? <span className="px-2 py-1 text-xs font-medium bg-green-800/50 text-green-300 rounded-full" title={`Linked to: ${linkedThreatsMap.get(mc.id)?.join(', ')}`}>

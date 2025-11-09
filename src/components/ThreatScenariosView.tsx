@@ -242,9 +242,9 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
           <table className="w-full text-sm text-left">
             <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
               <tr>
-                <th className="p-3 font-semibold tracking-wider">ID</th>
-                <th className="p-3 font-semibold tracking-wider">Name</th>
-                <th className="p-3 font-semibold tracking-wider">Risk</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Name</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Risk</th>
               </tr>
             </thead>
             <tbody>
@@ -255,7 +255,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
                   className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === ts.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}
                 >
                   <td className="p-3 font-mono text-indigo-400">{ts.id}</td>
-                  <td className="p-3 truncate">{ts.name}</td>
+                  <td className="p-3 text-vscode-text-primary">{ts.name}</td>
                   <td className="p-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold text-white ${getRiskColor(ts.risk)}`}>
                       {ts.risk}

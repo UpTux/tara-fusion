@@ -222,7 +222,7 @@ export const ThreatsView: React.FC<ThreatsViewProps> = ({ project, onUpdateProje
         <div className="flex-1 overflow-y-auto">
           {Object.keys(threatsByAsset).map(assetId => (
             <div key={assetId} className="mb-2">
-              <h3 className="p-3 font-semibold tracking-wider bg-vscode-bg-sidebar backdrop-blur-sm sticky top-0 text-indigo-300 border-b border-t border-vscode-border">
+              <h3 className="p-3 font-semibold tracking-wider text-vscode-text-primary bg-vscode-bg-sidebar backdrop-blur-sm sticky top-0 text-indigo-300 border-b border-t border-vscode-border">
                 Asset: {assetsById[assetId]?.name || assetId}
               </h3>
               <table className="w-full text-sm text-left">

@@ -340,8 +340,8 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
           <table className="w-full text-sm text-left">
             <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
               <tr>
-                <th className="p-3 font-semibold tracking-wider">ID</th>
-                <th className="p-3 font-semibold tracking-wider">Name</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th>
+                <th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Name</th>
               </tr>
             </thead>
             <tbody>
