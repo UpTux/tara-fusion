@@ -1,6 +1,10 @@
 
 
 
+import { LoginButton } from "@/components/Auth/LoginButton.tsx";
+import { LogoutButton } from "@/components/Auth/LogoutButton.tsx";
+import { Profile } from "@/components/Auth/Profile.tsx";
+import { useAuthenticatedUser } from "@/services/useAuthenticatedUser.ts";
 import { useCallback, useMemo, useState } from 'react';
 import { ProjectView } from './components/ProjectView';
 import { Sidebar } from './components/Sidebar';
@@ -9,11 +13,6 @@ import { calculatePermissions, Permissions } from './services/permissionService'
 import { recalculateProject } from './services/projectCalculationService';
 import { parseProjectJson } from './services/projectImportExportService';
 import { AttackFeasibilityRating, Impact, ImpactCategorySettings, NeedStatus, NeedType, Organization, OrganizationRole, Project, ProjectMembership, ProjectRole, ProjectStatus, RiskTreatmentDecision, SecurityProperty, User } from './types';
-import {useAuth0} from "@auth0/auth0-react";
-import {useAuthenticatedUser} from "@/services/useAuthenticatedUser.ts";
-import {Profile} from "@/components/Auth/Profile.tsx";
-import {LogoutButton} from "@/components/Auth/LogoutButton.tsx";
-import {LoginButton} from "@/components/Auth/LoginButton.tsx";
 
 const defaultImpactCategories: ImpactCategorySettings = {
   categories: [
@@ -501,10 +500,10 @@ export default function App() {
     return 'No Project Selected';
   }, [activeMainView, activeProject]);
 
-  const {user, isAuthenticated, isLoading} = useAuthenticatedUser();
+  const { user, isAuthenticated, isLoading } = useAuthenticatedUser();
 
   return (
-    <div className="flex h-screen w-screen bg-gray-900 text-gray-200 font-sans">
+    <div className="flex h-screen w-screen bg-vscode-bg-main text-vscode-text-primary font-sans">
       <Sidebar
         organizations={organizations}
         projects={projects}
@@ -523,22 +522,22 @@ export default function App() {
         onSelectView={setActiveMainView}
         projectMemberships={projectMemberships}
       />
-      <main className="flex-1 flex flex-col bg-gray-800/50">
-        <header className="flex items-center justify-between p-4 border-b border-gray-700/50 bg-gray-900/30 flex-shrink-0">
-          <h1 className="text-2xl font-bold text-white">{mainViewTitle}</h1>
+      <main className="flex-1 flex flex-col bg-vscode-bg-panel">
+        <header className="flex items-center justify-between p-4 border-b border-vscode-border bg-vscode-bg-sidebar flex-shrink-0">
+          <h1 className="text-2xl font-bold text-vscode-text-bright">{mainViewTitle}</h1>
           <div className="flex items-center space-x-2 text-sm">
             {/*<span className="font-semibold text-indigo-300">{currentUser.name}</span>*/}
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-400">Viewing as:</span>
+                <span className="text-vscode-text-secondary">Viewing as:</span>
                 <div className="">
-                  <Profile/>
+                  <Profile />
                 </div>
-                <LogoutButton/>
+                <LogoutButton />
               </div>
             ) : (
               <div className="action-card">
-                <LoginButton/>
+                <LoginButton />
               </div>
             )}
           </div>
@@ -565,13 +564,13 @@ export default function App() {
               onToggleUserActive={handleToggleUserActive}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500 h-full">
+            <div className="flex-1 flex items-center justify-center text-vscode-text-secondary h-full">
               <div className="text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-vscode-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-300">No project selected</h3>
-                <p className="mt-1 text-sm text-gray-500">Please select a project from the sidebar to begin.</p>
+                <h3 className="mt-2 text-sm font-medium text-vscode-text-primary">No project selected</h3>
+                <p className="mt-1 text-sm text-vscode-text-secondary">Please select a project from the sidebar to begin.</p>
               </div>
             </div>
           )}

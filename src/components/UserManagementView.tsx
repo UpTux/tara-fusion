@@ -88,12 +88,12 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     if (!isCurrentUserOrgAdmin) {
         return (
             <div className="flex h-full items-center justify-center text-white">
-                <div className="text-center p-8 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="text-center p-8 bg-vscode-bg-sidebar rounded-lg border border-vscode-border">
                     <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <h3 className="text-xl font-semibold text-gray-200 mb-2">Access Denied</h3>
-                    <p className="text-gray-400">You must be an Organization Admin to manage users.</p>
+                    <h3 className="text-xl font-semibold text-vscode-text-primary mb-2">Access Denied</h3>
+                    <p className="text-vscode-text-secondary">You must be an Organization Admin to manage users.</p>
                 </div>
             </div>
         );
@@ -106,8 +106,8 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                     <div>
                         <div className="flex justify-between items-center mb-6">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-200">Users in {selectedOrganization?.name}</h2>
-                                <p className="text-sm text-gray-400 mt-1">Manage users and their roles in your organization</p>
+                                <h2 className="text-2xl font-bold text-vscode-text-primary">Users in {selectedOrganization?.name}</h2>
+                                <p className="text-sm text-vscode-text-secondary mt-1">Manage users and their roles in your organization</p>
                             </div>
                             <button
                                 onClick={() => setShowAddUserModal(true)}
@@ -121,11 +121,11 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                         {/* Organization selector if user is admin of multiple orgs */}
                         {organizations.length > 1 && (
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Select Organization</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Select Organization</label>
                                 <select
                                     value={selectedOrgId || ''}
                                     onChange={(e) => setSelectedOrgId(e.target.value)}
-                                    className="w-full max-w-md px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full max-w-md px-4 py-2 bg-vscode-bg-input border border-vscode-border rounded-lg text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent"
                                 >
                                     {organizations.map(org => (
                                         <option key={org.id} value={org.id}>{org.name}</option>
@@ -134,9 +134,9 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                             </div>
                         )}
 
-                        <div className="bg-gray-800/30 rounded-lg border border-gray-700/50 overflow-hidden">
+                        <div className="bg-vscode-bg-sidebar rounded-lg border border-vscode-border overflow-hidden">
                             <table className="w-full text-sm">
-                                <thead className="text-xs text-gray-400 uppercase bg-gray-700/30 border-b border-gray-700/50">
+                                <thead className="text-xs text-vscode-text-secondary uppercase bg-vscode-bg-input border-b border-vscode-border">
                                     <tr>
                                         <th className="p-4 text-left">Name</th>
                                         <th className="p-4 text-left">Email</th>
@@ -148,26 +148,26 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                 <tbody>
                                     {usersInSelectedOrg.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="p-8 text-center text-gray-500">
+                                            <td colSpan={5} className="p-8 text-center text-vscode-text-secondary">
                                                 No users found in this organization.
                                             </td>
                                         </tr>
                                     ) : (
                                         usersInSelectedOrg.map(user => (
-                                            <tr key={user.id} className="border-b border-gray-700/30 hover:bg-gray-800/50 transition-colors">
+                                            <tr key={user.id} className="border-b border-vscode-border hover:bg-vscode-bg-hover transition-colors">
                                                 <td className="p-4">
-                                                    <div className="font-medium text-gray-200">{user.name}</div>
+                                                    <div className="font-medium text-vscode-text-primary">{user.name}</div>
                                                     {user.id === currentUser.id && (
                                                         <span className="text-xs text-indigo-400">(You)</span>
                                                     )}
                                                 </td>
-                                                <td className="p-4 text-gray-400">{user.email}</td>
+                                                <td className="p-4 text-vscode-text-secondary">{user.email}</td>
                                                 <td className="p-4">
                                                     <select
                                                         value={user.role}
                                                         onChange={(e) => handleRoleChange(user.id, e.target.value as OrganizationRole)}
                                                         disabled={user.id === currentUser.id}
-                                                        className="px-3 py-1 bg-gray-700 border border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="px-3 py-1 bg-vscode-bg-input border border-vscode-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-vscode-accent disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         <option value={OrganizationRole.ORG_ADMIN}>{OrganizationRole.ORG_ADMIN}</option>
                                                         <option value={OrganizationRole.DESIGNER}>{OrganizationRole.DESIGNER}</option>
@@ -191,7 +191,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                                         <button
                                                             onClick={() => onDeleteUser(user.id)}
                                                             disabled={user.id === currentUser.id}
-                                                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/30 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="p-2 text-vscode-text-secondary hover:text-red-400 hover:bg-red-900/30 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                             title="Delete user"
                                                         >
                                                             <TrashIcon className="w-4 h-4" />
@@ -207,7 +207,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
 
                         <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
                             <h4 className="text-sm font-semibold text-blue-300 mb-2">User Management Tips</h4>
-                            <ul className="text-sm text-gray-400 space-y-1">
+                            <ul className="text-sm text-vscode-text-secondary space-y-1">
                                 <li>• <strong>Organization Admin</strong> can manage all users and projects within the organization</li>
                                 <li>• <strong>Designer</strong> can create new projects and be assigned to projects with specific roles</li>
                                 <li>• <strong>Member</strong> can be assigned to projects with specific project roles</li>
@@ -217,7 +217,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                         </div>
                     </div>
                 ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="flex items-center justify-center h-full text-vscode-text-secondary">
                         <div className="text-center">
                             <h3 className="text-lg">No Organization</h3>
                             <p>No organization available.</p>
@@ -229,38 +229,38 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             {/* Add User Modal */}
             {showAddUserModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddUserModal(false)}>
-                    <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold text-gray-200 mb-4">Add New User</h3>
+                    <div className="bg-vscode-bg-sidebar rounded-lg border border-vscode-border p-6 w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-xl font-bold text-vscode-text-primary mb-4">Add New User</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Name</label>
                                 <input
                                     type="text"
                                     value={newUserName}
                                     onChange={(e) => setNewUserName(e.target.value)}
                                     placeholder="John Doe"
-                                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-4 py-2 bg-vscode-bg-input border border-vscode-border rounded-lg text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Email</label>
                                 <input
                                     type="email"
                                     value={newUserEmail}
                                     onChange={(e) => setNewUserEmail(e.target.value)}
                                     placeholder="john.doe@example.com"
-                                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-4 py-2 bg-vscode-bg-input border border-vscode-border rounded-lg text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Role</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Role</label>
                                 <select
                                     value={newUserRole}
                                     onChange={(e) => setNewUserRole(e.target.value as OrganizationRole)}
-                                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-4 py-2 bg-vscode-bg-input border border-vscode-border rounded-lg text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent"
                                 >
                                     <option value={OrganizationRole.MEMBER}>{OrganizationRole.MEMBER}</option>
                                     <option value={OrganizationRole.DESIGNER}>{OrganizationRole.DESIGNER}</option>
@@ -277,7 +277,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                     setNewUserEmail('');
                                     setNewUserRole(OrganizationRole.MEMBER);
                                 }}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                                className="px-4 py-2 bg-vscode-bg-input hover:bg-vscode-bg-hover text-vscode-text-primary rounded-lg transition-colors"
                             >
                                 Cancel
                             </button>

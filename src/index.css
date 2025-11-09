@@ -1,0 +1,126 @@
+/* VS Code Dark Theme Color Palette */
+:root {
+    /* Background colors */
+    --vscode-bg-main: #1e1e1e;
+    --vscode-bg-sidebar: #252526;
+    --vscode-bg-activity: #333333;
+    --vscode-bg-panel: #1e1e1e;
+    --vscode-bg-input: #3c3c3c;
+    --vscode-bg-dropdown: #3c3c3c;
+    --vscode-bg-hover: #2a2d2e;
+    --vscode-bg-selected: #04395e;
+
+    /* Text colors */
+    --vscode-text-primary: #cccccc;
+    --vscode-text-secondary: #858585;
+    --vscode-text-disabled: #656565;
+    --vscode-text-bright: #ffffff;
+
+    /* Border colors */
+    --vscode-border: #3e3e42;
+    --vscode-border-light: #454545;
+
+    /* Accent colors */
+    --vscode-accent-blue: #007acc;
+    --vscode-accent-blue-hover: #1c8ad7;
+    --vscode-accent-green: #4ec9b0;
+    --vscode-accent-red: #f48771;
+    --vscode-accent-orange: #ce9178;
+    --vscode-accent-yellow: #dcdcaa;
+
+    /* Status colors */
+    --vscode-success: #89d185;
+    --vscode-warning: #cca700;
+    --vscode-error: #f48771;
+    --vscode-info: #75beff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--vscode-bg-main);
+    color: var(--vscode-text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Custom scrollbar to match VS Code */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--vscode-bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #424242;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4e4e4e;
+}
+
+/* Custom Tailwind utilities using VS Code colors */
+.bg-vscode-main {
+    background-color: var(--vscode-bg-main);
+}
+
+.bg-vscode-sidebar {
+    background-color: var(--vscode-bg-sidebar);
+}
+
+.bg-vscode-activity {
+    background-color: var(--vscode-bg-activity);
+}
+
+.bg-vscode-input {
+    background-color: var(--vscode-bg-input);
+}
+
+.bg-vscode-hover:hover {
+    background-color: var(--vscode-bg-hover);
+}
+
+.bg-vscode-selected {
+    background-color: var(--vscode-bg-selected);
+}
+
+.text-vscode-primary {
+    color: var(--vscode-text-primary);
+}
+
+.text-vscode-secondary {
+    color: var(--vscode-text-secondary);
+}
+
+.text-vscode-bright {
+    color: var(--vscode-text-bright);
+}
+
+.border-vscode {
+    border-color: var(--vscode-border);
+}
+
+.border-vscode-light {
+    border-color: var(--vscode-border-light);
+}
+
+.text-vscode-accent {
+    color: var(--vscode-accent-blue);
+}
+
+.bg-vscode-accent {
+    background-color: var(--vscode-accent-blue);
+}
+
+.bg-vscode-accent:hover {
+    background-color: var(--vscode-accent-blue-hover);
+}

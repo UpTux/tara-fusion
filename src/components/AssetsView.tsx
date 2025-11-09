@@ -23,13 +23,13 @@ interface AssetsViewProps {
 }
 
 const Label: React.FC<{ htmlFor?: string; children: React.ReactNode }> = ({ htmlFor, children }) => (
-  <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-400 mb-1">{children}</label>
+  <label htmlFor={htmlFor} className="block text-sm font-medium text-vscode-text-secondary mb-1">{children}</label>
 );
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <input {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
-  <textarea {...props} className="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white disabled:bg-gray-800/50 disabled:cursor-not-allowed" />
+  <textarea {...props} className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm placeholder-vscode-text-secondary focus:outline-none focus:ring-vscode-accent focus:border-vscode-accent sm:text-sm text-vscode-text-primary disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed" />
 );
 
 const MultiSelectDropdown: React.FC<{ options: string[], selected: string[], onUpdate: (selected: string[]) => void, label: string, disabled?: boolean }> = ({ options, selected, onUpdate, label, disabled = false }) => {
@@ -56,15 +56,15 @@ const MultiSelectDropdown: React.FC<{ options: string[], selected: string[], onU
   return (
     <div className="relative" ref={ref}>
       <Label>{label}</Label>
-      <button onClick={() => !disabled && setIsOpen(!isOpen)} disabled={disabled} className="w-full flex justify-between items-center px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-left disabled:opacity-50 disabled:cursor-not-allowed">
+      <button onClick={() => !disabled && setIsOpen(!isOpen)} disabled={disabled} className="w-full flex justify-between items-center px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-left disabled:opacity-50 disabled:cursor-not-allowed">
         <span>{selected.length > 0 ? `${selected.length} selected` : 'Select...'}</span>
         <ChevronDownIcon className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-10 w-full mt-1 bg-vscode-bg-sidebar border border-vscode-border rounded-md shadow-lg max-h-60 overflow-y-auto">
           {options.map(option => (
-            <label key={option} className="flex items-center px-3 py-2 text-sm text-white hover:bg-indigo-600/20 cursor-pointer">
-              <input type="checkbox" checked={selected.includes(option)} onChange={() => handleSelect(option)} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500" />
+            <label key={option} className="flex items-center px-3 py-2 text-sm text-vscode-text-primary hover:bg-vscode-bg-hover cursor-pointer">
+              <input type="checkbox" checked={selected.includes(option)} onChange={() => handleSelect(option)} className="h-4 w-4 rounded border-vscode-border bg-vscode-bg-input text-indigo-600 focus:ring-vscode-accent" />
               <span className="ml-3">{option}</span>
             </label>
           ))}
@@ -314,14 +314,14 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
   return (
     <div className="flex h-full text-white">
       {/* Assets List */}
-      <div className="w-1/3 border-r border-gray-700/50 flex flex-col">
-        <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
+      <div className="w-1/3 border-r border-vscode-border flex flex-col">
+        <div className="p-4 border-b border-vscode-border flex justify-between items-center">
           <h2 className="text-lg font-semibold">Assets</h2>
           <div className="flex gap-2">
             <button
               onClick={() => setShowEmb3dModal(true)}
               title="Import from MITRE Emb3d"
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1.5 text-vscode-text-secondary hover:text-vscode-text-primary hover:bg-vscode-bg-hover rounded disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isReadOnly}
             >
               <DatabaseIcon className="w-5 h-5" />
@@ -329,7 +329,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
             <button
               onClick={handleAdd}
               title="Add new asset"
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1.5 text-vscode-text-secondary hover:text-vscode-text-primary hover:bg-vscode-bg-hover rounded disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isReadOnly}
             >
               <PlusIcon className="w-5 h-5" />
@@ -338,7 +338,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
         </div>
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-sm text-left">
-            <thead className="sticky top-0 bg-gray-800/80 backdrop-blur-sm">
+            <thead className="sticky top-0 bg-vscode-bg-sidebar backdrop-blur-sm">
               <tr>
                 <th className="p-3 font-semibold tracking-wider">ID</th>
                 <th className="p-3 font-semibold tracking-wider">Name</th>
@@ -349,7 +349,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
                 <tr
                   key={asset.id}
                   onClick={() => setSelectedId(asset.id)}
-                  className={`border-t border-gray-700/50 cursor-pointer transition-colors ${selectedId === asset.id ? 'bg-indigo-600/20' : 'hover:bg-gray-800/50'}`}
+                  className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === asset.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}
                 >
                   <td className="p-3 font-mono text-indigo-400">{asset.id}</td>
                   <td className="p-3">{asset.name}</td>
@@ -365,7 +365,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
         {editorState ? (
           <div className="space-y-8">
             <div className="flex justify-between items-start">
-              <h2 className="text-2xl font-bold text-gray-200">{editorState.id}: {editorState.name}</h2>
+              <h2 className="text-2xl font-bold text-vscode-text-primary">{editorState.id}: {editorState.name}</h2>
               <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
                 <TrashIcon className="w-4 h-4 mr-2" />
                 Delete
@@ -424,7 +424,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-vscode-text-secondary">
             <div className="text-center">
               <h3 className="text-lg">No Asset Selected</h3>
               <p>Select an asset from the list or create a new one.</p>

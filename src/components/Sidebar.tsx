@@ -64,28 +64,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const canAddProjects = currentUser.role === OrganizationRole.ORG_ADMIN || currentUser.role === OrganizationRole.DESIGNER;
 
   return (
-    <aside className="w-72 bg-gray-900/80 border-r border-gray-700/50 flex flex-col">
-      <div className="p-4">
+    <aside className="w-72 bg-vscode-bg-sidebar border-r border-vscode-border flex flex-col">
+      <div className="p-4 border-b border-vscode-border">
         <div className="flex items-center space-x-3">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-vscode-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          <h1 className="text-xl font-bold text-white">TARA Fusion</h1>
+          <h1 className="text-xl font-bold text-vscode-text-bright">TARA Fusion</h1>
         </div>
       </div>
 
-      <div className="px-4 pb-2 border-b border-gray-700/50">
-        <div className="flex bg-gray-800/50 rounded-lg p-1">
+      <div className="px-4 pb-2 pt-2 border-b border-vscode-border">
+        <div className="flex bg-vscode-bg-input rounded-md p-1">
           <button
             onClick={() => onSelectView('projects')}
-            className={`${currentUser.role === 'Organization Admin' ? 'w-1/2' : 'w-full'} py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'projects' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+            className={`${currentUser.role === 'Organization Admin' ? 'w-1/2' : 'w-full'} py-1.5 text-sm font-semibold rounded-sm transition-colors flex items-center justify-center ${activeView === 'projects' ? 'bg-vscode-bg-selected text-vscode-text-bright' : 'text-vscode-text-secondary hover:bg-vscode-bg-hover hover:text-vscode-text-primary'}`}
           >
             <FolderIcon className="w-5 h-5 mr-2" /> Projects
           </button>
           {currentUser.role === 'Organization Admin' && (
             <button
               onClick={() => onSelectView('users')}
-              className={`w-1/2 py-1.5 text-sm font-semibold rounded-md transition-colors flex items-center justify-center ${activeView === 'users' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+              className={`w-1/2 py-1.5 text-sm font-semibold rounded-sm transition-colors flex items-center justify-center ${activeView === 'users' ? 'bg-vscode-bg-selected text-vscode-text-bright' : 'text-vscode-text-secondary hover:bg-vscode-bg-hover hover:text-vscode-text-primary'}`}
             >
               <UsersIcon className="w-5 h-5 mr-2" /> Users
             </button>
@@ -99,11 +99,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {organizations.map((org) => (
               <div key={org.id} className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{org.name}</h2>
+                  <h2 className="text-xs font-semibold text-vscode-text-secondary uppercase tracking-wider">{org.name}</h2>
                   {canAddProjects && (
                     <div className="flex items-center space-x-2">
                       <label
-                        className="text-gray-500 hover:text-indigo-400 transition-colors cursor-pointer"
+                        className="text-vscode-text-secondary hover:text-vscode-accent transition-colors cursor-pointer"
                         title={`Create project from file in ${org.name}`}
                       >
                         <UploadIcon className="w-4 h-4" />
@@ -116,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </label>
                       <button
                         onClick={() => onAddProject(org.id)}
-                        className="text-gray-500 hover:text-indigo-400 transition-colors"
+                        className="text-vscode-text-secondary hover:text-vscode-accent transition-colors"
                         title={`Add project to ${org.name}`}
                       >
                         <PlusIcon className="w-4 h-4" />
@@ -130,12 +130,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     .map((proj) => {
                       const permissions = calculatePermissions(currentUser.id, proj, users, projectMemberships);
                       return (
-                        <li key={proj.id} className="group flex items-center justify-between rounded-md transition-colors hover:bg-gray-800/30">
+                        <li key={proj.id} className="group flex items-center justify-between rounded-sm transition-colors hover:bg-vscode-bg-hover">
                           <button
                             onClick={() => onSelectProject(proj.id)}
-                            className={`flex-grow text-left px-3 py-2 rounded-md text-sm font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 ${activeProjectId === proj.id
-                              ? 'bg-indigo-600 text-white shadow-lg'
-                              : 'text-gray-300 group-hover:bg-gray-700/50 group-hover:text-white'
+                            className={`flex-grow text-left px-3 py-1.5 rounded-sm text-sm font-normal transition-all duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-vscode-accent ${activeProjectId === proj.id
+                              ? 'bg-vscode-bg-selected text-vscode-text-bright'
+                              : 'text-vscode-text-primary group-hover:bg-vscode-bg-hover group-hover:text-vscode-text-bright'
                               }`}
                           >
                             {proj.name}
@@ -143,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           {permissions.isProjectAdmin && (
                             <button
                               onClick={() => onDeleteProject(proj.id)}
-                              className="ml-1 mr-1 p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 flex-shrink-0"
+                              className="ml-1 mr-1 p-1.5 rounded-sm text-vscode-text-secondary hover:text-red-400 hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 flex-shrink-0"
                               title={`Delete ${proj.name}`}
                             >
                               <TrashIcon className="w-4 h-4" />
@@ -157,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             ))}
           </>
         ) : (
-          <div className="p-4 text-center text-gray-400 text-sm">
+          <div className="p-4 text-center text-vscode-text-secondary text-sm">
             {currentUser.role === 'Organization Admin' ? (
               <>
                 <p>User Management is active.</p>

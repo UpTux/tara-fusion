@@ -1,16 +1,40 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TARA Fusion - AI-Powered Threat Analysis</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/reactflow@11.11.3/dist/style.css"
-    />
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TARA Fusion - AI-Powered Threat Analysis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            vscode: {
+              'bg-main': '#1e1e1e',
+              'bg-sidebar': '#252526',
+              'bg-activity': '#333333',
+              'bg-panel': '#1e1e1e',
+              'bg-input': '#3c3c3c',
+              'bg-hover': '#2a2d2e',
+              'bg-selected': '#04395e',
+              'text-primary': '#cccccc',
+              'text-secondary': '#858585',
+              'text-disabled': '#656565',
+              'text-bright': '#ffffff',
+              'border': '#3e3e42',
+              'border-light': '#454545',
+              'accent': '#007acc',
+              'accent-hover': '#1c8ad7',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.11.3/dist/style.css" />
   <script type="importmap">
 {
   "imports": {
@@ -24,10 +48,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-gray-900 text-gray-100">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body class="bg-vscode-bg-main text-vscode-text-primary">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>

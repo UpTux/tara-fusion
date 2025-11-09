@@ -40,7 +40,7 @@ interface AttackTreeEditorProps {
 
 const getNodeColor = (need: SphinxNeed): string => {
     if (need.type !== NeedType.ATTACK) {
-        return 'bg-gray-700 border-gray-500';
+        return 'bg-vscode-bg-input border-vscode-border';
     }
     if (need.tags.includes('circumvent-root')) {
         return 'bg-teal-700 border-teal-500';
@@ -71,21 +71,21 @@ const ApEditor: React.FC<{ potential?: AttackPotentialTuple, onUpdate: (field: k
     const totalAp = Object.values(potential).reduce((sum: number, val) => sum + Number(val || 0), 0);
 
     return (
-        <div className="mt-2 pt-2 border-t border-gray-600/50 nodrag">
-            <div className="flex justify-between items-center text-xs font-mono text-gray-300 mb-2">
+        <div className="mt-2 pt-2 border-t border-vscode-border-light nodrag">
+            <div className="flex justify-between items-center text-xs font-mono text-vscode-text-primary mb-2">
                 <span>AP Total:</span>
-                <span className="font-bold text-indigo-300">{totalAp}</span>
+                <span className="font-bold text-vscode-accent">{totalAp}</span>
             </div>
             <div className="space-y-1.5">
                 {(Object.keys(potential) as Array<keyof AttackPotentialTuple>).map(key => {
                     const { icon: Icon, options } = apConfig[key];
                     return (
                         <div key={key} className="flex items-center space-x-2 text-xs">
-                            <Icon className="w-4 h-4 text-gray-400 flex-shrink-0" title={key.charAt(0).toUpperCase() + key.slice(1)} />
+                            <Icon className="w-4 h-4 text-vscode-text-secondary flex-shrink-0" title={key.charAt(0).toUpperCase() + key.slice(1)} />
                             <select
                                 value={potential[key] || 0}
                                 onChange={(e) => onUpdate(key, e.target.value)}
-                                className="w-full bg-gray-900/50 text-white text-xs rounded-sm border border-transparent focus:border-indigo-500 focus:ring-0 py-0.5 disabled:bg-gray-800/50 disabled:cursor-not-allowed"
+                                className="w-full bg-vscode-bg-input text-vscode-text-primary text-xs rounded-sm border border-transparent focus:border-vscode-accent focus:ring-0 py-0.5 disabled:bg-vscode-bg-input/50 disabled:cursor-not-allowed"
                                 onClick={(e) => e.stopPropagation()}
                                 disabled={isReadOnly}
                             >
@@ -136,34 +136,34 @@ const CustomNode: React.FC<{
                     type="target"
                     position={Position.Top}
                     id="target"
-                    className={`!w-3 !h-3 border-2 transition-colors ${isCritical ? '!bg-red-400 !border-red-200' : '!bg-gray-700 !border-indigo-400'}`}
+                    className={`!w-3 !h-3 border-2 transition-colors ${isCritical ? '!bg-red-400 !border-red-200' : '!bg-vscode-bg-input !border-vscode-accent'}`}
                 />
             )}
             <div className={`
                 ${getNodeColor(data)}
                 rounded-lg p-3 w-64 text-white shadow-xl
                 border-2 transition-all relative cursor-pointer
-                ${selected ? 'ring-4 ring-offset-2 ring-offset-gray-800 ring-indigo-500' : ''}
+                ${selected ? 'ring-4 ring-offset-2 ring-offset-vscode-bg-main ring-vscode-accent' : ''}
                 ${isLeaf ? 'border-dashed' : ''}
                 ${isCritical ? 'border-red-400 shadow-red-500/30' : ''}
             `}>
                 {isCritical && <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>}
                 {data.logic_gate && (
-                    <div className="absolute -top-3 -right-3 bg-gray-900 border-2 border-indigo-400 rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs text-indigo-300">
+                    <div className="absolute -top-3 -right-3 bg-vscode-bg-sidebar border-2 border-vscode-accent rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs text-vscode-accent">
                         {data.logic_gate}
                     </div>
                 )}
                 <div className="font-bold text-sm truncate">{data.id}</div>
-                <div className="text-xs text-gray-300 uppercase font-mono tracking-wider mb-2">{data.type}</div>
+                <div className="text-xs text-vscode-text-primary uppercase font-mono tracking-wider mb-2">{data.type}</div>
                 <div className="text-sm mb-2">{data.title}</div>
 
                 {/* Calculated metrics for intermediate and root nodes */}
                 {(isIntermediate || isRoot) && calculatedMetrics && calculatedMetrics.hasSubtree && (
-                    <div className="mt-2 pt-2 border-t border-gray-600/50 nodrag">
+                    <div className="mt-2 pt-2 border-t border-vscode-border-light nodrag">
                         <div className="flex items-center justify-between text-xs mb-2">
                             <div className="flex items-center space-x-2">
-                                <span className="text-gray-400">AP:</span>
-                                <span className="font-bold font-mono text-indigo-300">
+                                <span className="text-vscode-text-secondary">AP:</span>
+                                <span className="font-bold font-mono text-vscode-accent">
                                     {calculatedMetrics.attackPotential === Infinity ? '∞' : calculatedMetrics.attackPotential}
                                 </span>
                             </div>
@@ -173,23 +173,23 @@ const CustomNode: React.FC<{
                         </div>
                         <div className="flex justify-between text-xs">
                             <div className="text-center" title="Time">
-                                <div className="text-gray-500 text-xs">T</div>
+                                <div className="text-vscode-text-secondary text-xs">T</div>
                                 <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.time}</div>
                             </div>
                             <div className="text-center" title="Expertise">
-                                <div className="text-gray-500 text-xs">E</div>
+                                <div className="text-vscode-text-secondary text-xs">E</div>
                                 <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.expertise}</div>
                             </div>
                             <div className="text-center" title="Knowledge">
-                                <div className="text-gray-500 text-xs">K</div>
+                                <div className="text-vscode-text-secondary text-xs">K</div>
                                 <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.knowledge}</div>
                             </div>
                             <div className="text-center" title="Access">
-                                <div className="text-gray-500 text-xs">A</div>
+                                <div className="text-vscode-text-secondary text-xs">A</div>
                                 <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.access}</div>
                             </div>
                             <div className="text-center" title="Equipment">
-                                <div className="text-gray-500 text-xs">Eq</div>
+                                <div className="text-vscode-text-secondary text-xs">Eq</div>
                                 <div className="font-mono text-white">{calculatedMetrics.attackPotentialTuple.equipment}</div>
                             </div>
                         </div>
@@ -198,8 +198,8 @@ const CustomNode: React.FC<{
 
                 {/* No paths message for nodes without subtrees */}
                 {(isIntermediate || isRoot) && calculatedMetrics && !calculatedMetrics.hasSubtree && (
-                    <div className="mt-2 pt-2 border-t border-gray-600/50 text-center">
-                        <div className="text-xs text-gray-500">No attack paths</div>
+                    <div className="mt-2 pt-2 border-t border-vscode-border-light text-center">
+                        <div className="text-xs text-vscode-text-secondary">No attack paths</div>
                     </div>
                 )}
 
@@ -209,7 +209,7 @@ const CustomNode: React.FC<{
                 type="source"
                 position={Position.Bottom}
                 id="source"
-                className={`!w-3 !h-3 border-2 transition-colors ${isCritical ? '!bg-red-400 !border-red-200' : '!bg-gray-700 !border-indigo-400'}`}
+                className={`!w-3 !h-3 border-2 transition-colors ${isCritical ? '!bg-red-400 !border-red-200' : '!bg-vscode-bg-input !border-vscode-accent'}`}
             />
         </>
     );
@@ -649,7 +649,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 onEdgesDelete={onEdgesDelete}
                 onNodeContextMenu={onNodeContextMenu}
                 nodeTypes={memoizedNodeTypes}
-                className="bg-gray-800"
+                className="bg-vscode-bg-main"
                 fitView
                 nodesDraggable={!isReadOnly}
                 nodesConnectable={!isReadOnly}
@@ -657,33 +657,33 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 panOnDrag={!isReadOnly}
             >
                 <Controls />
-                <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#4a5568" />
+                <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#3e3e42" />
             </ReactFlow>
 
             {treeMetrics && (
-                <div className="absolute top-4 left-4 bg-gray-900/70 backdrop-blur-sm border border-gray-700 p-3 rounded-lg text-white text-sm shadow-lg">
+                <div className="absolute top-4 left-4 bg-vscode-bg-sidebar/90 backdrop-blur-sm border border-vscode-border p-3 rounded-lg text-vscode-text-primary text-sm shadow-lg">
                     <div className="font-bold text-base mb-2">Tree Analysis</div>
                     <div className="flex items-center space-x-4">
                         <div>
-                            <div className="text-xs text-gray-400">Attack Potential (AP)</div>
-                            <div className="text-2xl font-mono font-bold text-indigo-300">{treeMetrics.attackPotential}</div>
+                            <div className="text-xs text-vscode-text-secondary">Attack Potential (AP)</div>
+                            <div className="text-2xl font-mono font-bold text-vscode-accent">{treeMetrics.attackPotential}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-gray-400">Feasibility (AFR)</div>
+                            <div className="text-xs text-vscode-text-secondary">Feasibility (AFR)</div>
                             <div className={`text-lg font-bold px-2 py-0.5 rounded ${getFeasibilityRatingColor(treeMetrics.afr)}`}>
                                 {treeMetrics.afr}
                             </div>
                         </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-2 italic">Critical path is highlighted in red.</div>
+                    <div className="text-xs text-vscode-text-secondary mt-2 italic">Critical path is highlighted in red.</div>
                 </div>
             )}
 
-            <div className="absolute top-4 right-4 bg-gray-900/70 backdrop-blur-sm border border-gray-700 p-2 rounded-lg shadow-lg">
+            <div className="absolute top-4 right-4 bg-vscode-bg-sidebar/90 backdrop-blur-sm border border-vscode-border p-2 rounded-lg shadow-lg">
                 <button
                     onClick={handleLayout}
                     disabled={isReadOnly || !selectedTreeRootId}
-                    className="flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center px-3 py-1.5 bg-vscode-accent text-vscode-text-bright rounded-md text-xs font-medium hover:bg-vscode-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Apply automatic layout (Top to Bottom)"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -696,17 +696,17 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
             {contextMenu && (
                 <div
                     style={{ top: contextMenu.top, left: contextMenu.left }}
-                    className="absolute z-50 bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-md shadow-lg text-white text-sm animate-fade-in-fast"
+                    className="absolute z-50 bg-vscode-bg-sidebar/95 backdrop-blur-sm border border-vscode-border rounded-md shadow-lg text-vscode-text-primary text-sm animate-fade-in-fast"
                 >
                     <div className="p-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-400 border-b border-gray-700 mb-1">Actions for {contextMenu.node.id}</div>
+                        <div className="px-3 py-1.5 text-xs text-vscode-text-secondary border-b border-vscode-border mb-1">Actions for {contextMenu.node.id}</div>
                         {!isNodeLeaf && (
                             <>
-                                <button onClick={() => handleAddNode(contextMenu.node, 'intermediate')} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600/30 rounded flex items-center transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <button onClick={() => handleAddNode(contextMenu.node, 'intermediate')} className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-vscode-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     Add Intermediate Node
                                 </button>
-                                <button onClick={() => handleAddNode(contextMenu.node, 'leaf')} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600/30 rounded flex items-center transition-colors">
+                                <button onClick={() => handleAddNode(contextMenu.node, 'leaf')} className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6-4l-1.5-1.5L12 9.75 7.5 5.25 6 6.75l6 6 7.5-7.5-1.5-1.5z" /></svg>
                                     Add New Attack Leaf
                                 </button>
@@ -715,38 +715,38 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                                     onMouseEnter={() => setIsLinkLeafSubMenuOpen(true)}
                                     onMouseLeave={() => setIsLinkLeafSubMenuOpen(false)}
                                 >
-                                    <div className="w-full text-left px-3 py-1.5 hover:bg-indigo-600/30 rounded flex items-center transition-colors cursor-pointer justify-between">
+                                    <div className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors cursor-pointer justify-between">
                                         <div className="flex items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.596a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                             </svg>
                                             Link Existing Leaf
                                         </div>
-                                        <span className="text-gray-500 text-xs">&#9656;</span>
+                                        <span className="text-vscode-text-secondary text-xs">&#9656;</span>
                                     </div>
                                     {isLinkLeafSubMenuOpen && (
-                                        <div className="absolute left-full -top-1 ml-1 w-64 bg-gray-900 border border-gray-700 rounded-md shadow-lg p-1">
+                                        <div className="absolute left-full -top-1 ml-1 w-64 bg-vscode-bg-sidebar border border-vscode-border rounded-md shadow-lg p-1">
                                             <input
                                                 type="text"
                                                 placeholder="Search by ID or title..."
                                                 value={leafSearch}
                                                 onChange={e => { e.stopPropagation(); setLeafSearch(e.target.value); }}
                                                 onClick={e => e.stopPropagation()}
-                                                className="w-full bg-gray-800 text-white text-xs rounded-sm px-2 py-1 mb-1 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
+                                                className="w-full bg-vscode-bg-input text-vscode-text-primary text-xs rounded-sm px-2 py-1 mb-1 border border-vscode-border-light focus:ring-vscode-accent focus:border-vscode-accent"
                                             />
                                             <div className="max-h-48 overflow-y-auto">
                                                 {filteredLeaves.length > 0 ? filteredLeaves.map(leaf => (
                                                     <button
                                                         key={leaf.id}
                                                         onClick={() => handleLinkExisting(contextMenu.node, leaf.id)}
-                                                        className="w-full text-left text-xs px-2 py-1.5 hover:bg-indigo-600/30 rounded"
+                                                        className="w-full text-left text-xs px-2 py-1.5 hover:bg-vscode-bg-hover rounded"
                                                         title={leaf.title}
                                                     >
-                                                        <span className="font-mono text-indigo-400">{leaf.id}</span>
-                                                        <span className="block text-gray-300 truncate">{leaf.title}</span>
+                                                        <span className="font-mono text-vscode-accent">{leaf.id}</span>
+                                                        <span className="block text-vscode-text-primary truncate">{leaf.title}</span>
                                                     </button>
                                                 )) : (
-                                                    <div className="text-center text-xs text-gray-500 py-2">No leaves found.</div>
+                                                    <div className="text-center text-xs text-vscode-text-secondary py-2">No leaves found.</div>
                                                 )}
                                             </div>
                                         </div>
@@ -757,38 +757,38 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                                     onMouseEnter={() => setIsLinkCTSubMenuOpen(true)}
                                     onMouseLeave={() => setIsLinkCTSubMenuOpen(false)}
                                 >
-                                    <div className="w-full text-left px-3 py-1.5 hover:bg-indigo-600/30 rounded flex items-center transition-colors cursor-pointer justify-between">
+                                    <div className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors cursor-pointer justify-between">
                                         <div className="flex items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.596a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                             </svg>
                                             Link Circumvent Tree
                                         </div>
-                                        <span className="text-gray-500 text-xs">&#9656;</span>
+                                        <span className="text-vscode-text-secondary text-xs">&#9656;</span>
                                     </div>
                                     {isLinkCTSubMenuOpen && (
-                                        <div className="absolute left-full -top-1 ml-1 w-64 bg-gray-900 border border-gray-700 rounded-md shadow-lg p-1">
+                                        <div className="absolute left-full -top-1 ml-1 w-64 bg-vscode-bg-sidebar border border-vscode-border rounded-md shadow-lg p-1">
                                             <input
                                                 type="text"
                                                 placeholder="Search by ID or title..."
                                                 value={ctSearch}
                                                 onChange={e => { e.stopPropagation(); setCtSearch(e.target.value); }}
                                                 onClick={e => e.stopPropagation()}
-                                                className="w-full bg-gray-800 text-white text-xs rounded-sm px-2 py-1 mb-1 border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
+                                                className="w-full bg-vscode-bg-input text-vscode-text-primary text-xs rounded-sm px-2 py-1 mb-1 border border-vscode-border-light focus:ring-vscode-accent focus:border-vscode-accent"
                                             />
                                             <div className="max-h-48 overflow-y-auto">
                                                 {filteredCTs.length > 0 ? filteredCTs.map(ct => (
                                                     <button
                                                         key={ct.id}
                                                         onClick={() => handleLinkExisting(contextMenu.node, ct.id)}
-                                                        className="w-full text-left text-xs px-2 py-1.5 hover:bg-indigo-600/30 rounded"
+                                                        className="w-full text-left text-xs px-2 py-1.5 hover:bg-vscode-bg-hover rounded"
                                                         title={ct.title}
                                                     >
                                                         <span className="font-mono text-teal-400">{ct.id}</span>
-                                                        <span className="block text-gray-300 truncate">{ct.title}</span>
+                                                        <span className="block text-vscode-text-primary truncate">{ct.title}</span>
                                                     </button>
                                                 )) : (
-                                                    <div className="text-center text-xs text-gray-500 py-2">No circumvent trees found.</div>
+                                                    <div className="text-center text-xs text-vscode-text-secondary py-2">No circumvent trees found.</div>
                                                 )}
                                             </div>
                                         </div>
@@ -798,12 +798,12 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                         )}
                         {!(contextMenu.node.data.tags.includes('attack-root') || contextMenu.node.data.tags.includes('circumvent-root')) && (
                             <>
-                                <div className="h-px bg-gray-700 my-1"></div>
-                                <button onClick={() => handleUnlinkNode(contextMenu.node.id)} className="w-full text-left px-3 py-1.5 hover:bg-indigo-600/30 rounded flex items-center transition-colors text-yellow-300">
+                                <div className="h-px bg-vscode-border my-1"></div>
+                                <button onClick={() => handleUnlinkNode(contextMenu.node.id)} className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors text-yellow-300">
                                     <LinkBreakIcon className="h-4 w-4 mr-2" />
                                     Unlink Node
                                 </button>
-                                <button onClick={() => handleDeleteNodeFromProject(contextMenu.node.id)} className="w-full text-left px-3 py-1.5 hover:bg-red-800/50 rounded flex items-center transition-colors text-red-300">
+                                <button onClick={() => handleDeleteNodeFromProject(contextMenu.node.id)} className="w-full text-left px-3 py-1.5 hover:bg-red-500/20 rounded flex items-center transition-colors text-red-300">
                                     <TrashIcon className="h-4 w-4 mr-2" />
                                     Delete from Project
                                 </button>
@@ -899,14 +899,14 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
 
     return (
         <div className="flex h-full w-full">
-            <aside className="w-1/4 max-w-xs border-r border-gray-700/50 flex flex-col">
-                <div className="p-4 border-b border-gray-700/50">
+            <aside className="w-1/4 max-w-xs border-r border-vscode-border flex flex-col">
+                <div className="p-4 border-b border-vscode-border">
                     <h2 className="text-lg font-semibold text-white">Tree Explorer</h2>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2">
                     {attackTreeRoots.length > 0 && (
                         <div className="mb-4">
-                            <h3 className="px-3 py-1 text-sm font-semibold text-gray-400">Attack Trees</h3>
+                            <h3 className="px-3 py-1 text-sm font-semibold text-vscode-text-secondary">Attack Trees</h3>
                             <ul className="space-y-1">
                                 {attackTreeRoots.map(root => (
                                     <li key={root.id}>
@@ -914,11 +914,11 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
                                             onClick={() => setSelectedTreeRootId(root.id)}
                                             className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors
                         ${selectedTreeRootId === root.id
-                                                    ? 'bg-indigo-600/30 text-indigo-200 font-semibold'
-                                                    : 'text-gray-300 hover:bg-gray-700/50'
+                                                    ? 'bg-vscode-accent/30 text-vscode-accent font-semibold'
+                                                    : 'text-vscode-text-primary hover:bg-vscode-bg-hover'
                                                 }`}
                                         >
-                                            <span className="font-mono text-indigo-400 text-xs block">{root.id}</span>
+                                            <span className="font-mono text-vscode-accent text-xs block">{root.id}</span>
                                             {root.title}
                                         </button>
                                     </li>
@@ -929,7 +929,7 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
 
                     {circumventTreeRoots.length > 0 && (
                         <div>
-                            <h3 className="px-3 py-1 text-sm font-semibold text-gray-400">Circumvent Trees</h3>
+                            <h3 className="px-3 py-1 text-sm font-semibold text-vscode-text-secondary">Circumvent Trees</h3>
                             <ul className="space-y-1">
                                 {circumventTreeRoots.map(root => (
                                     <li key={root.id}>
@@ -938,7 +938,7 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
                                             className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors
                         ${selectedTreeRootId === root.id
                                                     ? 'bg-teal-600/30 text-teal-200 font-semibold'
-                                                    : 'text-gray-300 hover:bg-gray-700/50'
+                                                    : 'text-vscode-text-primary hover:bg-vscode-bg-hover'
                                                 }`}
                                         >
                                             <span className="font-mono text-teal-400 text-xs block">{root.id}</span>
@@ -951,7 +951,7 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
                     )}
 
                     {attackTreeRoots.length === 0 && circumventTreeRoots.length === 0 && (
-                        <div className="p-4 text-center text-gray-500 text-sm">
+                        <div className="p-4 text-center text-vscode-text-secondary text-sm">
                             <p>No attack trees found.</p>
                             <p className="mt-2">Threats and Circumvent Trees will appear here as roots.</p>
                         </div>

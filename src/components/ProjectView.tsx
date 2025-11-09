@@ -279,12 +279,12 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <div className="flex items-center justify-end p-2 border-b border-gray-700/50 bg-gray-900/20 flex-shrink-0">
+      <div className="flex items-center justify-end p-2 border-b border-vscode-border bg-vscode-bg-sidebar flex-shrink-0">
         {/* Burger Menu */}
         <div className="relative">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex items-center px-3 py-1.5 bg-gray-700 text-white rounded-md text-xs font-medium hover:bg-gray-600 transition-colors"
+            className="flex items-center px-3 py-1.5 bg-vscode-bg-input text-vscode-text-primary rounded-md text-xs font-medium hover:bg-vscode-bg-hover transition-colors"
             title="Menu"
           >
             <MenuIcon className="w-4 h-4" />
@@ -300,7 +300,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
               />
 
               {/* Menu Items */}
-              <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-20">
+              <div className="absolute right-0 mt-2 w-56 bg-vscode-bg-sidebar border border-vscode-border rounded-md shadow-lg z-20">
                 <div className="py-1">
                   {/* Generate with AI */}
                   <button
@@ -309,7 +309,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
                       setIsMenuOpen(false);
                     }}
                     disabled={isReadOnly}
-                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center px-4 py-2 text-xs text-vscode-text-primary hover:bg-vscode-bg-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Generate threats and attack steps using AI"
                   >
                     <SparklesIcon className="w-4 h-4 mr-3" />
@@ -323,17 +323,17 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
                       setIsMenuOpen(false);
                     }}
                     disabled={isExporting}
-                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                    className="w-full flex items-center px-4 py-2 text-xs text-vscode-text-primary hover:bg-vscode-bg-hover transition-colors disabled:opacity-50 disabled:cursor-wait"
                     title="Export project to a Sphinx documentation ZIP file"
                   >
                     <BookOpenIcon className="w-4 h-4 mr-3" />
                     {isExporting ? 'Exporting...' : 'Export Sphinx Project'}
                   </button>
 
-                  <div className="border-t border-gray-700 my-1"></div>
+                  <div className="border-t border-vscode-border my-1"></div>
 
                   {/* Import Needs */}
-                  <label className={`w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                  <label className={`w-full flex items-center px-4 py-2 text-xs text-vscode-text-primary hover:bg-vscode-bg-hover transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                     <UploadIcon className="w-4 h-4 mr-3" />
                     Import Needs
                     <input
@@ -354,17 +354,17 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
                       handleNeedsExport();
                       setIsMenuOpen(false);
                     }}
-                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center px-4 py-2 text-xs text-vscode-text-primary hover:bg-vscode-bg-hover transition-colors"
                     title="Export project data to needs.json"
                   >
                     <DownloadIcon className="w-4 h-4 mr-3" />
                     Export Needs
                   </button>
 
-                  <div className="border-t border-gray-700 my-1"></div>
+                  <div className="border-t border-vscode-border my-1"></div>
 
                   {/* Import Project */}
-                  <label className={`w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                  <label className={`w-full flex items-center px-4 py-2 text-xs text-vscode-text-primary hover:bg-vscode-bg-hover transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                     <UploadIcon className="w-4 h-4 mr-3" />
                     Import Project
                     <input
@@ -385,7 +385,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
                       handleProjectExport();
                       setIsMenuOpen(false);
                     }}
-                    className="w-full flex items-center px-4 py-2 text-xs text-white hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center px-4 py-2 text-xs text-vscode-text-primary hover:bg-vscode-bg-hover transition-colors"
                     title="Export entire project to a single JSON file"
                   >
                     <DownloadIcon className="w-4 h-4 mr-3" />
