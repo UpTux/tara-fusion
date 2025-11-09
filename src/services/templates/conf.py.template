@@ -53,29 +53,68 @@ needs_types = [
 needs_extra_options = [
     'active',
     'active_r_r_a',
-    'asset_id',
-    'assumption_ids',
     'attack_potential',
     'attacker_type',
     'comment',
-    'damage_scenario_ids',
     'impact',
     'impact_category',
     'initial_a_f_r',
     'knowledge',
     'logic_gate',
-    'misuse_case_ids',
     'reasoning',
     'reasoning_scaling',
     'requirements_link',
     'residual_a_f_r',
     'responsible',
     'scales',
-    'security_claim_ids',
-    'security_control_id',
-    'security_goal_ids',
     'security_properties',
-    'threat_id',
-    'toe_configuration_ids',
     'treatment_decision',
+]
+
+needs_extra_links = [
+    {
+        "option": "asset_id",
+        "incoming": "is targeted by",
+        "outgoing": "targets asset",
+    },
+    {
+        "option": "assumption_ids",
+        "incoming": "is assumed by",
+        "outgoing": "assumes",
+    },
+    {
+        "option": "damage_scenario_ids",
+        "incoming": "is referenced by",
+        "outgoing": "references damage scenarios",
+    },
+    {
+        "option": "misuse_case_ids",
+        "incoming": "is misused by",
+        "outgoing": "references misuse cases",
+    },
+    {
+        "option": "security_claim_ids",
+        "incoming": "is claimed by",
+        "outgoing": "claims",
+    },
+    {
+        "option": "security_control_id",
+        "incoming": "controls",
+        "outgoing": "is controlled by",
+    },
+    {
+        "option": "security_goal_ids",
+        "incoming": "is goal of",
+        "outgoing": "has security goals",
+    },
+    {
+        "option": "threat_id",
+        "incoming": "is realized by",
+        "outgoing": "realizes threat",
+    },
+    {
+        "option": "toe_configuration_ids",
+        "incoming": "is configured in",
+        "outgoing": "references configurations",
+    },
 ]

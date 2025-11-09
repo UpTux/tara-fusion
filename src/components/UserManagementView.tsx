@@ -167,7 +167,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                                         value={user.role}
                                                         onChange={(e) => handleRoleChange(user.id, e.target.value as OrganizationRole)}
                                                         disabled={user.id === currentUser.id}
-                                                        className="px-3 py-1 bg-vscode-bg-input border border-vscode-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-vscode-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="px-3 py-1 bg-vscode-bg-input border border-vscode-border rounded-md text-sm text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         <option value={OrganizationRole.ORG_ADMIN}>{OrganizationRole.ORG_ADMIN}</option>
                                                         <option value={OrganizationRole.DESIGNER}>{OrganizationRole.DESIGNER}</option>

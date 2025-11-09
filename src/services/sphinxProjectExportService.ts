@@ -156,7 +156,7 @@ const generateThreatAnalysisRst = (project: Project): string => {
 
         // Create table of contents for threat detail pages
         content += '.. toctree::\n';
-        content += '   :maxdepth: 1\n';
+        content += '   :maxdepth: 2\n';
         content += '   :caption: Detailed Threat Analysis:\n\n';
 
         project.threats.forEach(t => {
