@@ -24,6 +24,7 @@ import { ProjectCockpit } from './ProjectCockpit';
 import { ProjectSidebar } from './ProjectSidebar';
 import { ProjectUsersView } from './ProjectUsersView';
 import { PropertiesPanel } from './PropertiesPanel';
+import { RequirementsCheckView } from './RequirementsCheckView';
 import { RiskTreatmentView } from './RiskTreatmentView';
 import { ScopeView } from './ScopeView';
 import { SecurityClaimsView } from './SecurityClaimsView';
@@ -268,6 +269,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <SecurityClaimsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Risk Treatment':
         return <RiskTreatmentView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
+      case 'TARA Validation':
+        return <RequirementsCheckView project={project} />;
       case 'Project Users':
         return <ProjectUsersView project={project} isProjectAdmin={permissions.isProjectAdmin} isOrgAdmin={permissions.isOrgAdmin} />;
       case 'Management Summary':

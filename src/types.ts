@@ -296,6 +296,7 @@ export const projectViews = [
   'Security Goals',
   'Risk Treatment',
   '---',
+  'TARA Validation',
   'Project Users',
   'Traceability Graph',
   'Management Summary',

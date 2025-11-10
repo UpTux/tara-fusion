@@ -1,0 +1,58 @@
+Target of Evaluation (TOE) Definition,,
+ID,Requirement,Rationale
+REQ-TOE-001,The risk analysis system shall define the Target of Evaluation (TOE) to clearly delineate the boundaries and scope of the subsequent analysis.,Ensures the entire process has a defined subject and scope before proceeding.
+ID,Requirement,Rationale
+REQ-DATA-100,The Risk Analysis System shall maintain a singular TOE description entity.,Defines the overall subject of the risk analysis.
+REQ-DATA-101,"The Risk Analysis System shall ensure the TOE description includes scope, assumptions, and TOE configuration.",Defines the necessary components of a complete TOE definition.
+REQ-DATA-102,"The Risk Analysis System shall maintain an entity for initial risk and an entity for residual risk, both associated with the TOE description.",Ensures both pre- and post-mitigation risk states are managed.
+Impact Determination,,
+ID,Requirement,Rationale
+REQ-IMP-001,The risk analysis system shall identify and document all potential damage scenarios related to the TOE.,Establishes the negative consequences that the analysis must consider.
+REQ-IMP-002,"The risk analysis system shall, for each identified damage scenario, assign at least one impact category.","Provides a structured basis for evaluating the severity of consequences (e.g., Confidentiality, Integrity, Availability)."
+REQ-IMP-003,"The risk analysis system shall, for each damage scenario, assign a numerical or categorical impact rating based on the assigned impact category.",Quantifies the level of harm caused by the damage scenario.
+REQ-IMP-004,"The risk analysis system shall require that each damage scenario corresponds to a single, most relevant impact category; otherwise, the analyst shall rephrase the damage scenario to achieve this singularity.",Ensures clarity and prevents ambiguity in the application of the risk matrix.
+Attack Feasibility Evaluation,,
+ID,Requirement,Rationale
+REQ-ATT-001,The risk analysis system shall identify and document all assets within the TOE's defined scope.,"Assets are the items of value that threats target, forming the basis for security objectives."
+REQ-ATT-002,"The risk analysis system shall define a set of distinct security objectives by combining each identified asset with all relevant security properties (e.g., Confidentiality, Integrity, Availability).",Formally states what must be protected against threats.
+REQ-ATT-003,"The risk analysis system shall formulate at least one threat for each security objective, where a threat is defined as an action that could violate the security objective.",Identifies specific adversarial actions to be evaluated.
+REQ-ATT-004,The risk analysis system shall define a threat scenario for every unique pairing of a threat (from REQ-ATT-003) and a relevant damage scenario (from REQ-IMP-001).,Creates the specific events (Threat Scenarios) that encapsulate both the action (Threat) and the consequence (Damage Scenario).
+REQ-ATT-005,The risk analysis system shall determine and record the attack feasibility rating for each threat scenario using the designated method (either attack potential or likelihood estimation).,Quantifies the likelihood of a threat scenario occurring.
+Risk Determination and Treatment,,
+ID,Requirement,Rationale
+REQ-RSK-001,"The risk analysis system shall calculate the risk level for each threat scenario by retrieving the value from the defined risk matrix, using the scenario's corresponding Impact Rating (REQ-IMP-003) and Attack Feasibility Rating (REQ-ATT-005).",Determines the overall severity of each threat scenario.
+REQ-RSK-002,"The risk analysis system shall provide functionality for the analyst to assign a risk treatment decision (Reduce, Retain, or Share) for every determined risk (threat scenario).",Ensures a concrete next step is defined for every identified risk.
+REQ-RSK-003,"If the risk treatment decision is Reduce, the system shall require linking the risk to one or more defined security goals.",Ensures that the chosen mitigation strategy (Reduction) is tied to verifiable objectives.
+REQ-RSK-004,"If the risk treatment decision is Share, the system shall require linking the risk to one or more relevant security claims.",Documents the rationale and acceptance when responsibility for the risk is transferred.
+REQ-RSK-005,The risk analysis system shall derive and document security controls from the linked security goals (REQ-RSK-003).,Defines the specific actions and measures needed to achieve the 'Reduce' security goals.
+REQ-RSK-006,The risk analysis system shall document the residual risk analysis by considering the effect of the derived security controls on the overall TOE description and the calculated risk levels.,Ensures the risk management process is complete by evaluating the risk remaining after controls are applied.
+"Optional Requirements (Using ""Should"" for Goals)",,
+ID,Requirement,Rationale
+REQ-OPT-001,The risk analysis system should provide a mechanism to collect and document relevant misuse cases related to the TOE.,Misuse cases provide a valuable perspective on adversarial behavior to inform the threat modeling.
+REQ-OPT-002,"If the risk treatment decision is Retain, the risk analysis system should allow linking the risk to one or more relevant security claims.",Provides optional documentation of the rationale and acceptance when the risk is retained.
+"Security Objectives, Assets, and Misuse Cases",,
+ID,Requirement,Rationale
+REQ-DATA-200,The Risk Analysis System shall maintain a security objective entity.,Defines the protection goals.
+REQ-DATA-201,The Risk Analysis System shall ensure each security objective is composed of exactly one asset and one or more security properties (1..*).,Enforces the definition of a security objective as the protection of an asset's property.
+REQ-DATA-202,The Risk Analysis System shall allow zero or more misuse cases to be optionally associated with an asset (0..*).,Provides an optional link for adversarial context to assets.
+Threat and Threat Scenarios,,
+ID,Requirement,Rationale
+REQ-DATA-300,The Risk Analysis System shall ensure each threat entity is linked to exactly one security objective.,Ensures every threat is tied to a specific protection goal violation.
+REQ-DATA-301,The Risk Analysis System shall ensure each threat scenario is linked to exactly one threat.,Defines the threat as the action component of a scenario.
+REQ-DATA-302,The Risk Analysis System shall ensure each threat scenario is linked to one or more damage scenarios (1..*).,Defines the consequence component of a scenario.
+Attack Feasibility and Risk Calculation,,
+ID,Requirement,Rationale
+REQ-DATA-400,"The Risk Analysis System shall ensure each threat is associated with exactly one initial attack tree (which is, in turn, associated with an initial attack feasibility level).",Requires an initial assessment of the threat's likelihood.
+REQ-DATA-401,"The Risk Analysis System shall ensure each threat is associated with zero or more residual attack trees (0..*), each of which is associated with a residual attack feasibility level.",Allows for reassessment of threat likelihood after controls are applied.
+REQ-DATA-402,"The Risk Analysis System shall calculate the initial risk level based on the relationships between damage scenario, impact rating, and initial attack feasibility level.",Formalizes the initial risk calculation process.
+REQ-DATA-403,"The Risk Analysis System shall calculate the residual risk level based on the relationships between damage scenario, impact rating, and residual attack feasibility level.",Formalizes the post-mitigation risk calculation process.
+Damage Scenarios and Impact,,
+ID,Requirement,Rationale
+REQ-DATA-500,The Risk Analysis System shall ensure each damage scenario is linked to exactly one impact category and one impact rating.,Requires consistent and singular categorization and quantification of harm.
+Risk Treatment and Controls,,
+ID,Requirement,Rationale
+REQ-DATA-600,"The Risk Analysis System shall allow the definition of a risk treatment strategy for the initial risk, choosing among share, retain, or reduce.",Defines the three accepted treatment options.
+REQ-DATA-601,"If the treatment is share or retain, the system shall allow linking the treatment to one or more security claims (1..*).",Requires documentation of acceptance or transfer of risk.
+REQ-DATA-602,"If the treatment is reduce, the system shall require linking the treatment to one or more security goals (1..*).",Requires defining the objectives for risk reduction.
+REQ-DATA-603,The Risk Analysis System shall ensure each security goal is linked to exactly one security control.,Ensures that every goal has a defined technical or procedural measure.
+REQ-DATA-604,The Risk Analysis System shall ensure each security control is linked to zero or more circumvent trees (0..*).,"Allows for the analysis of how an applied control itself might be bypassed, contributing to residual risk."
