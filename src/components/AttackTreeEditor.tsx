@@ -105,8 +105,9 @@ const CustomNode: React.FC<{
     isCritical: boolean,
     onUpdateNeed: (need: SphinxNeed) => void,
     isReadOnly: boolean,
-    project: Project
-}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project }) => {
+    project: Project,
+    layoutDirection: LayoutDirection
+}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection }) => {
     const isRoot = data.tags.includes('attack-root') || data.tags.includes('circumvent-root');
     const isLeaf = data.type === NeedType.ATTACK && !data.logic_gate && !isRoot;
     const isIntermediate = data.type === NeedType.ATTACK && !isLeaf && !isRoot;
@@ -129,12 +130,16 @@ const CustomNode: React.FC<{
         return null;
     }, [data.id, data.links, project.needs, project.toeConfigurations, isIntermediate, isRoot]);
 
+    // Determine handle positions based on layout direction
+    const targetPosition = layoutDirection === 'TB' ? Position.Top : Position.Left;
+    const sourcePosition = layoutDirection === 'TB' ? Position.Bottom : Position.Right;
+
     return (
         <>
             {!isRoot && (
                 <Handle
                     type="target"
-                    position={Position.Top}
+                    position={targetPosition}
                     id="target"
                     className={`!w-3 !h-3 border-2 transition-colors ${isCritical ? '!bg-red-400 !border-red-200' : '!bg-vscode-bg-input !border-vscode-accent'}`}
                 />
@@ -207,7 +212,7 @@ const CustomNode: React.FC<{
             </div>
             <Handle
                 type="source"
-                position={Position.Bottom}
+                position={sourcePosition}
                 id="source"
                 className={`!w-3 !h-3 border-2 transition-colors ${isCritical ? '!bg-red-400 !border-red-200' : '!bg-vscode-bg-input !border-vscode-accent'}`}
             />
@@ -215,12 +220,19 @@ const CustomNode: React.FC<{
     );
 };
 
-const getLayoutedElements = (rootId: string, allNeeds: SphinxNeed[], options: { nodeWidth: number, nodeHeight: number, horizontalGap: number, verticalGap: number }) => {
+type LayoutDirection = 'TB' | 'LR'; // Top-to-Bottom or Left-to-Right
+
+const getLayoutedElements = (
+    rootId: string,
+    allNeeds: SphinxNeed[],
+    options: { nodeWidth: number, nodeHeight: number, horizontalGap: number, verticalGap: number },
+    direction: LayoutDirection = 'TB'
+) => {
     const treeNodes = getTreeNodes(rootId, allNeeds);
     const needsMap = new Map(treeNodes.map(n => [n.id, n]));
     const treeNodeIds = new Set(treeNodes.map(n => n.id));
 
-    // 1. Assign ranks (y-level) using BFS.
+    // 1. Assign ranks (level) using BFS.
     const ranks: Map<number, string[]> = new Map();
     const nodeRanks = new Map<string, number>();
     const queue: { id: string, rank: number }[] = [{ id: rootId, rank: 0 }];
@@ -255,20 +267,36 @@ const getLayoutedElements = (rootId: string, allNeeds: SphinxNeed[], options: { 
         }
     }
 
-    // 2. Assign positions.
+    // 2. Assign positions based on direction.
     const newPositions = new Map<string, { x: number, y: number }>();
     const { nodeWidth, nodeHeight, horizontalGap, verticalGap } = options;
 
-    for (let i = 0; i <= maxRank; i++) {
-        const nodesInRank = ranks.get(i) || [];
-        const rankWidth = nodesInRank.length * nodeWidth + Math.max(0, nodesInRank.length - 1) * horizontalGap;
-        let currentX = -rankWidth / 2;
+    if (direction === 'TB') {
+        // Top-to-Bottom layout
+        for (let i = 0; i <= maxRank; i++) {
+            const nodesInRank = ranks.get(i) || [];
+            const rankWidth = nodesInRank.length * nodeWidth + Math.max(0, nodesInRank.length - 1) * horizontalGap;
+            let currentX = -rankWidth / 2;
 
-        nodesInRank.forEach(nodeId => {
-            const y = i * (nodeHeight + verticalGap);
-            newPositions.set(nodeId, { x: currentX, y });
-            currentX += nodeWidth + horizontalGap;
-        });
+            nodesInRank.forEach(nodeId => {
+                const y = i * (nodeHeight + verticalGap);
+                newPositions.set(nodeId, { x: currentX, y });
+                currentX += nodeWidth + horizontalGap;
+            });
+        }
+    } else {
+        // Left-to-Right layout
+        for (let i = 0; i <= maxRank; i++) {
+            const nodesInRank = ranks.get(i) || [];
+            const rankHeight = nodesInRank.length * nodeHeight + Math.max(0, nodesInRank.length - 1) * verticalGap;
+            let currentY = -rankHeight / 2;
+
+            nodesInRank.forEach(nodeId => {
+                const x = i * (nodeWidth + horizontalGap);
+                newPositions.set(nodeId, { x, y: currentY });
+                currentY += nodeHeight + verticalGap;
+            });
+        }
     }
 
     // 3. Create the updated list of all needs.
@@ -302,6 +330,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     const [isLinkCTSubMenuOpen, setIsLinkCTSubMenuOpen] = useState(false);
     const [leafSearch, setLeafSearch] = useState('');
     const [ctSearch, setCtSearch] = useState('');
+    const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('TB');
 
     const [treeMetrics, setTreeMetrics] = useState<{ attackPotential: number; afr: AttackFeasibilityRating; } | null>(null);
     const [criticalNodeIds, setCriticalNodeIds] = useState<Set<string>>(new Set());
@@ -366,8 +395,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     }, [selectedTreeRootId, project.needs, project.toeConfigurations]);
 
     const memoizedNodeTypes = useMemo(() => ({
-        custom: (props: any) => <CustomNode {...props} isCritical={criticalNodeIds.has(props.data.id)} onUpdateNeed={onUpdateNeed} isReadOnly={isReadOnly} project={project} />
-    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project]);
+        custom: (props: any) => <CustomNode {...props} isCritical={criticalNodeIds.has(props.data.id)} onUpdateNeed={onUpdateNeed} isReadOnly={isReadOnly} project={project} layoutDirection={layoutDirection} />
+    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection]);
 
     useEffect(() => {
         if (!selectedTreeRootId) {
@@ -628,10 +657,10 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
             nodeHeight: 150,
             horizontalGap: 80,
             verticalGap: 100,
-        });
+        }, layoutDirection);
 
-        onUpdateNeeds(layoutedNeeds, `Applied auto-layout to tree '${selectedTreeRootId}'.`);
-    }, [selectedTreeRootId, project.needs, onUpdateNeeds, isReadOnly]);
+        onUpdateNeeds(layoutedNeeds, `Applied ${layoutDirection === 'TB' ? 'top-to-bottom' : 'left-to-right'} layout to tree '${selectedTreeRootId}'.`);
+    }, [selectedTreeRootId, project.needs, onUpdateNeeds, isReadOnly, layoutDirection]);
 
     const isNodeLeaf = contextMenu?.node.data.type === NeedType.ATTACK && !contextMenu?.node.data.logic_gate && !contextMenu?.node.data.tags.includes('attack-root') && !contextMenu?.node.data.tags.includes('circumvent-root');
 
@@ -679,18 +708,45 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 </div>
             )}
 
-            <div className="absolute top-4 right-4 bg-vscode-bg-sidebar/90 backdrop-blur-sm border border-vscode-border p-2 rounded-lg shadow-lg">
-                <button
-                    onClick={handleLayout}
-                    disabled={isReadOnly || !selectedTreeRootId}
-                    className="flex items-center px-3 py-1.5 bg-vscode-accent text-vscode-text-bright rounded-md text-xs font-medium hover:bg-vscode-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Apply automatic layout (Top to Bottom)"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0h9.75m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-                    </svg>
-                    Auto Layout
-                </button>
+            <div className="absolute top-4 right-4 bg-vscode-bg-sidebar/90 backdrop-blur-sm border border-vscode-border rounded-lg shadow-lg">
+                <div className="p-2 space-y-2">
+                    <div className="flex items-center space-x-2">
+                        <span className="text-xs text-vscode-text-secondary font-medium">Layout Direction:</span>
+                        <div className="flex border border-vscode-border rounded overflow-hidden">
+                            <button
+                                onClick={() => setLayoutDirection('TB')}
+                                className={`px-3 py-1 text-xs font-medium transition-colors ${layoutDirection === 'TB'
+                                        ? 'bg-vscode-accent text-vscode-text-bright'
+                                        : 'bg-vscode-bg-input text-vscode-text-primary hover:bg-vscode-bg-hover'
+                                    }`}
+                                title="Top to Bottom (Default)"
+                            >
+                                ↓ TB
+                            </button>
+                            <button
+                                onClick={() => setLayoutDirection('LR')}
+                                className={`px-3 py-1 text-xs font-medium transition-colors border-l border-vscode-border ${layoutDirection === 'LR'
+                                        ? 'bg-vscode-accent text-vscode-text-bright'
+                                        : 'bg-vscode-bg-input text-vscode-text-primary hover:bg-vscode-bg-hover'
+                                    }`}
+                                title="Left to Right"
+                            >
+                                → LR
+                            </button>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLayout}
+                        disabled={isReadOnly || !selectedTreeRootId}
+                        className="w-full flex items-center justify-center px-3 py-1.5 bg-vscode-accent text-vscode-text-bright rounded-md text-xs font-medium hover:bg-vscode-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={`Apply ${layoutDirection === 'TB' ? 'top-to-bottom' : 'left-to-right'} layout`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0h9.75m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                        </svg>
+                        Apply Auto Layout
+                    </button>
+                </div>
             </div>
 
             {contextMenu && (
