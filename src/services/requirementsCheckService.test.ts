@@ -303,7 +303,6 @@ describe('Requirements Check Service', () => {
             project.securityControls = [{
                 id: 'sc-1',
                 name: 'Control 1',
-                active: true,
                 activeRRA: false,
                 description: 'Test control',
                 securityGoalIds: ['sg-1'],

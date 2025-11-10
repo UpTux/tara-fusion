@@ -57,8 +57,7 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
 
     const newControl: SecurityControl = {
       id: newId,
-      active: true,
-      activeRRA: false,
+      activeRRA: true,
       name: 'New Security Control',
       description: '',
       securityGoalIds: [],
@@ -177,10 +176,6 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
                 <Input id="scGoalIds" type="text" value={editorState.securityGoalIds.join(', ')} onBlur={e => handleUpdate('securityGoalIds', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} onChange={e => setEditorState({ ...editorState, securityGoalIds: e.target.value.split(',').map(s => s.trim()) })} disabled={isReadOnly} />
               </div>
               <div className="flex items-center space-x-6 pt-5">
-                <div className="flex items-center">
-                  <input id="scActive" type="checkbox" checked={editorState.active} onChange={e => handleUpdate('active', e.target.checked)} className="h-4 w-4 rounded border-vscode-border bg-vscode-bg-input text-vscode-accent focus:ring-vscode-accent disabled:cursor-not-allowed" disabled={isReadOnly} />
-                  <label htmlFor="scActive" className="ml-3 block text-sm font-medium text-vscode-text-primary">Active (TARA)</label>
-                </div>
                 <div className="flex items-center">
                   <input id="scActiveRRA" type="checkbox" checked={editorState.activeRRA} onChange={e => handleUpdate('activeRRA', e.target.checked)} className="h-4 w-4 rounded border-vscode-border bg-vscode-bg-input text-vscode-accent focus:ring-vscode-accent disabled:cursor-not-allowed" disabled={isReadOnly} />
                   <label htmlFor="scActiveRRA" className="ml-3 block text-sm font-medium text-vscode-text-primary">Active (RRA)</label>
