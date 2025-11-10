@@ -32,7 +32,7 @@ export enum ProjectStatus {
 }
 
 export enum SecurityProperty {
-  CONFIDENTIALITY = 'Confidentiality',
+  CONFIDENTIALITY = 'Confidentiality', // REQ-DATA-201 & REQ-DATA-300: Security properties combined with assets form security objectives
   INTEGRITY = 'Integrity',
   AVAILABILITY = 'Availability',
   AUTHENTICITY = 'Authenticity',
@@ -43,7 +43,7 @@ export enum SecurityProperty {
 }
 
 export enum Impact {
-  SEVERE = 'Severe',
+  SEVERE = 'Severe', // REQ-IMP-003: Impact ratings used to categorize damage scenarios
   MAJOR = 'Major',
   MODERATE = 'Moderate',
   NEGLIGIBLE = 'Negligible',
@@ -58,14 +58,14 @@ export interface AttackPotentialTuple {
 }
 
 export enum AttackFeasibilityRating {
-  HIGH = 'High',
+  HIGH = 'High', // REQ-DATA-401: Represents high attack feasibility
   MEDIUM = 'Medium',
   LOW = 'Low',
-  VERY_LOW = 'Very Low',
+  VERY_LOW = 'Very Low', // REQ-DATA-401: Represents very low attack feasibility
 }
 
 export enum RiskLevel {
-  NEGLIGIBLE = 'Negligible',
+  NEGLIGIBLE = 'Negligible', // REQ-RSK-001 & REQ-RSK-002: Risk levels determined from impact and attack feasibility
   LOW = 'Low',
   MEDIUM = 'Medium',
   HIGH = 'High',
@@ -105,6 +105,8 @@ export interface Assumption {
   name: string;
   toeConfigurationIds: string[];
   comment: string;
+  // Note: REQ-DATA-602 states assumptions are linked from security claims
+  // This relationship is maintained via SecurityClaim.assumptionIds
 }
 
 export interface ToeConfiguration {
@@ -113,35 +115,38 @@ export interface ToeConfiguration {
   name: string;
   description: string;
   comment: string;
+  // Note: REQ-DATA-100 specifies this represents an item (vehicle) including variant, version, or relevant information
 }
 
 export interface SecurityControl {
-  active: boolean;
   activeRRA: boolean;
   id: string;
   name: string;
   description: string;
-  securityGoalIds: string[];
+  securityGoalIds: string[]; // REQ-DATA-603: Each security goal should link to exactly one control (but a control can support multiple goals)
   comment: string;
+  circumventTreeRootIds?: string[]; // REQ-DATA-604: Security controls can have 0..* circumvent trees
+  // Note: Security controls are linked from risk treatment decisions via ThreatScenario.securityGoalIds
 }
 
 export interface Asset {
   id: string;
   name: string;
-  securityProperties: SecurityProperty[];
+  securityProperties: SecurityProperty[]; // REQ-DATA-201: Each asset combined with security properties forms security objectives
   description: string;
   toeConfigurationIds: string[];
   comment: string;
   source?: 'manual' | 'emb3d'; // Track where the asset came from
   emb3dPropertyId?: string; // Reference to the MITRE Emb3d device property ID
+  misuseCaseIds?: string[]; // REQ-DATA-202: Allow 0..* misuse cases to be associated with an asset
 }
 
 export interface DamageScenario {
   id: string;
   name: string;
   description: string;
-  impactCategory: string;
-  impact: Impact;
+  impactCategory: string; // REQ-DATA-500 & REQ-IMP-002: Each damage scenario must have exactly one impact category
+  impact: Impact; // REQ-DATA-500 & REQ-IMP-003: Each damage scenario must have exactly one impact rating
   reasoning: string; // rst
   comment: string; // rst
 }
@@ -149,23 +154,23 @@ export interface DamageScenario {
 export interface Threat {
   id: string;
   name: string;
-  assetId: string;
-  securityProperty: SecurityProperty;
-  damageScenarioIds: string[];
+  assetId: string; // REQ-DATA-300: Each threat linked to exactly one security objective (asset)
+  securityProperty: SecurityProperty; // REQ-DATA-300: Each threat linked to exactly one security objective (property)
+  damageScenarioIds: string[]; // Related damage scenarios
   scales: boolean;
   reasoningScaling: string; // rst
   comment: string; // rst
-  misuseCaseIds?: string[];
-  initialAFR: AttackFeasibilityRating | 'TBD'; // Computed
-  residualAFR: AttackFeasibilityRating | 'TBD'; // Computed
+  misuseCaseIds?: string[]; // Optional misuse cases related to this threat
+  initialAFR: AttackFeasibilityRating | 'TBD'; // REQ-DATA-400: Initial attack feasibility rating (computed from attack tree)
+  residualAFR: AttackFeasibilityRating | 'TBD'; // REQ-DATA-401: Residual attack feasibility rating (computed from residual attack tree)
   source?: 'manual' | 'emb3d' | 'ai-generated'; // Track the origin of the threat
   emb3dThreatId?: string; // Reference to MITRE Emb3d Threat ID (e.g., TID-101)
 }
 
 export enum RiskTreatmentDecision {
-  REDUCE = 'Reduce',
-  ACCEPT = 'Accept',
-  TRANSFER = 'Transfer', // Corresponds to 'Share'
+  REDUCE = 'Reduce', // REQ-DATA-600 & REQ-RSK-003: Reduce risk, must link to security goals
+  ACCEPT = 'Accept', // REQ-DATA-600 & REQ-OPT-002: Accept/Retain risk, should link to security claims
+  TRANSFER = 'Transfer', // REQ-DATA-600 & REQ-RSK-004: Transfer/Share risk, must link to security claims
   AVOID = 'Avoid',
   TBD = 'TBD',
 }
@@ -174,13 +179,13 @@ export interface ThreatScenario {
   id: string;
   name: string;
   description: string; // rst
-  threatId: string;
-  damageScenarioIds: string[];
-  attackPotential: AttackPotentialTuple;
+  threatId: string; // REQ-DATA-301: Each threat scenario linked to exactly one threat
+  damageScenarioIds: string[]; // REQ-DATA-302: Each threat scenario linked to 1+ damage scenarios
+  attackPotential: AttackPotentialTuple; // REQ-ATT-005: Attack feasibility rating determined from attack potential
   comment: string; // rst
-  treatmentDecision?: RiskTreatmentDecision;
-  securityGoalIds?: string[];
-  securityClaimIds?: string[];
+  treatmentDecision?: RiskTreatmentDecision; // REQ-RSK-002: Risk treatment decision for every risk
+  securityGoalIds?: string[]; // REQ-RSK-003 & REQ-DATA-602: Required if treatment is REDUCE
+  securityClaimIds?: string[]; // REQ-RSK-004 & REQ-DATA-601: Required if treatment is TRANSFER, optional if ACCEPT
 }
 
 export interface MisuseCase {
@@ -188,6 +193,7 @@ export interface MisuseCase {
   name: string;
   description: string;
   comment: string;
+  assetIds?: string[]; // REQ-OPT-001: Optional, can be associated with assets
 }
 
 export interface SecurityGoal {
@@ -196,14 +202,18 @@ export interface SecurityGoal {
   responsible: string;
   requirementsLink: string;
   comment: string; // rst
+  // Note: REQ-DATA-603 states each security goal should be linked to exactly one security control
+  // This relationship is maintained via SecurityControl.securityGoalIds
 }
 
 export interface SecurityClaim {
   id: string;
   name: string;
   responsible: string;
-  assumptionIds: string[];
+  assumptionIds: string[]; // Security claims can reference assumptions
   comment: string; // rst
+  // Note: REQ-DATA-601 states claims are linked from risk treatment decisions
+  // This relationship is maintained via ThreatScenario.securityClaimIds
 }
 
 export interface ImpactCategorySettings {
