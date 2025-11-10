@@ -202,6 +202,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
           status: NeedStatus.OPEN,
           tags: ['threat', 'attack-root'],
           links: [],
+          logic_gate: 'AND', // Attack tree roots are always AND nodes
           position: { x: Math.random() * 100, y: Math.random() * 800 }
         };
         updatedNeeds.push(newNeed);

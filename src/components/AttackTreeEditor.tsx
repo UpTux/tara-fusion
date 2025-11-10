@@ -37,8 +37,7 @@ interface AttackTreeEditorProps {
     onSelectNeed: (need: SphinxNeed | null) => void;
     isReadOnly: boolean;
 }
-
-const getNodeColor = (need: SphinxNeed): string => {
+const getNodeColor = (need: SphinxNeed, afr?: AttackFeasibilityRating, residualAfr?: AttackFeasibilityRating): string => {
     if (need.type !== NeedType.ATTACK) {
         return 'bg-vscode-bg-input border-vscode-border';
     }
@@ -48,6 +47,29 @@ const getNodeColor = (need: SphinxNeed): string => {
 
     const isRoot = need.tags.includes('attack-root');
     const isIntermediate = !!need.logic_gate && !isRoot;
+
+    // For attack-root nodes, use AFR color
+    if (isRoot) {
+        // Use residual AFR if circumvent tree is linked, otherwise use regular AFR
+        const targetAfr = residualAfr || afr;
+        if (targetAfr) {
+            // Map AFR to background and border colors
+            switch (targetAfr) {
+                case AttackFeasibilityRating.HIGH:
+                    return 'bg-red-700 border-red-500';
+                case AttackFeasibilityRating.MEDIUM:
+                    return 'bg-orange-700 border-orange-500';
+                case AttackFeasibilityRating.LOW:
+                    return 'bg-yellow-700 border-yellow-500';
+                case AttackFeasibilityRating.VERY_LOW:
+                    return 'bg-green-700 border-green-500';
+                default:
+                    return 'bg-gray-700 border-gray-500';
+            }
+        }
+        // Fallback to default red if no AFR available
+        return 'bg-red-800 border-red-500';
+    }
 
     if (isIntermediate) {
         return 'bg-blue-600 border-blue-400';
@@ -164,6 +186,10 @@ const CustomNode: React.FC<{
     const targetPosition = layoutDirection === 'TB' ? Position.Top : Position.Left;
     const sourcePosition = layoutDirection === 'TB' ? Position.Bottom : Position.Right;
 
+    // Get AFR for color calculation
+    const afr = calculatedMetrics ? getAttackFeasibilityRating(calculatedMetrics.attackPotential) : undefined;
+    const residualAfr = residualMetrics ? getAttackFeasibilityRating(residualMetrics.attackPotential) : undefined;
+
     return (
         <>
             {showTargetHandle && (
@@ -175,7 +201,7 @@ const CustomNode: React.FC<{
                 />
             )}
             <div className={`
-                ${getNodeColor(data)}
+                ${getNodeColor(data, afr, residualAfr)}
                 rounded-lg p-3 w-64 text-vscode-text-primary shadow-xl
                 border-2 transition-all relative cursor-pointer
                 ${selected ? 'ring-4 ring-offset-2 ring-offset-vscode-bg-main ring-vscode-accent' : ''}
@@ -803,8 +829,11 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         if (parentNeedIndex !== -1) {
             const parentNeed = { ...newNeeds[parentNeedIndex] };
             parentNeed.links = [...(parentNeed.links || []), newNodeId];
-            if ((parentNeed.tags.includes('attack-root') || parentNeed.tags.includes('circumvent-root')) && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
-                parentNeed.logic_gate = 'OR';
+            // Set logic gate for roots when they have children
+            if (parentNeed.tags.includes('attack-root') && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
+                parentNeed.logic_gate = 'AND'; // Attack tree roots are always AND nodes
+            } else if (parentNeed.tags.includes('circumvent-root') && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
+                parentNeed.logic_gate = 'OR'; // Circumvent tree roots default to OR
             }
             newNeeds[parentNeedIndex] = parentNeed;
         }

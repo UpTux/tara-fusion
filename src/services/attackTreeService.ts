@@ -59,11 +59,26 @@ function findAttackPathsRecursive(
     return combinedPaths;
   }
 
-  // Default for root nodes with one child and no logic gate
+  // Attack-root nodes without explicit logic gate should default to AND logic
   if (node.tags.includes('attack-root') && node.links.length > 0) {
-    const paths = node.links.flatMap(childId => findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs));
-    memo.set(nodeId, paths);
-    return paths;
+    // Treat as AND: need to combine paths from all children
+    let combinedPaths: string[][] = [[]];
+    for (const childId of node.links) {
+      const childPaths = findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs);
+      if (childPaths.length === 0) {
+        memo.set(nodeId, []);
+        return [];
+      }
+      const newCombinedPaths: string[][] = [];
+      for (const existingPath of combinedPaths) {
+        for (const childPath of childPaths) {
+          newCombinedPaths.push([...existingPath, ...childPath]);
+        }
+      }
+      combinedPaths = newCombinedPaths;
+    }
+    memo.set(nodeId, combinedPaths);
+    return combinedPaths;
   }
 
   return [];

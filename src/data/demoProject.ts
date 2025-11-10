@@ -83,7 +83,6 @@ Out of scope are:
     securityControls: [
         {
             id: 'SC_001',
-            active: true,
             activeRRA: false,
             name: 'Enforce Multi-Factor Authentication',
             description: 'MFA should be required for all internal systems and customer-facing logins.',
@@ -92,7 +91,6 @@ Out of scope are:
         },
         {
             id: 'SC_002',
-            active: true,
             activeRRA: true,
             name: 'Regular Security Audits',
             description: 'Conduct quarterly penetration testing and code reviews.',
@@ -309,7 +307,7 @@ Out of scope are:
             status: NeedStatus.OPEN,
             tags: ['threat', 'attack-root'],
             links: ['ATT_001'],
-            logic_gate: 'OR',
+            logic_gate: 'AND',
             position: { x: 50, y: 50 },
         },
         {
@@ -320,6 +318,7 @@ Out of scope are:
             status: NeedStatus.OPEN,
             tags: ['threat', 'attack-root'],
             links: [],
+            logic_gate: 'AND',
             position: { x: 50, y: 250 },
         },
         {
@@ -330,6 +329,7 @@ Out of scope are:
             status: NeedStatus.OPEN,
             tags: ['threat', 'attack-root'],
             links: [],
+            logic_gate: 'AND',
             position: { x: 50, y: 450 },
         },
         {
@@ -340,6 +340,7 @@ Out of scope are:
             status: NeedStatus.OPEN,
             tags: ['threat', 'attack-root'],
             links: [],
+            logic_gate: 'AND',
             position: { x: 50, y: 650 },
         },
         {
@@ -350,6 +351,7 @@ Out of scope are:
             status: NeedStatus.OPEN,
             tags: ['threat', 'attack-root'],
             links: [],
+            logic_gate: 'AND',
             position: { x: 50, y: 850 },
         },
 
