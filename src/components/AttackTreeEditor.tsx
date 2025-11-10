@@ -17,7 +17,7 @@ import ReactFlow, {
     ReactFlowProvider,
     useReactFlow,
 } from 'reactflow';
-import { calculateAttackTreeMetrics, calculateNodeMetrics, traceCriticalPaths } from '../services/attackTreeService';
+import { calculateAttackTreeMetrics, calculateNodeMetrics, hasCircumventTrees, isNodeInCircumventSubtree, traceCriticalPaths } from '../services/attackTreeService';
 import { accessOptions, equipmentOptions, expertiseOptions, knowledgeOptions, timeOptions } from '../services/feasibilityOptions';
 import { getAttackFeasibilityRating, getFeasibilityRatingColor } from '../services/riskService';
 import { AttackFeasibilityRating, AttackPotentialTuple, NeedStatus, NeedType, Project, SphinxNeed } from '../types';
@@ -57,7 +57,7 @@ const getNodeColor = (need: SphinxNeed): string => {
 };
 
 
-const apConfig: { [key in keyof AttackPotentialTuple]: { icon: React.FC<any>, options: { value: number, label: string }[] } } = {
+const apConfig: { [key in keyof AttackPotentialTuple]: { icon: React.FC<{ className?: string; title?: string }>, options: { value: number, label: string }[] } } = {
     time: { icon: ClockIcon, options: timeOptions },
     expertise: { icon: AcademicCapIcon, options: expertiseOptions },
     knowledge: { icon: DocumentTextIcon, options: knowledgeOptions },
@@ -106,14 +106,25 @@ const CustomNode: React.FC<{
     onUpdateNeed: (need: SphinxNeed) => void,
     isReadOnly: boolean,
     project: Project,
-    layoutDirection: LayoutDirection
-}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection }) => {
-    const isRoot = data.tags.includes('attack-root') || data.tags.includes('circumvent-root');
+    layoutDirection: LayoutDirection,
+    draggable?: boolean,
+    isCircumventTreeNode?: boolean
+}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false }) => {
+    const isCircumventRoot = data.tags.includes('circumvent-root');
+    const isAttackRoot = data.tags.includes('attack-root');
+    const isRoot = isAttackRoot || isCircumventRoot;
     const isLeaf = data.type === NeedType.ATTACK && !data.logic_gate && !isRoot;
     const isIntermediate = data.type === NeedType.ATTACK && !isLeaf && !isRoot;
 
+    // Properties are read-only if viewing a circumvent tree node in attack tree view, or if globally read-only
+    const propertiesReadOnly = isCircumventTreeNode || isReadOnly;
+
+    // Circumvent tree roots need target handle when shown in attack tree view (isCircumventTreeNode = true)
+    // but not when viewing the circumvent tree itself (isCircumventTreeNode = false)
+    const showTargetHandle = !isAttackRoot && (!isCircumventRoot || isCircumventTreeNode);
+
     const handlePotentialChange = (field: keyof AttackPotentialTuple, value: string) => {
-        if (isReadOnly) return;
+        if (propertiesReadOnly) return;
         const numericValue = Math.max(0, parseInt(value, 10) || 0);
         const newPotential = {
             ...(data.attackPotential || { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 }),
@@ -125,10 +136,29 @@ const CustomNode: React.FC<{
     // Calculate metrics for intermediate and root nodes
     const calculatedMetrics = useMemo(() => {
         if (isIntermediate || isRoot) {
-            return calculateNodeMetrics(data.id, project.needs, project.toeConfigurations);
+            // For circumvent tree roots, we need to include their own subtree
+            const isCircumventRoot = data.tags.includes('circumvent-root');
+
+            // For attack-root: calculate initial AFR WITHOUT circumvent trees (includeCircumventTrees = false)
+            // For circumvent-root: include their own subtree (includeCircumventTrees = true)
+            // For intermediate nodes: don't include circumvent trees (includeCircumventTrees = false)
+            const includeCircumventTrees = isCircumventRoot;
+
+            return calculateNodeMetrics(data.id, project.needs, project.toeConfigurations, includeCircumventTrees);
         }
         return null;
-    }, [data.id, data.links, project.needs, project.toeConfigurations, isIntermediate, isRoot]);
+    }, [data.id, project.needs, project.toeConfigurations, isIntermediate, isRoot, data.tags]);
+
+    // For attack-root nodes, also calculate residual metrics if circumvent trees exist
+    const residualMetrics = useMemo(() => {
+        if (isRoot && data.tags.includes('attack-root')) {
+            const hasCircumvent = hasCircumventTrees(data.id, project.needs);
+            if (hasCircumvent) {
+                return calculateNodeMetrics(data.id, project.needs, project.toeConfigurations, true);
+            }
+        }
+        return null;
+    }, [data.id, data.tags, project.needs, project.toeConfigurations, isRoot]);
 
     // Determine handle positions based on layout direction
     const targetPosition = layoutDirection === 'TB' ? Position.Top : Position.Left;
@@ -136,7 +166,7 @@ const CustomNode: React.FC<{
 
     return (
         <>
-            {!isRoot && (
+            {showTargetHandle && (
                 <Handle
                     type="target"
                     position={targetPosition}
@@ -151,7 +181,15 @@ const CustomNode: React.FC<{
                 ${selected ? 'ring-4 ring-offset-2 ring-offset-vscode-bg-main ring-vscode-accent' : ''}
                 ${isLeaf ? 'border-dashed' : ''}
                 ${isCritical ? 'border-red-400 shadow-red-500/30' : ''}
+                ${isCircumventTreeNode ? 'opacity-80' : ''}
             `}>
+                {isCircumventTreeNode && (
+                    <div className="absolute -top-2 -left-2 bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" title="Properties read-only (circumvent tree node)">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                    </div>
+                )}
                 {isCritical && <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>}
                 {data.logic_gate && (
                     <div className="absolute -top-3 -right-3 bg-vscode-bg-sidebar border-2 border-vscode-accent rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs text-vscode-accent">
@@ -165,39 +203,85 @@ const CustomNode: React.FC<{
                 {/* Calculated metrics for intermediate and root nodes */}
                 {(isIntermediate || isRoot) && calculatedMetrics && calculatedMetrics.hasSubtree && (
                     <div className="mt-2 pt-2 border-t border-vscode-border-light nodrag">
-                        <div className="flex items-center justify-between text-xs mb-2">
-                            <div className="flex items-center space-x-2">
-                                <span className="text-vscode-text-secondary">AP:</span>
-                                <span className="font-bold font-mono text-vscode-accent">
-                                    {calculatedMetrics.attackPotential === Infinity ? '∞' : calculatedMetrics.attackPotential}
+                        {/* Initial metrics (or only metrics for intermediate nodes) */}
+                        <div className={residualMetrics ? 'mb-2 pb-2 border-b border-vscode-border-light' : ''}>
+                            {residualMetrics && (
+                                <div className="text-xs text-vscode-text-secondary font-semibold mb-1">Initial (no controls)</div>
+                            )}
+                            <div className="flex items-center justify-between text-xs mb-2">
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-vscode-text-secondary">AP:</span>
+                                    <span className="font-bold font-mono text-vscode-accent">
+                                        {calculatedMetrics.attackPotential === Infinity ? '∞' : calculatedMetrics.attackPotential}
+                                    </span>
+                                </div>
+                                <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${getFeasibilityRatingColor(getAttackFeasibilityRating(calculatedMetrics.attackPotential))}`}>
+                                    {getAttackFeasibilityRating(calculatedMetrics.attackPotential)}
                                 </span>
                             </div>
-                            <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${getFeasibilityRatingColor(getAttackFeasibilityRating(calculatedMetrics.attackPotential))}`}>
-                                {getAttackFeasibilityRating(calculatedMetrics.attackPotential)}
-                            </span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                            <div className="text-center" title="Time">
-                                <div className="text-vscode-text-secondary text-xs">T</div>
-                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.time}</div>
-                            </div>
-                            <div className="text-center" title="Expertise">
-                                <div className="text-vscode-text-secondary text-xs">E</div>
-                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.expertise}</div>
-                            </div>
-                            <div className="text-center" title="Knowledge">
-                                <div className="text-vscode-text-secondary text-xs">K</div>
-                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.knowledge}</div>
-                            </div>
-                            <div className="text-center" title="Access">
-                                <div className="text-vscode-text-secondary text-xs">A</div>
-                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.access}</div>
-                            </div>
-                            <div className="text-center" title="Equipment">
-                                <div className="text-vscode-text-secondary text-xs">Eq</div>
-                                <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.equipment}</div>
+                            <div className="flex justify-between text-xs">
+                                <div className="text-center" title="Time">
+                                    <div className="text-vscode-text-secondary text-xs">T</div>
+                                    <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.time}</div>
+                                </div>
+                                <div className="text-center" title="Expertise">
+                                    <div className="text-vscode-text-secondary text-xs">E</div>
+                                    <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.expertise}</div>
+                                </div>
+                                <div className="text-center" title="Knowledge">
+                                    <div className="text-vscode-text-secondary text-xs">K</div>
+                                    <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.knowledge}</div>
+                                </div>
+                                <div className="text-center" title="Access">
+                                    <div className="text-vscode-text-secondary text-xs">A</div>
+                                    <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.access}</div>
+                                </div>
+                                <div className="text-center" title="Equipment">
+                                    <div className="text-vscode-text-secondary text-xs">Eq</div>
+                                    <div className="font-mono text-vscode-text-primary">{calculatedMetrics.attackPotentialTuple.equipment}</div>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Residual metrics (only for attack-root nodes with circumvent trees) */}
+                        {residualMetrics && residualMetrics.hasSubtree && (
+                            <div>
+                                <div className="text-xs text-vscode-text-secondary font-semibold mb-1">Residual (with controls)</div>
+                                <div className="flex items-center justify-between text-xs mb-2">
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-vscode-text-secondary">AP:</span>
+                                        <span className="font-bold font-mono text-green-400">
+                                            {residualMetrics.attackPotential === Infinity ? '∞' : residualMetrics.attackPotential}
+                                        </span>
+                                    </div>
+                                    <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${getFeasibilityRatingColor(getAttackFeasibilityRating(residualMetrics.attackPotential))}`}>
+                                        {getAttackFeasibilityRating(residualMetrics.attackPotential)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-xs">
+                                    <div className="text-center" title="Time">
+                                        <div className="text-vscode-text-secondary text-xs">T</div>
+                                        <div className="font-mono text-vscode-text-primary">{residualMetrics.attackPotentialTuple.time}</div>
+                                    </div>
+                                    <div className="text-center" title="Expertise">
+                                        <div className="text-vscode-text-secondary text-xs">E</div>
+                                        <div className="font-mono text-vscode-text-primary">{residualMetrics.attackPotentialTuple.expertise}</div>
+                                    </div>
+                                    <div className="text-center" title="Knowledge">
+                                        <div className="text-vscode-text-secondary text-xs">K</div>
+                                        <div className="font-mono text-vscode-text-primary">{residualMetrics.attackPotentialTuple.knowledge}</div>
+                                    </div>
+                                    <div className="text-center" title="Access">
+                                        <div className="text-vscode-text-secondary text-xs">A</div>
+                                        <div className="font-mono text-vscode-text-primary">{residualMetrics.attackPotentialTuple.access}</div>
+                                    </div>
+                                    <div className="text-center" title="Equipment">
+                                        <div className="text-vscode-text-secondary text-xs">Eq</div>
+                                        <div className="font-mono text-vscode-text-primary">{residualMetrics.attackPotentialTuple.equipment}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -208,7 +292,7 @@ const CustomNode: React.FC<{
                     </div>
                 )}
 
-                {isLeaf && <ApEditor potential={data.attackPotential} onUpdate={handlePotentialChange} isReadOnly={isReadOnly} />}
+                {isLeaf && <ApEditor potential={data.attackPotential} onUpdate={handlePotentialChange} isReadOnly={propertiesReadOnly} />}
             </div>
             <Handle
                 type="source"
@@ -267,37 +351,82 @@ const getLayoutedElements = (
         }
     }
 
-    // 2. Assign positions based on direction.
-    const newPositions = new Map<string, { x: number, y: number }>();
-    const { nodeWidth, nodeHeight, horizontalGap, verticalGap } = options;
+    // 2. Check for overlaps and adjust spacing if needed
+    const { nodeWidth, nodeHeight } = options;
 
-    if (direction === 'TB') {
-        // Top-to-Bottom layout
-        for (let i = 0; i <= maxRank; i++) {
-            const nodesInRank = ranks.get(i) || [];
-            const rankWidth = nodesInRank.length * nodeWidth + Math.max(0, nodesInRank.length - 1) * horizontalGap;
-            let currentX = -rankWidth / 2;
+    const checkOverlap = (pos1: { x: number, y: number }, pos2: { x: number, y: number }, width: number, height: number): boolean => {
+        return Math.abs(pos1.x - pos2.x) < width && Math.abs(pos1.y - pos2.y) < height;
+    };
 
-            nodesInRank.forEach(nodeId => {
-                const y = i * (nodeHeight + verticalGap);
-                newPositions.set(nodeId, { x: currentX, y });
-                currentX += nodeWidth + horizontalGap;
-            });
+    const layoutWithSpacing = (hGap: number, vGap: number): Map<string, { x: number, y: number }> => {
+        const positions = new Map<string, { x: number, y: number }>();
+
+        if (direction === 'TB') {
+            // Top-to-Bottom layout
+            for (let i = 0; i <= maxRank; i++) {
+                const nodesInRank = ranks.get(i) || [];
+                const rankWidth = nodesInRank.length * nodeWidth + Math.max(0, nodesInRank.length - 1) * hGap;
+                let currentX = -rankWidth / 2;
+
+                nodesInRank.forEach(nodeId => {
+                    const y = i * (nodeHeight + vGap);
+                    positions.set(nodeId, { x: currentX, y });
+                    currentX += nodeWidth + hGap;
+                });
+            }
+        } else {
+            // Left-to-Right layout
+            for (let i = 0; i <= maxRank; i++) {
+                const nodesInRank = ranks.get(i) || [];
+                const rankHeight = nodesInRank.length * nodeHeight + Math.max(0, nodesInRank.length - 1) * vGap;
+                let currentY = -rankHeight / 2;
+
+                nodesInRank.forEach(nodeId => {
+                    const x = i * (nodeWidth + hGap);
+                    positions.set(nodeId, { x, y: currentY });
+                    currentY += nodeHeight + vGap;
+                });
+            }
         }
-    } else {
-        // Left-to-Right layout
-        for (let i = 0; i <= maxRank; i++) {
-            const nodesInRank = ranks.get(i) || [];
-            const rankHeight = nodesInRank.length * nodeHeight + Math.max(0, nodesInRank.length - 1) * verticalGap;
-            let currentY = -rankHeight / 2;
 
-            nodesInRank.forEach(nodeId => {
-                const x = i * (nodeWidth + horizontalGap);
-                newPositions.set(nodeId, { x, y: currentY });
-                currentY += nodeHeight + verticalGap;
-            });
+        return positions;
+    };
+
+    // Start with initial spacing and increase if overlaps detected
+    let { horizontalGap, verticalGap } = options;
+    let newPositions = layoutWithSpacing(horizontalGap, verticalGap);
+    let hasOverlap = false;
+    const maxIterations = 5; // Prevent infinite loop
+    let iteration = 0;
+
+    do {
+        hasOverlap = false;
+        const posArray = Array.from(newPositions.entries());
+
+        // Check all pairs for overlap
+        for (let i = 0; i < posArray.length && !hasOverlap; i++) {
+            for (let j = i + 1; j < posArray.length; j++) {
+                const [id1, pos1] = posArray[i];
+                const [id2, pos2] = posArray[j];
+
+                // Only check nodes in different ranks to avoid false positives
+                if (nodeRanks.get(id1) !== nodeRanks.get(id2)) {
+                    if (checkOverlap(pos1, pos2, nodeWidth, nodeHeight)) {
+                        hasOverlap = true;
+                        break;
+                    }
+                }
+            }
         }
-    }
+
+        if (hasOverlap && iteration < maxIterations) {
+            // Increase spacing by 30%
+            horizontalGap = Math.floor(horizontalGap * 1.3);
+            verticalGap = Math.floor(verticalGap * 1.3);
+            newPositions = layoutWithSpacing(horizontalGap, verticalGap);
+            iteration++;
+        }
+    } while (hasOverlap && iteration < maxIterations);
 
     // 3. Create the updated list of all needs.
     return allNeeds.map(need => {
@@ -332,7 +461,13 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     const [ctSearch, setCtSearch] = useState('');
     const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('TB');
 
-    const [treeMetrics, setTreeMetrics] = useState<{ attackPotential: number; afr: AttackFeasibilityRating; } | null>(null);
+    const [treeMetrics, setTreeMetrics] = useState<{
+        attackPotential: number;
+        afr: AttackFeasibilityRating;
+        residualAttackPotential?: number;
+        residualAfr?: AttackFeasibilityRating;
+        hasCircumventTrees: boolean;
+    } | null>(null);
     const [criticalNodeIds, setCriticalNodeIds] = useState<Set<string>>(new Set());
 
     const allAttackLeaves = useMemo(() => {
@@ -379,12 +514,41 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
 
     useEffect(() => {
         if (selectedTreeRootId) {
-            const metrics = calculateAttackTreeMetrics(selectedTreeRootId, project.needs, project.toeConfigurations);
+            // Calculate initial AFR (without circumvent trees)
+            const metrics = calculateAttackTreeMetrics(selectedTreeRootId, project.needs, project.toeConfigurations, false);
+
+            // Check if there are any circumvent trees
+            const hasCircumvent = hasCircumventTrees(selectedTreeRootId, project.needs);
+
             if (metrics) {
-                setTreeMetrics({
-                    attackPotential: metrics.attackPotential,
-                    afr: getAttackFeasibilityRating(metrics.attackPotential)
-                });
+                const initialAfr = getAttackFeasibilityRating(metrics.attackPotential);
+
+                // If there are circumvent trees, calculate residual AFR (with circumvent trees)
+                if (hasCircumvent) {
+                    const residualMetrics = calculateAttackTreeMetrics(selectedTreeRootId, project.needs, project.toeConfigurations, true);
+                    if (residualMetrics) {
+                        setTreeMetrics({
+                            attackPotential: metrics.attackPotential,
+                            afr: initialAfr,
+                            residualAttackPotential: residualMetrics.attackPotential,
+                            residualAfr: getAttackFeasibilityRating(residualMetrics.attackPotential),
+                            hasCircumventTrees: true
+                        });
+                    } else {
+                        setTreeMetrics({
+                            attackPotential: metrics.attackPotential,
+                            afr: initialAfr,
+                            hasCircumventTrees: true
+                        });
+                    }
+                } else {
+                    setTreeMetrics({
+                        attackPotential: metrics.attackPotential,
+                        afr: initialAfr,
+                        hasCircumventTrees: false
+                    });
+                }
+
                 const allCriticalNodes = traceCriticalPaths(selectedTreeRootId, metrics.criticalPaths, project.needs);
                 setCriticalNodeIds(allCriticalNodes);
             } else {
@@ -395,7 +559,18 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     }, [selectedTreeRootId, project.needs, project.toeConfigurations]);
 
     const memoizedNodeTypes = useMemo(() => ({
-        custom: (props: any) => <CustomNode {...props} isCritical={criticalNodeIds.has(props.data.id)} onUpdateNeed={onUpdateNeed} isReadOnly={isReadOnly} project={project} layoutDirection={layoutDirection} />
+        custom: (props: { data: SphinxNeed & { _isCircumventTreeNode?: boolean }; selected: boolean; id: string; draggable?: boolean }) => (
+            <CustomNode
+                {...props}
+                isCritical={criticalNodeIds.has(props.data.id)}
+                onUpdateNeed={onUpdateNeed}
+                isReadOnly={isReadOnly}
+                project={project}
+                layoutDirection={layoutDirection}
+                draggable={props.draggable}
+                isCircumventTreeNode={props.data._isCircumventTreeNode}
+            />
+        )
     }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection]);
 
     useEffect(() => {
@@ -409,30 +584,56 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         const visibleNeeds = allTreeNodes.filter(n => n.type !== NeedType.RISK && n.type !== NeedType.MITIGATION);
         const visibleNeedsMap = new Map(visibleNeeds.map(need => [need.id, need]));
 
-        const flowNodes: Node<SphinxNeed>[] = visibleNeeds.map(need => ({
-            id: need.id,
-            type: 'custom',
-            position: need.position || { x: Math.random() * 800, y: Math.random() * 600 },
-            data: need,
-        }));
+        // Check if the selected tree is a circumvent tree
+        const selectedTreeRoot = project.needs.find(n => n.id === selectedTreeRootId);
+        const isViewingCircumventTree = selectedTreeRoot?.tags.includes('circumvent-root');
+
+        const flowNodes: Node<SphinxNeed>[] = visibleNeeds.map(need => {
+            // Determine if this node is part of a circumvent tree
+            const nodeIsCircumventTreeNode = need.tags.includes('circumvent-root') || isNodeInCircumventSubtree(need.id, project.needs);
+            // Properties are read-only when viewing a circumvent tree node in an attack tree
+            const isPropertyReadOnly = !isViewingCircumventTree && nodeIsCircumventTreeNode;
+
+            return {
+                id: need.id,
+                type: 'custom',
+                position: need.position || { x: Math.random() * 800, y: Math.random() * 600 },
+                data: {
+                    ...need,
+                    // Add flag to data so it gets passed to CustomNode
+                    _isCircumventTreeNode: isPropertyReadOnly,
+                },
+                draggable: true, // Always allow dragging
+                connectable: !isPropertyReadOnly, // Don't allow connections to/from circumvent tree nodes in attack tree view
+            };
+        });
 
         const flowEdges: Edge[] = [];
+
+        // Add regular edges (child connections)
         visibleNeeds.forEach(need => {
             (need.links || []).forEach(linkId => {
                 if (visibleNeedsMap.has(linkId)) {
                     const isCritical = criticalNodeIds.has(need.id) && criticalNodeIds.has(linkId);
+                    const targetNode = visibleNeedsMap.get(linkId);
+                    const isCircumventTreeEdge = targetNode?.tags.includes('circumvent-root');
+
                     flowEdges.push({
                         id: `${need.id}-${linkId}`,
                         source: need.id,
                         target: linkId,
                         type: 'smoothstep',
                         animated: isCritical,
-                        style: { stroke: isCritical ? '#f87171' : '#818cf8', strokeWidth: isCritical ? 3 : 2 },
+                        style: {
+                            stroke: isCritical ? '#f87171' : (isCircumventTreeEdge ? '#14b8a6' : '#818cf8'),
+                            strokeWidth: isCritical ? 3 : (isCircumventTreeEdge ? 2.5 : 2),
+                            strokeDasharray: isCircumventTreeEdge ? '5,5' : undefined
+                        },
                         markerEnd: {
                             type: MarkerType.ArrowClosed,
                             width: 20,
                             height: 20,
-                            color: isCritical ? '#f87171' : '#818cf8',
+                            color: isCritical ? '#f87171' : (isCircumventTreeEdge ? '#14b8a6' : '#818cf8'),
                         },
                     });
                 }
@@ -499,10 +700,23 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
             return;
         }
 
-        if (targetNeed.tags.includes('circumvent-root')) {
-            if (sourceNeed.logic_gate === 'AND') {
-                // Valid
-            } else if (sourceNeed.logic_gate === 'OR') {
+        /**
+         * ISO/SAE 21434 Definition 4.9: Circumvent Tree Connection Enforcement
+         * 
+         * When connecting a circumvent tree to a parent node, the parent MUST have an AND gate.
+         * This ensures that an attacker must perform BOTH:
+         * 1. The original attack action (regular attack path)
+         * 2. The circumvention of the security control (circumvent tree)
+         * 
+         * The code below automatically sets the parent's logic_gate to 'AND' when connecting
+         * a circumvent tree, unless the parent is already an OR node with all children being
+         * circumvent trees (edge case allowed by standard).
+         */
+        const isTargetCircumventTree = targetNeed.tags.includes('circumvent-root');
+
+        if (isTargetCircumventTree) {
+            // Check if parent already has an AND gate or needs one
+            if (sourceNeed.logic_gate === 'OR') {
                 const childLinks = [...(sourceNeed.links || []), params.target];
                 const allChildrenAreCTs = childLinks.every(childId => {
                     const childNode = project.needs.find(n => n.id === childId);
@@ -512,7 +726,10 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                     alert('A Circumvent Tree can only be a child of an OR node if all other children of that node are also Circumvent Trees.');
                     return;
                 }
-            } else {
+                // If all children are circumvent trees, keep OR gate
+            } else if (!sourceNeed.logic_gate) {
+                // No gate set yet, will be set to AND below
+            } else if (sourceNeed.logic_gate !== 'AND') {
                 alert('A Circumvent Tree must be a child of an AND node (or an OR node if all siblings are also Circumvent Trees).');
                 return;
             }
@@ -530,6 +747,13 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         if (sourceNeedIndex !== -1) {
             const sourceNeedToUpdate = { ...updatedNeeds[sourceNeedIndex] };
             sourceNeedToUpdate.links = [...(sourceNeedToUpdate.links || []), params.target];
+
+            // Per ISO/SAE 21434: Set parent to AND gate when connecting a circumvent tree
+            // (unless all children are circumvent trees, in which case keep OR)
+            if (isTargetCircumventTree && sourceNeedToUpdate.logic_gate !== 'OR') {
+                sourceNeedToUpdate.logic_gate = 'AND';
+            }
+
             updatedNeeds[sourceNeedIndex] = sourceNeedToUpdate;
             onUpdateNeeds(updatedNeeds, `Connected '${params.source}' to '${params.target}'.`);
         }
@@ -539,11 +763,22 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node<SphinxNeed>) => {
         if (isReadOnly) return;
         event.preventDefault();
+
+        // Check if we're viewing a circumvent tree or an attack tree
+        const selectedTreeRoot = project.needs.find(n => n.id === selectedTreeRootId);
+        const isViewingCircumventTree = selectedTreeRoot?.tags.includes('circumvent-root');
+
+        // Prevent context menu on circumvent tree nodes when viewing an attack tree
+        const nodeIsCircumventTreeNode = node.data.tags.includes('circumvent-root') || isNodeInCircumventSubtree(node.data.id, project.needs);
+        if (!isViewingCircumventTree && nodeIsCircumventTreeNode) {
+            return; // Don't show context menu for circumvent tree nodes in attack tree view
+        }
+
         const pane = reactFlowWrapper.current?.getBoundingClientRect();
         if (!pane) return;
 
         setContextMenu({ top: event.clientY - pane.top, left: event.clientX - pane.left, node: node });
-    }, [isReadOnly]);
+    }, [isReadOnly, project.needs, selectedTreeRootId]);
 
     const handleAddNode = useCallback((parentNode: Node<SphinxNeed>, type: 'intermediate' | 'leaf') => {
         if (isReadOnly) return;
@@ -624,14 +859,23 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
 
         const updatedNeeds = [...project.needs];
         const parentNeedIndex = updatedNeeds.findIndex(n => n.id === parentNode.id);
+        const childNeed = updatedNeeds.find(n => n.id === childIdToLink);
 
-        if (parentNeedIndex !== -1) {
+        if (parentNeedIndex !== -1 && childNeed) {
             const parentNeed = { ...updatedNeeds[parentNeedIndex] };
             if (!(parentNeed.links || []).includes(childIdToLink)) {
                 parentNeed.links = [...(parentNeed.links || []), childIdToLink];
-                if ((parentNeed.tags.includes('attack-root') || parentNeed.tags.includes('circumvent-root')) && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
+
+                // Per ISO/SAE 21434: Set parent to AND gate when linking a circumvent tree
+                const isChildCircumventTree = childNeed.tags.includes('circumvent-root');
+                if (isChildCircumventTree && parentNeed.logic_gate !== 'OR') {
+                    // Automatically set to AND when linking a circumvent tree
+                    parentNeed.logic_gate = 'AND';
+                } else if ((parentNeed.tags.includes('attack-root') || parentNeed.tags.includes('circumvent-root')) && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
+                    // Default logic gate for root nodes with multiple children
                     parentNeed.logic_gate = 'OR';
                 }
+
                 updatedNeeds[parentNeedIndex] = parentNeed;
                 onUpdateNeeds(updatedNeeds, `Linked existing node '${childIdToLink}' to '${parentNode.id}'.`);
             }
@@ -692,18 +936,45 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
             {treeMetrics && (
                 <div className="absolute top-4 left-4 bg-vscode-bg-sidebar/90 backdrop-blur-sm border border-vscode-border p-3 rounded-lg text-vscode-text-primary text-sm shadow-lg">
                     <div className="font-bold text-base mb-2">Tree Analysis</div>
-                    <div className="flex items-center space-x-4">
-                        <div>
-                            <div className="text-xs text-vscode-text-secondary">Attack Potential (AP)</div>
-                            <div className="text-2xl font-mono font-bold text-vscode-accent">{treeMetrics.attackPotential}</div>
+
+                    {/* Initial AFR (without circumvent trees) */}
+                    <div className="mb-3">
+                        <div className="text-xs text-vscode-text-secondary mb-1 font-semibold">
+                            {treeMetrics.hasCircumventTrees ? 'Initial Risk (without controls)' : 'Risk Assessment'}
                         </div>
-                        <div>
-                            <div className="text-xs text-vscode-text-secondary">Feasibility (AFR)</div>
-                            <div className={`text-lg font-bold px-2 py-0.5 rounded ${getFeasibilityRatingColor(treeMetrics.afr)}`}>
-                                {treeMetrics.afr}
+                        <div className="flex items-center space-x-4">
+                            <div>
+                                <div className="text-xs text-vscode-text-secondary">Attack Potential (AP)</div>
+                                <div className="text-2xl font-mono font-bold text-vscode-accent">{treeMetrics.attackPotential}</div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-vscode-text-secondary">Feasibility (AFR)</div>
+                                <div className={`text-lg font-bold px-2 py-0.5 rounded ${getFeasibilityRatingColor(treeMetrics.afr)}`}>
+                                    {treeMetrics.afr}
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    {/* Residual AFR (with circumvent trees) - only shown if circumvent trees exist */}
+                    {treeMetrics.hasCircumventTrees && treeMetrics.residualAfr && (
+                        <div className="pt-3 border-t border-vscode-border">
+                            <div className="text-xs text-vscode-text-secondary mb-1 font-semibold">Residual Risk (with controls)</div>
+                            <div className="flex items-center space-x-4">
+                                <div>
+                                    <div className="text-xs text-vscode-text-secondary">Attack Potential (AP)</div>
+                                    <div className="text-2xl font-mono font-bold text-green-400">{treeMetrics.residualAttackPotential}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-vscode-text-secondary">Feasibility (AFR)</div>
+                                    <div className={`text-lg font-bold px-2 py-0.5 rounded ${getFeasibilityRatingColor(treeMetrics.residualAfr)}`}>
+                                        {treeMetrics.residualAfr}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="text-xs text-vscode-text-secondary mt-2 italic">Critical path is highlighted in red.</div>
                 </div>
             )}
@@ -716,8 +987,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                             <button
                                 onClick={() => setLayoutDirection('TB')}
                                 className={`px-3 py-1 text-xs font-medium transition-colors ${layoutDirection === 'TB'
-                                        ? 'bg-vscode-accent text-vscode-text-bright'
-                                        : 'bg-vscode-bg-input text-vscode-text-primary hover:bg-vscode-bg-hover'
+                                    ? 'bg-vscode-accent text-vscode-text-bright'
+                                    : 'bg-vscode-bg-input text-vscode-text-primary hover:bg-vscode-bg-hover'
                                     }`}
                                 title="Top to Bottom (Default)"
                             >
@@ -726,8 +997,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                             <button
                                 onClick={() => setLayoutDirection('LR')}
                                 className={`px-3 py-1 text-xs font-medium transition-colors border-l border-vscode-border ${layoutDirection === 'LR'
-                                        ? 'bg-vscode-accent text-vscode-text-bright'
-                                        : 'bg-vscode-bg-input text-vscode-text-primary hover:bg-vscode-bg-hover'
+                                    ? 'bg-vscode-accent text-vscode-text-bright'
+                                    : 'bg-vscode-bg-input text-vscode-text-primary hover:bg-vscode-bg-hover'
                                     }`}
                                 title="Left to Right"
                             >

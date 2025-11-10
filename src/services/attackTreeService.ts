@@ -71,7 +71,7 @@ function findAttackPathsRecursive(
 
 
 function calculateAttackPathAP(pathLeaves: SphinxNeed[]): number {
-  if (pathLeaves.length === 0) return Infinity;
+  if (pathLeaves.length === 0) return 0;
 
   const maxTuple: AttackPotentialTuple = {
     time: 0,
@@ -94,7 +94,45 @@ function calculateAttackPathAP(pathLeaves: SphinxNeed[]): number {
   return calculateAP(maxTuple);
 }
 
-export function calculateAttackTreeMetrics(rootId: string, allNeeds: SphinxNeed[], toeConfigurations: ToeConfiguration[] = []): { attackPotential: number; criticalPaths: string[][] } | null {
+/**
+ * Check if a node has any circumvent trees linked to it
+ */
+export function hasCircumventTrees(nodeId: string, allNeeds: SphinxNeed[]): boolean {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const node = needsMap.get(nodeId);
+
+  if (!node || !node.links || node.links.length === 0) {
+    return false;
+  }
+
+  // Check if any linked child is a circumvent tree root
+  return node.links.some(linkId => {
+    const linkedNode = needsMap.get(linkId);
+    return linkedNode?.tags.includes('circumvent-root');
+  });
+}
+
+/**
+ * Find all nodes that link to a specific circumvent tree root
+ */
+export function findParentNodesOfCircumventTree(circumventTreeRootId: string, allNeeds: SphinxNeed[]): string[] {
+  const parentNodes: string[] = [];
+
+  for (const need of allNeeds) {
+    if (need.links && need.links.includes(circumventTreeRootId)) {
+      parentNodes.push(need.id);
+    }
+  }
+
+  return parentNodes;
+}
+
+export function calculateAttackTreeMetrics(
+  rootId: string,
+  allNeeds: SphinxNeed[],
+  toeConfigurations: ToeConfiguration[] = [],
+  includeCircumventTrees: boolean = false
+): { attackPotential: number; criticalPaths: string[][] } | null {
   const needsMap = new Map(allNeeds.map(n => [n.id, n]));
   const memo = new Map<string, string[][]>();
 
@@ -102,7 +140,20 @@ export function calculateAttackTreeMetrics(rootId: string, allNeeds: SphinxNeed[
     (toeConfigurations || []).filter(c => c.active).map(c => c.id)
   );
 
-  const attackPaths = findAttackPathsRecursive(rootId, needsMap, memo, activeToeConfigs);
+  // If not including circumvent trees, filter them out from the needs map
+  const filteredNeedsMap = includeCircumventTrees ? needsMap : new Map(
+    Array.from(needsMap.entries()).filter(([id, need]) => {
+      // Keep all nodes except those in circumvent tree subtrees
+      if (need.tags.includes('circumvent-root')) {
+        return false;
+      }
+      // Check if this node is a descendant of a circumvent tree
+      const isInCircumventTree = isNodeInCircumventSubtree(id, allNeeds);
+      return !isInCircumventTree;
+    })
+  );
+
+  const attackPaths = findAttackPathsRecursive(rootId, filteredNeedsMap, memo, activeToeConfigs);
 
   if (attackPaths.length === 0) {
     return null;
@@ -127,6 +178,42 @@ export function calculateAttackTreeMetrics(rootId: string, allNeeds: SphinxNeed[
     attackPotential: minAP,
     criticalPaths: criticalPaths,
   };
+}
+
+/**
+ * Helper function to check if a node is within a circumvent tree subtree
+ */
+export function isNodeInCircumventSubtree(nodeId: string, allNeeds: SphinxNeed[]): boolean {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [];
+
+  // Find all circumvent tree roots
+  const circumventRoots = allNeeds.filter(n => n.tags.includes('circumvent-root'));
+
+  // For each circumvent tree root, traverse its subtree
+  for (const root of circumventRoots) {
+    queue.push(root.id);
+    visited.clear();
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId || visited.has(currentId)) continue;
+
+      visited.add(currentId);
+
+      if (currentId === nodeId) {
+        return true;
+      }
+
+      const currentNode = needsMap.get(currentId);
+      if (currentNode?.links) {
+        queue.push(...currentNode.links);
+      }
+    }
+  }
+
+  return false;
 }
 
 export function traceCriticalPaths(rootId: string, criticalLeafSets: string[][], allNeeds: SphinxNeed[]): Set<string> {
@@ -171,7 +258,12 @@ export function traceCriticalPaths(rootId: string, criticalLeafSets: string[][],
 /**
  * Calculate attack metrics for a single node (intermediate or root)
  */
-export function calculateNodeMetrics(nodeId: string, allNeeds: SphinxNeed[], toeConfigurations: ToeConfiguration[] = []): {
+export function calculateNodeMetrics(
+  nodeId: string,
+  allNeeds: SphinxNeed[],
+  toeConfigurations: ToeConfiguration[] = [],
+  includeCircumventTrees: boolean = false
+): {
   attackPotential: number;
   attackPotentialTuple: AttackPotentialTuple;
   hasSubtree: boolean;
@@ -187,9 +279,22 @@ export function calculateNodeMetrics(nodeId: string, allNeeds: SphinxNeed[], toe
     (toeConfigurations || []).filter(c => c.active).map(c => c.id)
   );
 
+  // If not including circumvent trees, filter them out from the needs map
+  const filteredNeedsMap = includeCircumventTrees ? needsMap : new Map(
+    Array.from(needsMap.entries()).filter(([id, need]) => {
+      // Keep all nodes except those in circumvent tree subtrees
+      if (need.tags.includes('circumvent-root')) {
+        return false;
+      }
+      // Check if this node is a descendant of a circumvent tree
+      const isInCircumventTree = isNodeInCircumventSubtree(id, allNeeds);
+      return !isInCircumventTree;
+    })
+  );
+
   // Check if this node has any attack paths
   const memo = new Map<string, string[][]>();
-  const attackPaths = findAttackPathsRecursive(nodeId, needsMap, memo, activeToeConfigs);
+  const attackPaths = findAttackPathsRecursive(nodeId, filteredNeedsMap, memo, activeToeConfigs);
 
   if (attackPaths.length === 0) {
     return {

@@ -374,7 +374,7 @@ Out of scope are:
             tags: ['phishing', 'leaf'],
             links: [],
             position: { x: 650, y: 0 },
-            attackPotential: { time: 2, expertise: 2, knowledge: 3, access: 1, equipment: 1 },
+            attackPotential: { time: 2, expertise: 0, knowledge: 3, access: 0, equipment: 0 },
         },
         {
             id: 'ATT_003',
@@ -385,7 +385,7 @@ Out of scope are:
             tags: ['exploit', 'leaf'],
             links: [],
             position: { x: 650, y: 100 },
-            attackPotential: { time: 3, expertise: 4, knowledge: 4, access: 2, equipment: 2 },
+            attackPotential: { time: 0, expertise: 0, knowledge: 0, access: 2, equipment: 0 },
         },
     ],
 };
