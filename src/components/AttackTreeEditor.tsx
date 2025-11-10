@@ -130,8 +130,11 @@ const CustomNode: React.FC<{
     project: Project,
     layoutDirection: LayoutDirection,
     draggable?: boolean,
-    isCircumventTreeNode?: boolean
-}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false }) => {
+    isCircumventTreeNode?: boolean,
+    onToggleCollapse?: (circumventRootId: string) => void,
+    isCollapsed?: boolean,
+    showCollapseButton?: boolean
+}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false, onToggleCollapse, isCollapsed = false, showCollapseButton = false }) => {
     const isCircumventRoot = data.tags.includes('circumvent-root');
     const isAttackRoot = data.tags.includes('attack-root');
     const isRoot = isAttackRoot || isCircumventRoot;
@@ -218,6 +221,24 @@ const CustomNode: React.FC<{
                             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                         </svg>
                     </div>
+                )}
+                {isCircumventRoot && showCollapseButton && onToggleCollapse && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleCollapse(data.id);
+                        }}
+                        className="absolute -top-2 -right-2 bg-teal-600 hover:bg-teal-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-colors nodrag"
+                        title={isCollapsed ? "Expand circumvent tree" : "Collapse circumvent tree"}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            {isCollapsed ? (
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            ) : (
+                                <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                            )}
+                        </svg>
+                    </button>
                 )}
                 {isCritical && <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>}
                 {data.logic_gate && (
@@ -489,6 +510,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     const [leafSearch, setLeafSearch] = useState('');
     const [ctSearch, setCtSearch] = useState('');
     const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('TB');
+    const [collapsedCircumventTrees, setCollapsedCircumventTrees] = useState<Set<string>>(new Set());
 
     const [treeMetrics, setTreeMetrics] = useState<{
         attackPotential: number;
@@ -587,8 +609,20 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         }
     }, [selectedTreeRootId, project.needs, project.toeConfigurations]);
 
+    const handleToggleCollapse = useCallback((circumventRootId: string) => {
+        setCollapsedCircumventTrees(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(circumventRootId)) {
+                newSet.delete(circumventRootId);
+            } else {
+                newSet.add(circumventRootId);
+            }
+            return newSet;
+        });
+    }, []);
+
     const memoizedNodeTypes = useMemo(() => ({
-        custom: (props: { data: SphinxNeed & { _isCircumventTreeNode?: boolean }; selected: boolean; id: string; draggable?: boolean }) => (
+        custom: (props: { data: SphinxNeed & { _isCircumventTreeNode?: boolean; _isCollapsed?: boolean; _showCollapseButton?: boolean }; selected: boolean; id: string; draggable?: boolean }) => (
             <CustomNode
                 {...props}
                 isCritical={criticalNodeIds.has(props.data.id)}
@@ -598,9 +632,12 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 layoutDirection={layoutDirection}
                 draggable={props.draggable}
                 isCircumventTreeNode={props.data._isCircumventTreeNode}
+                onToggleCollapse={handleToggleCollapse}
+                isCollapsed={props.data._isCollapsed}
+                showCollapseButton={props.data._showCollapseButton}
             />
         )
-    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection]);
+    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection, handleToggleCollapse]);
 
     useEffect(() => {
         if (!selectedTreeRootId) {
@@ -610,18 +647,69 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         }
 
         const allTreeNodes = getTreeNodes(selectedTreeRootId, project.needs);
-        const visibleNeeds = allTreeNodes.filter(n => n.type !== NeedType.RISK && n.type !== NeedType.MITIGATION);
-        const visibleNeedsMap = new Map(visibleNeeds.map(need => [need.id, need]));
 
-        // Check if the selected tree is a circumvent tree
+        // Check if we're viewing a circumvent tree
         const selectedTreeRoot = project.needs.find(n => n.id === selectedTreeRootId);
         const isViewingCircumventTree = selectedTreeRoot?.tags.includes('circumvent-root');
 
+        // Filter out nodes that are children of collapsed circumvent trees
+        const visibleNeeds = allTreeNodes.filter(n => {
+            if (n.type === NeedType.RISK || n.type === NeedType.MITIGATION) {
+                return false;
+            }
+
+            // When viewing a circumvent tree directly, show all nodes (don't apply collapse filtering)
+            if (isViewingCircumventTree) {
+                return true;
+            }
+
+            // Check if this node is a child of a collapsed circumvent tree
+            // We need to check if any of its ancestor circumvent tree roots are collapsed
+            if (collapsedCircumventTrees.size > 0) {
+                // Find all circumvent tree roots that are ancestors of this node
+                for (const collapsedRootId of collapsedCircumventTrees) {
+                    // If this node is the collapsed root itself, keep it visible
+                    if (n.id === collapsedRootId) {
+                        continue;
+                    }
+
+                    // Check if this node is a descendant of the collapsed root
+                    const collapsedRoot = project.needs.find(need => need.id === collapsedRootId);
+                    if (collapsedRoot) {
+                        const descendantsOfCollapsed = getTreeNodes(collapsedRootId, project.needs);
+                        if (descendantsOfCollapsed.some(desc => desc.id === n.id && desc.id !== collapsedRootId)) {
+                            return false; // Hide this node as it's a child of a collapsed tree
+                        }
+                    }
+                }
+            }
+
+            return true;
+        });
+
+        const visibleNeedsMap = new Map(visibleNeeds.map(need => [need.id, need]));
+
+        // Re-use the check from above
         const flowNodes: Node<SphinxNeed>[] = visibleNeeds.map(need => {
             // Determine if this node is part of a circumvent tree
             const nodeIsCircumventTreeNode = need.tags.includes('circumvent-root') || isNodeInCircumventSubtree(need.id, project.needs);
             // Properties are read-only when viewing a circumvent tree node in an attack tree
             const isPropertyReadOnly = !isViewingCircumventTree && nodeIsCircumventTreeNode;
+
+            // Check if this circumvent root is collapsed
+            const isCollapsed = need.tags.includes('circumvent-root') && collapsedCircumventTrees.has(need.id);
+
+            // Show collapse button when viewing attack tree and node is a circumvent root
+            const showCollapseButton = !isViewingCircumventTree && need.tags.includes('circumvent-root');
+
+            // Debug logging for collapse button visibility
+            if (need.tags.includes('circumvent-root')) {
+                console.log(`Circumvent root ${need.id}:`, {
+                    isViewingCircumventTree,
+                    showCollapseButton,
+                    tags: need.tags
+                });
+            }
 
             return {
                 id: need.id,
@@ -631,6 +719,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                     ...need,
                     // Add flag to data so it gets passed to CustomNode
                     _isCircumventTreeNode: isPropertyReadOnly,
+                    _isCollapsed: isCollapsed,
+                    _showCollapseButton: showCollapseButton,
                 },
                 draggable: true, // Always allow dragging
                 connectable: !isPropertyReadOnly, // Don't allow connections to/from circumvent tree nodes in attack tree view
@@ -674,7 +764,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
 
         setTimeout(() => fitView({ duration: 300 }), 0);
 
-    }, [selectedTreeRootId, project.needs, fitView, criticalNodeIds]);
+    }, [selectedTreeRootId, project.needs, fitView, criticalNodeIds, collapsedCircumventTrees]);
 
     const onNodesChange = useCallback((changes: NodeChange[]) => {
         if (isReadOnly) return;
@@ -903,6 +993,9 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 if (isChildCircumventTree && parentNeed.logic_gate !== 'OR') {
                     // Automatically set to AND when linking a circumvent tree
                     parentNeed.logic_gate = 'AND';
+
+                    // Automatically collapse the circumvent tree when it's linked
+                    setCollapsedCircumventTrees(prev => new Set(prev).add(childIdToLink));
                 } else if ((parentNeed.tags.includes('attack-root') || parentNeed.tags.includes('circumvent-root')) && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
                     // Default logic gate for root nodes with multiple children
                     parentNeed.logic_gate = 'OR';
@@ -913,7 +1006,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
             }
         }
         closeContextMenu();
-    }, [project.needs, onUpdateNeeds, isReadOnly, closeContextMenu]);
+    }, [project.needs, onUpdateNeeds, isReadOnly, closeContextMenu, setCollapsedCircumventTrees]);
 
     const onNodeClick = useCallback((event: React.MouseEvent, node: Node<SphinxNeed>) => {
         onSelectNeed(node.data);
