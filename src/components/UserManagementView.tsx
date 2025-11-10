@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Organization, OrganizationRole, User } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -22,6 +23,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     onDeleteUser,
     onToggleUserActive
 }) => {
+    const { t } = useTranslation();
     const [selectedOrgId, setSelectedOrgId] = useState<string | null>(currentUser.organizationId || organizations[0]?.id || null);
     const [showAddUserModal, setShowAddUserModal] = useState(false);
     const [newUserName, setNewUserName] = useState('');
@@ -92,8 +94,8 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                     <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <h3 className="text-xl font-semibold text-vscode-text-primary mb-2">Access Denied</h3>
-                    <p className="text-vscode-text-secondary">You must be an Organization Admin to manage users.</p>
+                    <h3 className="text-xl font-semibold text-vscode-text-primary mb-2">{t('accessDenied')}</h3>
+                    <p className="text-vscode-text-secondary">{t('mustBeOrgAdmin')}</p>
                 </div>
             </div>
         );
@@ -106,22 +108,22 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                     <div>
                         <div className="flex justify-between items-center mb-6">
                             <div>
-                                <h2 className="text-2xl font-bold text-vscode-text-primary">Users in {selectedOrganization?.name}</h2>
-                                <p className="text-sm text-vscode-text-secondary mt-1">Manage users and their roles in your organization</p>
+                                <h2 className="text-2xl font-bold text-vscode-text-primary">{t('usersIn')} {selectedOrganization?.name}</h2>
+                                <p className="text-sm text-vscode-text-secondary mt-1">{t('manageUsersAndRoles')}</p>
                             </div>
                             <button
                                 onClick={() => setShowAddUserModal(true)}
                                 className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium"
                             >
                                 <PlusIcon className="w-5 h-5" />
-                                <span>Add User</span>
+                                <span>{t('addUser')}</span>
                             </button>
                         </div>
 
                         {/* Organization selector if user is admin of multiple orgs */}
                         {organizations.length > 1 && (
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Select Organization</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">{t('selectOrganization')}</label>
                                 <select
                                     value={selectedOrgId || ''}
                                     onChange={(e) => setSelectedOrgId(e.target.value)}
@@ -138,18 +140,18 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                             <table className="w-full text-sm">
                                 <thead className="text-xs text-vscode-text-secondary uppercase bg-vscode-bg-input border-b border-vscode-border">
                                     <tr>
-                                        <th className="p-4 text-left">Name</th>
-                                        <th className="p-4 text-left">Email</th>
-                                        <th className="p-4 text-left">Role</th>
-                                        <th className="p-4 text-left">Status</th>
-                                        <th className="p-4 text-right">Actions</th>
+                                        <th className="p-4 text-left">{t('name')}</th>
+                                        <th className="p-4 text-left">{t('email')}</th>
+                                        <th className="p-4 text-left">{t('role')}</th>
+                                        <th className="p-4 text-left">{t('status')}</th>
+                                        <th className="p-4 text-right">{t('actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {usersInSelectedOrg.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="p-8 text-center text-vscode-text-secondary">
-                                                No users found in this organization.
+                                                {t('noUsersFound')}
                                             </td>
                                         </tr>
                                     ) : (
@@ -158,7 +160,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                                 <td className="p-4">
                                                     <div className="font-medium text-vscode-text-primary">{user.name}</div>
                                                     {user.id === currentUser.id && (
-                                                        <span className="text-xs text-indigo-400">(You)</span>
+                                                        <span className="text-xs text-indigo-400">{t('you')}</span>
                                                     )}
                                                 </td>
                                                 <td className="p-4 text-vscode-text-secondary">{user.email}</td>
@@ -183,7 +185,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                                             : 'bg-red-900/30 text-red-400 border border-red-700/50 hover:bg-red-900/50'
                                                             }`}
                                                     >
-                                                        {user.active ? 'Active' : 'Inactive'}
+                                                        {user.active ? t('active') : t('inactive')}
                                                     </button>
                                                 </td>
                                                 <td className="p-4">
@@ -192,7 +194,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                                             onClick={() => onDeleteUser(user.id)}
                                                             disabled={user.id === currentUser.id}
                                                             className="p-2 text-vscode-text-secondary hover:text-red-400 hover:bg-red-900/30 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            title="Delete user"
+                                                            title={t('deleteUser')}
                                                         >
                                                             <TrashIcon className="w-4 h-4" />
                                                         </button>
@@ -206,21 +208,21 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                         </div>
 
                         <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-                            <h4 className="text-sm font-semibold text-blue-300 mb-2">User Management Tips</h4>
+                            <h4 className="text-sm font-semibold text-blue-300 mb-2">{t('userManagementTips')}</h4>
                             <ul className="text-sm text-vscode-text-secondary space-y-1">
-                                <li>• <strong>Organization Admin</strong> can manage all users and projects within the organization</li>
-                                <li>• <strong>Designer</strong> can create new projects and be assigned to projects with specific roles</li>
-                                <li>• <strong>Member</strong> can be assigned to projects with specific project roles</li>
-                                <li>• Deactivated users cannot log in but their data is preserved</li>
-                                <li>• You cannot modify or delete your own user account</li>
+                                <li dangerouslySetInnerHTML={{ __html: t('orgAdminTip') }} />
+                                <li dangerouslySetInnerHTML={{ __html: t('designerTip') }} />
+                                <li dangerouslySetInnerHTML={{ __html: t('memberTip') }} />
+                                <li>{t('deactivatedUserTip')}</li>
+                                <li>{t('cannotModifySelfTip')}</li>
                             </ul>
                         </div>
                     </div>
                 ) : (
                     <div className="flex items-center justify-center h-full text-vscode-text-secondary">
                         <div className="text-center">
-                            <h3 className="text-lg">No Organization</h3>
-                            <p>No organization available.</p>
+                            <h3 className="text-lg">{t('noOrganization')}</h3>
+                            <p>{t('noOrganizationAvailable')}</p>
                         </div>
                     </div>
                 )}
@@ -230,11 +232,11 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             {showAddUserModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddUserModal(false)}>
                     <div className="bg-vscode-bg-sidebar rounded-lg border border-vscode-border p-6 w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold text-vscode-text-primary mb-4">Add New User</h3>
+                        <h3 className="text-xl font-bold text-vscode-text-primary mb-4">{t('addNewUser')}</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Name</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">{t('name')}</label>
                                 <input
                                     type="text"
                                     value={newUserName}
@@ -245,7 +247,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Email</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">{t('email')}</label>
                                 <input
                                     type="email"
                                     value={newUserEmail}
@@ -256,7 +258,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">Role</label>
+                                <label className="block text-sm font-medium text-vscode-text-primary mb-2">{t('role')}</label>
                                 <select
                                     value={newUserRole}
                                     onChange={(e) => setNewUserRole(e.target.value as OrganizationRole)}
@@ -279,13 +281,13 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                                 }}
                                 className="px-4 py-2 bg-vscode-bg-input hover:bg-vscode-bg-hover text-vscode-text-primary rounded-lg transition-colors"
                             >
-                                Cancel
+                                {t('cancel')}
                             </button>
                             <button
                                 onClick={handleAddUser}
                                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
                             >
-                                Add User
+                                {t('addUser')}
                             </button>
                         </div>
                     </div>

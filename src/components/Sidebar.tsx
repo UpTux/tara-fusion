@@ -1,6 +1,7 @@
 
 
 
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { calculatePermissions } from '../services/permissionService';
 import { Organization, OrganizationRole, Project, ProjectMembership, User } from '../types';
@@ -44,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectView,
   projectMemberships,
 }) => {
+  const { t } = useTranslation();
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>, organizationId: string) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -82,14 +84,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onSelectView('projects')}
             className={`${currentUser.role === 'Organization Admin' ? 'w-1/2' : 'w-full'} py-1.5 text-sm font-semibold rounded-sm transition-colors flex items-center justify-center ${activeView === 'projects' ? 'bg-vscode-bg-selected text-vscode-text-bright' : 'text-vscode-text-secondary hover:bg-vscode-bg-hover hover:text-vscode-text-primary'}`}
           >
-            <FolderIcon className="w-5 h-5 mr-2" /> Projects
+            <FolderIcon className="w-5 h-5 mr-2" /> {t('projects')}
           </button>
           {currentUser.role === 'Organization Admin' && (
             <button
               onClick={() => onSelectView('users')}
               className={`w-1/2 py-1.5 text-sm font-semibold rounded-sm transition-colors flex items-center justify-center ${activeView === 'users' ? 'bg-vscode-bg-selected text-vscode-text-bright' : 'text-vscode-text-secondary hover:bg-vscode-bg-hover hover:text-vscode-text-primary'}`}
             >
-              <UsersIcon className="w-5 h-5 mr-2" /> Users
+              <UsersIcon className="w-5 h-5 mr-2" /> {t('users')}
             </button>
           )}
         </div>
