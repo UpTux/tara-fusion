@@ -315,4 +315,89 @@ describe('Requirements Check Service', () => {
             expect(result.violations).toHaveLength(0);
         });
     });
+
+    describe('REQ-DATA-400: Attack Trees with Dynamic AFR Calculation', () => {
+        it('should pass when threat has TBD but has a valid attack tree', () => {
+            const project = createMinimalProject();
+            project.toeDescription = 'Test TOE';
+
+            // Create a threat with TBD initial AFR
+            project.threats = [{
+                id: 'THR_001',
+                name: 'Test Threat',
+                assetId: 'asset-1',
+                securityProperty: SecurityProperty.CONFIDENTIALITY,
+                damageScenarioIds: [],
+                scales: false,
+                reasoningScaling: '',
+                comment: '',
+                initialAFR: 'TBD', // Stored value is TBD
+                residualAFR: 'TBD',
+            }];
+
+            // But create an attack tree for this threat
+            project.needs = [{
+                id: 'THR_001',
+                type: 'attack' as any,
+                title: 'Test Threat',
+                description: 'Test threat description',
+                status: 'open' as any,
+                tags: ['threat', 'attack-root'],
+                links: ['attack-leaf-1'],
+                logic_gate: 'AND',
+            }, {
+                id: 'attack-leaf-1',
+                type: 'attack' as any,
+                title: 'Attack Leaf',
+                description: 'Test attack leaf',
+                status: 'open' as any,
+                tags: ['attack-leaf'],
+                links: [],
+                attackPotential: { time: 5, expertise: 3, knowledge: 3, access: 2, equipment: 2 },
+            }];
+
+            project.toeConfigurations = [{
+                id: 'cfg-1',
+                active: true,
+                name: 'Config 1',
+                description: 'Test',
+                comment: 'Test',
+            }];
+
+            const result = validateProjectRequirements(project);
+
+            // Should NOT have a violation for REQ-DATA-400 because attack tree exists
+            const afrViolation = result.violations.find(v => v.requirementId === 'REQ-DATA-400');
+            expect(afrViolation).toBeUndefined();
+        });
+
+        it('should fail when threat has TBD and no attack tree', () => {
+            const project = createMinimalProject();
+            project.toeDescription = 'Test TOE';
+
+            // Create a threat with TBD initial AFR
+            project.threats = [{
+                id: 'THR_001',
+                name: 'Test Threat',
+                assetId: 'asset-1',
+                securityProperty: SecurityProperty.CONFIDENTIALITY,
+                damageScenarioIds: [],
+                scales: false,
+                reasoningScaling: '',
+                comment: '',
+                initialAFR: 'TBD',
+                residualAFR: 'TBD',
+            }];
+
+            // No attack tree exists
+            project.needs = [];
+
+            const result = validateProjectRequirements(project);
+
+            // Should have a violation for REQ-DATA-400
+            const afrViolation = result.violations.find(v => v.requirementId === 'REQ-DATA-400');
+            expect(afrViolation).toBeDefined();
+            expect(afrViolation?.affectedItems).toContain('THR_001');
+        });
+    });
 });

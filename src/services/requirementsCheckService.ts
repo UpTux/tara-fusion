@@ -1,7 +1,10 @@
 import {
+    NeedType,
     Project,
     RiskTreatmentDecision
 } from '../types';
+import { calculateAttackTreeMetrics } from './attackTreeService';
+import { getAttackFeasibilityRating } from './riskService';
 
 export enum RequirementSeverity {
     CRITICAL = 'Critical',
@@ -376,8 +379,34 @@ function checkRiskDeterminationAndTreatment(project: Project, violations: Requir
     // REQ-RSK-006: Document residual risk analysis
     const threatsWithoutResidualRisk: string[] = [];
     (project.threats || []).forEach(threat => {
-        if (!threat.residualAFR || threat.residualAFR === 'TBD') {
-            threatsWithoutResidualRisk.push(threat.id);
+        // Check if threat has an attack tree
+        const attackRootNode = (project.needs || []).find(need =>
+            need.type === NeedType.ATTACK &&
+            need.tags.includes('attack-root') &&
+            need.id === threat.id
+        );
+
+        if (attackRootNode) {
+            // If attack tree exists, we can calculate residual AFR
+            // Residual AFR is always calculable from attack tree (even without circumvent trees)
+            const residualMetrics = calculateAttackTreeMetrics(
+                attackRootNode.id,
+                project.needs || [],
+                project.toeConfigurations,
+                true // Include circumvent trees for residual AFR
+            );
+
+            const calculatedResidualAFR = residualMetrics ? getAttackFeasibilityRating(residualMetrics.attackPotential) : null;
+
+            // If we can't calculate a valid AFR, it's missing
+            if (!calculatedResidualAFR) {
+                threatsWithoutResidualRisk.push(threat.id);
+            }
+        } else {
+            // No attack tree exists, check stored value
+            if (!threat.residualAFR || threat.residualAFR === 'TBD') {
+                threatsWithoutResidualRisk.push(threat.id);
+            }
         }
     });
 
@@ -475,8 +504,33 @@ function checkAttackFeasibilityAndRiskCalculation(project: Project, violations: 
     // REQ-DATA-400: Each threat associated with initial attack tree/feasibility
     const threatsWithoutInitialAFR: string[] = [];
     (project.threats || []).forEach(threat => {
-        if (!threat.initialAFR || threat.initialAFR === 'TBD') {
-            threatsWithoutInitialAFR.push(threat.id);
+        // Check if threat has an attack tree
+        const attackRootNode = (project.needs || []).find(need =>
+            need.type === NeedType.ATTACK &&
+            need.tags.includes('attack-root') &&
+            need.id === threat.id
+        );
+
+        if (attackRootNode) {
+            // If attack tree exists, calculate AFR from the tree
+            const initialMetrics = calculateAttackTreeMetrics(
+                attackRootNode.id,
+                project.needs || [],
+                project.toeConfigurations,
+                false // Don't include circumvent trees for initial AFR
+            );
+
+            const calculatedAFR = initialMetrics ? getAttackFeasibilityRating(initialMetrics.attackPotential) : null;
+
+            // If we can't calculate a valid AFR, it's missing
+            if (!calculatedAFR) {
+                threatsWithoutInitialAFR.push(threat.id);
+            }
+        } else {
+            // No attack tree exists, check stored value
+            if (!threat.initialAFR || threat.initialAFR === 'TBD') {
+                threatsWithoutInitialAFR.push(threat.id);
+            }
         }
     });
 
