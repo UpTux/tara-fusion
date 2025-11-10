@@ -1,10 +1,13 @@
 
 
+
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Asset, Project, Threat, ThreatScenario } from '../types';
+import { calculateAttackTreeMetrics, hasCircumventTrees } from '../services/attackTreeService';
+import { getAttackFeasibilityRating } from '../services/riskService';
+import { Asset, NeedType, Project, Threat, ThreatScenario } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import { InformationCircleIcon } from './icons/InformationCircleIcon';
-
 interface ThreatsViewProps {
   project: Project;
   onUpdateProject: (project: Project) => void;
@@ -102,6 +105,58 @@ export const ThreatsView: React.FC<ThreatsViewProps> = ({ project, onUpdateProje
     const selected = threats.find(t => t.id === selectedId);
     setEditorState(selected ? { ...selected } : null);
   }, [selectedId, threats]);
+
+  // Calculate AFR dynamically from attack tree
+  const calculatedAFR = useMemo(() => {
+    if (!editorState) return null;
+
+    // Find the attack tree root node for this threat
+    const attackRootNode = project.needs?.find(need =>
+      need.type === NeedType.ATTACK &&
+      need.tags.includes('attack-root') &&
+      need.id === editorState.id
+    );
+
+    if (!attackRootNode) {
+      // No attack tree exists, use stored values
+      return {
+        initialAFR: editorState.initialAFR,
+        residualAFR: editorState.residualAFR,
+        isCalculated: false
+      };
+    }
+
+    // Calculate initial AFR (without circumvent trees)
+    const initialMetrics = calculateAttackTreeMetrics(
+      attackRootNode.id,
+      project.needs || [],
+      project.toeConfigurations,
+      false // Don't include circumvent trees
+    );
+
+    const initialAFR = initialMetrics ? getAttackFeasibilityRating(initialMetrics.attackPotential) : 'N/A';
+
+    // Check if circumvent trees exist
+    const hasCircumvent = hasCircumventTrees(attackRootNode.id, project.needs || []);
+    let residualAFR = initialAFR;
+
+    if (hasCircumvent) {
+      // Calculate residual AFR (with circumvent trees)
+      const residualMetrics = calculateAttackTreeMetrics(
+        attackRootNode.id,
+        project.needs || [],
+        project.toeConfigurations,
+        true // Include circumvent trees
+      );
+      residualAFR = residualMetrics ? getAttackFeasibilityRating(residualMetrics.attackPotential) : 'N/A';
+    }
+
+    return {
+      initialAFR,
+      residualAFR,
+      isCalculated: true
+    };
+  }, [editorState, project.needs, project.toeConfigurations]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -266,7 +321,16 @@ export const ThreatsView: React.FC<ThreatsViewProps> = ({ project, onUpdateProje
               </div>
               <div>
                 <Label>AFR (Initial / Residual)</Label>
-                <p className="p-2 bg-vscode-bg-sidebar rounded-md text-vscode-text-primary font-mono">{editorState.initialAFR} / {editorState.residualAFR}</p>
+                <div className="flex items-center space-x-2">
+                  <p className="p-2 bg-vscode-bg-sidebar rounded-md text-vscode-text-primary font-mono flex-1">
+                    {calculatedAFR ? `${calculatedAFR.initialAFR} / ${calculatedAFR.residualAFR}` : 'N/A'}
+                  </p>
+                  {calculatedAFR?.isCalculated && (
+                    <span className="text-xs text-green-400 whitespace-nowrap" title="Calculated from attack tree">
+                      ✓ Live
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="col-span-2">
                 <MultiSelectDropdown
