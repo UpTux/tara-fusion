@@ -1,0 +1,37 @@
+# CODEOWNERS for SLSA Level 3 Compliance
+
+#
+
+# This file defines code owners who must review changes
+
+# At least one code owner must approve PRs for SLSA Level 3 compliance
+
+#
+
+# Learn more: <https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners>
+
+# Default owners for everything in the repo
+
+*                                   @patdhlk @JochnGst
+
+# GitHub Actions workflows - require security review
+
+/.github/workflows/                 @patdhlk @JochnGst
+
+# Security-critical files
+
+/SECURITY.md                        @patdhlk @JochnGst
+/.github/settings.yml               @patdhlk @JochnGst
+
+# Build and release scripts
+
+/scripts/                           @patdhlk @JochnGst
+
+# Documentation
+
+/docs/SLSA-*.md                     @patdhlk @JochnGst
+
+# Dependencies - require review for supply chain security
+
+/src/package.json                   @patdhlk @JochnGst
+/src/package-lock.json              @patdhlk @JochnGst

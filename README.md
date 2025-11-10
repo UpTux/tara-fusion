@@ -1,6 +1,7 @@
 # TARA Fusion - AI-Powered Threat Analysis & Risk Assessment
 
 [![CI](https://github.com/patdhlk/tara-fusion/actions/workflows/ci.yml/badge.svg)](https://github.com/patdhlk/tara-fusion/actions/workflows/ci.yml)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.2-61dafb)](https://react.dev/)
@@ -167,7 +168,37 @@ npm run type-check
 
 ---
 
-## 📖 Usage Guide
+## 🔐 Security & Supply Chain
+
+TARA Fusion is **SLSA Level 3 compliant**, providing the highest level of supply chain security:
+
+- ✅ **Fully Scripted Build**: Automated build process via GitHub Actions
+- ✅ **Provenance Generation**: Every release includes SLSA Level 3 attestation
+- ✅ **Non-Forgeable Provenance**: Cryptographically signed with Sigstore
+- ✅ **Build Isolation**: Hardened build platform with GitHub-hosted runners
+- ✅ **Verified Artifacts**: All releases include SHA-256 checksums
+- ✅ **Reproducible Builds**: Locked dependencies ensure consistency
+- ✅ **Branch Protection**: Required reviews and status checks
+- ✅ **Transparent Audit Trail**: Complete build process documentation
+
+### Verifying Release Artifacts
+
+```bash
+# Verify checksums
+sha256sum -c checksums.txt
+
+# Verify SLSA provenance (requires slsa-verifier)
+slsa-verifier verify-artifact \
+  --provenance-path *.intoto.jsonl \
+  --source-uri github.com/patdhlk/tara-fusion \
+  tara-fusion-*.tar.gz
+```
+
+For detailed security information, see [SECURITY.md](SECURITY.md).
+
+---
+
+## �📖 Usage Guide
 
 ### Creating Your First TARA Project
 
