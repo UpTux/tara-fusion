@@ -264,9 +264,9 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
     const existingAssets = project.assets || [];
     const convertedAssets = convertEmb3dAssetsToTaraAssets(selectedEmb3dAssets, existingAssets);
 
-    let updatedAssets = [...(project.assets || []), ...convertedAssets];
+    const updatedAssets = [...(project.assets || []), ...convertedAssets];
     let updatedThreats = [...(project.threats || [])];
-    let updatedNeeds = [...(project.needs || [])];
+    const updatedNeeds = [...(project.needs || [])];
 
     let totalNewThreats = 0;
 

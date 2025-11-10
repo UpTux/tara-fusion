@@ -31,7 +31,7 @@ export const RequirementsCheckView: React.FC<RequirementsCheckViewProps> = ({ pr
     const checkResult = useMemo(() => {
         // When auto-update is off, only recalculate when manual trigger changes
         if (!autoUpdate) {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
+             
             return validateProjectRequirements(project);
         }
         // When auto-update is on, recalculate whenever project changes

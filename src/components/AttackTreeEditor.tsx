@@ -356,6 +356,30 @@ const CustomNode: React.FC<{
 
 type LayoutDirection = 'TB' | 'LR'; // Top-to-Bottom or Left-to-Right
 
+// Calculate the actual height of a node based on its content
+const getNodeHeight = (need: SphinxNeed, allNeeds: SphinxNeed[], baseHeight: number): number => {
+    const isAttackRoot = need.tags.includes('attack-root');
+    const isCircumventRoot = need.tags.includes('circumvent-root');
+    const isRoot = isAttackRoot || isCircumventRoot;
+    const isLeaf = need.type === NeedType.ATTACK && !need.logic_gate && !isRoot;
+
+    // Leaf nodes have ApEditor with 5 dropdowns + total display
+    // ApEditor adds approximately 180px to the height
+    // (border-top + AP Total line + 5 dropdown rows with spacing)
+    if (isLeaf) {
+        return baseHeight + 180;
+    }
+
+    // Check if this attack-root has circumvent trees (which adds residual metrics section)
+    if (isAttackRoot && hasCircumventTrees(need.id, allNeeds)) {
+        // Residual metrics section adds approximately 120px to the height
+        // (heading + attack potential + feasibility rating + tuple display)
+        return baseHeight + 120;
+    }
+
+    return baseHeight;
+};
+
 const getLayoutedElements = (
     rootId: string,
     allNeeds: SphinxNeed[],
@@ -365,6 +389,12 @@ const getLayoutedElements = (
     const treeNodes = getTreeNodes(rootId, allNeeds);
     const needsMap = new Map(treeNodes.map(n => [n.id, n]));
     const treeNodeIds = new Set(treeNodes.map(n => n.id));
+
+    // Calculate actual heights for each node
+    const nodeHeights = new Map<string, number>();
+    treeNodes.forEach(node => {
+        nodeHeights.set(node.id, getNodeHeight(node, allNeeds, options.nodeHeight));
+    });
 
     // 1. Assign ranks (level) using BFS.
     const ranks: Map<number, string[]> = new Map();
@@ -404,8 +434,15 @@ const getLayoutedElements = (
     // 2. Check for overlaps and adjust spacing if needed
     const { nodeWidth, nodeHeight } = options;
 
-    const checkOverlap = (pos1: { x: number, y: number }, pos2: { x: number, y: number }, width: number, height: number): boolean => {
-        return Math.abs(pos1.x - pos2.x) < width && Math.abs(pos1.y - pos2.y) < height;
+    const checkOverlap = (
+        pos1: { x: number, y: number },
+        pos2: { x: number, y: number },
+        width: number,
+        height1: number,
+        height2: number
+    ): boolean => {
+        const avgHeight = (height1 + height2) / 2;
+        return Math.abs(pos1.x - pos2.x) < width && Math.abs(pos1.y - pos2.y) < avgHeight;
     };
 
     const layoutWithSpacing = (hGap: number, vGap: number): Map<string, { x: number, y: number }> => {
@@ -413,28 +450,47 @@ const getLayoutedElements = (
 
         if (direction === 'TB') {
             // Top-to-Bottom layout
+            // Track cumulative Y position for each rank
+            let cumulativeY = 0;
+
             for (let i = 0; i <= maxRank; i++) {
                 const nodesInRank = ranks.get(i) || [];
                 const rankWidth = nodesInRank.length * nodeWidth + Math.max(0, nodesInRank.length - 1) * hGap;
                 let currentX = -rankWidth / 2;
 
+                // Find the maximum height in this rank to determine spacing to next rank
+                const maxHeightInRank = Math.max(...nodesInRank.map(id => nodeHeights.get(id) || nodeHeight));
+
                 nodesInRank.forEach(nodeId => {
-                    const y = i * (nodeHeight + vGap);
-                    positions.set(nodeId, { x: currentX, y });
+                    positions.set(nodeId, { x: currentX, y: cumulativeY });
                     currentX += nodeWidth + hGap;
                 });
+
+                // Move to next rank: add max height of current rank + vertical gap
+                cumulativeY += maxHeightInRank + vGap;
             }
         } else {
             // Left-to-Right layout
             for (let i = 0; i <= maxRank; i++) {
                 const nodesInRank = ranks.get(i) || [];
-                const rankHeight = nodesInRank.length * nodeHeight + Math.max(0, nodesInRank.length - 1) * vGap;
-                let currentY = -rankHeight / 2;
+
+                // Calculate total height needed for this rank using actual node heights
+                let totalRankHeight = 0;
+                nodesInRank.forEach((nodeId, idx) => {
+                    const height = nodeHeights.get(nodeId) || nodeHeight;
+                    totalRankHeight += height;
+                    if (idx < nodesInRank.length - 1) {
+                        totalRankHeight += vGap;
+                    }
+                });
+
+                let currentY = -totalRankHeight / 2;
 
                 nodesInRank.forEach(nodeId => {
+                    const height = nodeHeights.get(nodeId) || nodeHeight;
                     const x = i * (nodeWidth + hGap);
                     positions.set(nodeId, { x, y: currentY });
-                    currentY += nodeHeight + vGap;
+                    currentY += height + vGap;
                 });
             }
         }
@@ -461,7 +517,9 @@ const getLayoutedElements = (
 
                 // Only check nodes in different ranks to avoid false positives
                 if (nodeRanks.get(id1) !== nodeRanks.get(id2)) {
-                    if (checkOverlap(pos1, pos2, nodeWidth, nodeHeight)) {
+                    const height1 = nodeHeights.get(id1) || nodeHeight;
+                    const height2 = nodeHeights.get(id2) || nodeHeight;
+                    if (checkOverlap(pos1, pos2, nodeWidth, height1, height2)) {
                         hasOverlap = true;
                         break;
                     }
@@ -701,15 +759,6 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
 
             // Show collapse button when viewing attack tree and node is a circumvent root
             const showCollapseButton = !isViewingCircumventTree && need.tags.includes('circumvent-root');
-
-            // Debug logging for collapse button visibility
-            if (need.tags.includes('circumvent-root')) {
-                console.log(`Circumvent root ${need.id}:`, {
-                    isViewingCircumventTree,
-                    showCollapseButton,
-                    tags: need.tags
-                });
-            }
 
             return {
                 id: need.id,
