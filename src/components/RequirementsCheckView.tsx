@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     generateRequirementsSummary,
     groupViolationsBySeverity,
@@ -17,10 +17,34 @@ interface RequirementsCheckViewProps {
 
 export const RequirementsCheckView: React.FC<RequirementsCheckViewProps> = ({ project }) => {
     const [expandedSeverity, setExpandedSeverity] = useState<string | null>('critical');
+    const [autoUpdate, setAutoUpdate] = useState<boolean>(() => {
+        const stored = localStorage.getItem('taraValidationAutoUpdate');
+        return stored === null ? true : stored === 'true';
+    });
+    const [manualUpdateTrigger, setManualUpdateTrigger] = useState<number>(0);
+
+    // Save auto-update preference to localStorage
+    useEffect(() => {
+        localStorage.setItem('taraValidationAutoUpdate', autoUpdate.toString());
+    }, [autoUpdate]);
 
     const checkResult = useMemo(() => {
+        // When auto-update is off, only recalculate when manual trigger changes
+        if (!autoUpdate) {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            return validateProjectRequirements(project);
+        }
+        // When auto-update is on, recalculate whenever project changes
         return validateProjectRequirements(project);
-    }, [project]);
+    }, [autoUpdate ? project : manualUpdateTrigger, autoUpdate, project]);
+
+    const handleManualUpdate = () => {
+        setManualUpdateTrigger(prev => prev + 1);
+    };
+
+    const handleToggleAutoUpdate = () => {
+        setAutoUpdate(prev => !prev);
+    };
 
     const groupedViolations = useMemo(() => {
         return groupViolationsBySeverity(checkResult.violations);
@@ -156,11 +180,43 @@ export const RequirementsCheckView: React.FC<RequirementsCheckViewProps> = ({ pr
             <div className="p-8 max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-6">
-                    <div className="flex items-center space-x-3 mb-2">
-                        <ShieldCheckIcon className="w-8 h-8 text-vscode-accent" />
-                        <h1 className="text-3xl font-bold text-vscode-text-primary">
-                            TARA Validation
-                        </h1>
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-3">
+                            <ShieldCheckIcon className="w-8 h-8 text-vscode-accent" />
+                            <h1 className="text-3xl font-bold text-vscode-text-primary">
+                                TARA Validation
+                            </h1>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            {/* Manual Update Button */}
+                            {!autoUpdate && (
+                                <button
+                                    onClick={handleManualUpdate}
+                                    className="px-4 py-2 bg-vscode-accent hover:bg-vscode-accent/80 text-white rounded-md transition-colors flex items-center space-x-2 font-medium"
+                                    title="Manually update validation results"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                    </svg>
+                                    <span>Update Now</span>
+                                </button>
+                            )}
+                            {/* Auto-Update Toggle */}
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-vscode-text-secondary">Auto-update:</span>
+                                <button
+                                    onClick={handleToggleAutoUpdate}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoUpdate ? 'bg-vscode-accent' : 'bg-vscode-bg-input'
+                                        }`}
+                                    title={autoUpdate ? 'Disable auto-update' : 'Enable auto-update'}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoUpdate ? 'translate-x-6' : 'translate-x-1'
+                                            }`}
+                                    />
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <p className="text-vscode-text-secondary">
                         Validates the project against TARA requirements defined in ISO/SAE 21434 and related standards.
