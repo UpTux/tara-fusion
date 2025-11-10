@@ -45,7 +45,7 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
   };
 
   return (
-    <div className="p-8 text-white space-y-8 max-w-4xl mx-auto w-full">
+    <div className="p-8 text-vscode-text-primary space-y-8 max-w-4xl mx-auto w-full">
       {/* Project Details Section */}
       <section>
         <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary">Project Details</h2>

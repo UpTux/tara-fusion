@@ -85,7 +85,7 @@ export const CircumventTreesView: React.FC<CircumventTreesViewProps> = ({ projec
   };
 
   return (
-    <div className="p-8 text-white h-full flex flex-col">
+    <div className="p-8 text-vscode-text-primary h-full flex flex-col">
       <h2 className="text-2xl font-bold mb-4 text-vscode-text-primary">Circumvent Trees</h2>
       <p className="mb-6 text-vscode-text-secondary">
         A Circumvent Tree models the actions required to bypass an active security control. Create a tree for each relevant security control to analyze residual risk. Trees can be edited in the Attack Tree Editor.

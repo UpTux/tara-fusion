@@ -118,7 +118,7 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
   };
 
   return (
-    <div className="flex h-full text-white">
+    <div className="flex h-full text-vscode-text-primary">
       {/* Assumptions List */}
       <div className="w-1/3 border-r border-vscode-border flex flex-col">
         <div className="p-4 border-b border-vscode-border flex justify-between items-center">

@@ -65,7 +65,7 @@ export const PieChart: React.FC<PieChartProps> = ({ data }) => {
                             style={{ backgroundColor: item.color }}
                         />
                         <span className="text-vscode-text-primary">{item.label}:</span>
-                        <span className="font-semibold ml-auto pl-4 text-white">{(item.value / total * 100).toFixed(0)}%</span>
+                        <span className="font-semibold ml-auto pl-4 text-vscode-text-primary">{(item.value / total * 100).toFixed(0)}%</span>
                     </div>
                 ))}
             </div>

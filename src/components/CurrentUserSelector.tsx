@@ -17,7 +17,7 @@ export const CurrentUserSelector: React.FC<CurrentUserSelectorProps> = ({ users,
         id="user-selector"
         value={currentUser.id}
         onChange={(e) => onSelectUser(e.target.value)}
-        className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white"
+        className="block w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-vscode-text-primary"
       >
         {users.map(user => (
           <option key={user.id} value={user.id}>

@@ -19,7 +19,7 @@ const MetricCard: React.FC<{ icon: React.ReactNode; label: string; value: number
             {icon}
         </div>
         <div>
-            <div className="text-3xl font-bold text-white">{value}</div>
+            <div className="text-3xl font-bold text-vscode-text-primary">{value}</div>
             <div className="text-sm text-vscode-text-secondary">{label}</div>
         </div>
     </div>
@@ -108,7 +108,7 @@ export const ManagementSummaryView: React.FC<ManagementSummaryViewProps> = ({ pr
     };
 
     return (
-        <div className="p-8 text-white space-y-8 max-w-7xl mx-auto w-full">
+        <div className="p-8 text-vscode-text-primary space-y-8 max-w-7xl mx-auto w-full">
             <h2 className="text-3xl font-bold text-vscode-text-primary">Management Summary</h2>
 
             {/* Key Metrics */}

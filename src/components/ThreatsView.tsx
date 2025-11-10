@@ -268,9 +268,9 @@ export const ThreatsView: React.FC<ThreatsViewProps> = ({ project, onUpdateProje
 
 
   return (
-    <div className="flex h-full text-white">
-      {/* Threats List */}
-      <div className="w-2/5 border-r border-vscode-border flex flex-col">
+    <div className="flex h-full text-vscode-text-primary">
+      {/* Threats List (grouped by Asset) */}
+      <div className="w-1/3 border-r border-vscode-border flex flex-col">
         <div className="p-4 border-b border-vscode-border flex justify-between items-center">
           <h2 className="text-2xl font-bold text-vscode-text-primary">Threats</h2>
         </div>
@@ -361,7 +361,7 @@ export const ThreatsView: React.FC<ThreatsViewProps> = ({ project, onUpdateProje
                 <div className="relative group flex items-center">
                   <label htmlFor="threatScales" className="ml-3 block text-sm font-medium text-vscode-text-primary">Threat scales</label>
                   <InformationCircleIcon className="w-4 h-4 ml-2 text-vscode-text-secondary" />
-                  <div className="absolute bottom-full left-0 mb-2 w-96 hidden group-hover:block bg-vscode-bg-sidebar border border-vscode-border text-white text-xs rounded-lg p-3 z-20 shadow-lg animate-fade-in-fast">
+                  <div className="absolute bottom-full left-0 mb-2 w-96 hidden group-hover:block bg-vscode-bg-sidebar border border-vscode-border text-vscode-text-primary text-xs rounded-lg p-3 z-20 shadow-lg animate-fade-in-fast">
                     <h4 className="font-bold mb-1">Scaling Effects</h4>
                     <p className="mb-2">An attack path scales if it can be executed automatically, without human interaction, after it has been executed once. A threat scales if one or more of its critical attack paths scale.</p>
                     <p className="text-vscode-text-secondary mb-2 text-[11px]">Note: This setting is for informational purposes and does not influence risk calculations.</p>

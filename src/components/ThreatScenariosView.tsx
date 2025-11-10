@@ -231,7 +231,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
   }, [scenarios, project.damageScenarios, project.needs, project.toeConfigurations]);
 
   return (
-    <div className="flex h-full text-white">
+    <div className="flex h-full text-vscode-text-primary">
       {/* List */}
       <div className="w-2/5 border-r border-vscode-border flex flex-col">
         <div className="p-4 border-b border-vscode-border flex justify-between items-center">

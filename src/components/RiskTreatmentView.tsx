@@ -91,7 +91,7 @@ export const RiskTreatmentView: React.FC<RiskTreatmentViewProps> = ({ project, o
   };
 
   return (
-    <div className="p-8 text-white h-full flex flex-col">
+    <div className="p-8 text-vscode-text-primary h-full flex flex-col">
       <h2 className="text-2xl font-bold mb-4 text-vscode-text-primary">Risk Treatment</h2>
       <p className="mb-6 text-vscode-text-secondary">
         Assign a treatment decision for each threat scenario. Risks marked for reduction must be linked to a Security Goal. Risks that are accepted or transferred must be justified by a Security Claim.

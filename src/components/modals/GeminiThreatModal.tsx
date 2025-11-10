@@ -38,7 +38,7 @@ export const GeminiThreatModal: React.FC<GeminiThreatModalProps> = ({ onClose, o
       <div className="bg-vscode-bg-sidebar rounded-lg shadow-xl p-8 w-full max-w-2xl transform transition-all" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center mb-6">
           <SparklesIcon className="w-8 h-8 text-purple-400 mr-4" />
-          <h2 className="text-2xl font-bold text-white">Generate Threats with AI</h2>
+          <h2 className="text-2xl font-bold text-vscode-text-primary">Generate Threats with AI</h2>
         </div>
         <p className="text-vscode-text-secondary mb-4">
           Describe your system, application, or component. The more detail you provide, the better the threat suggestions will be.

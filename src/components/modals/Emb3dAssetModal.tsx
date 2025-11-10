@@ -63,7 +63,7 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                 <div className="p-6 border-b border-vscode-border">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h2 className="text-2xl font-bold text-white">Import from MITRE Emb3d</h2>
+                            <h2 className="text-2xl font-bold text-vscode-text-primary">Import from MITRE Emb3d</h2>
                             <p className="text-sm text-vscode-text-secondary mt-1">
                                 Select embedded system assets to import into your project
                             </p>
@@ -86,13 +86,13 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                                 placeholder="Search assets..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-white placeholder-vscode-text-secondary focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-vscode-text-primary placeholder-vscode-text-secondary focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                         </div>
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="px-3 py-2 bg-vscode-bg-input border border-vscode-border rounded-md text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
@@ -130,7 +130,7 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                                 />
                                 <div className="ml-3 flex-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-medium text-white">{asset.name}</span>
+                                        <span className="font-medium text-vscode-text-primary">{asset.name}</span>
                                         {asset.category && (
                                             <span className="px-2 py-0.5 text-xs bg-vscode-bg-input text-vscode-text-primary rounded">
                                                 {asset.category}
@@ -165,7 +165,7 @@ export const Emb3dAssetModal: React.FC<Emb3dAssetModalProps> = ({
                 <div className="p-6 border-t border-vscode-border flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-vscode-bg-input text-white rounded-md hover:bg-vscode-bg-hover transition-colors"
+                        className="px-4 py-2 bg-vscode-bg-input text-vscode-text-primary rounded-md hover:bg-vscode-bg-hover transition-colors"
                     >
                         Cancel
                     </button>

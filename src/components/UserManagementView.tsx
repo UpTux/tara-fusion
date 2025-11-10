@@ -87,7 +87,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     // If not an org admin, show access denied message
     if (!isCurrentUserOrgAdmin) {
         return (
-            <div className="flex h-full items-center justify-center text-white">
+            <div className="flex h-full items-center justify-center text-vscode-text-primary">
                 <div className="text-center p-8 bg-vscode-bg-sidebar rounded-lg border border-vscode-border">
                     <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -100,7 +100,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     }
 
     return (
-        <div className="flex h-full text-white">
+        <div className="flex h-full text-vscode-text-primary">
             <div className="flex-1 overflow-y-auto p-8">
                 {selectedOrgId ? (
                     <div>

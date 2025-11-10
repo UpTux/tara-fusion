@@ -13,7 +13,7 @@ export const ProjectUsersView: React.FC<ProjectUsersViewProps> = ({ project, isP
     const canManage = isProjectAdmin || isOrgAdmin;
 
     return (
-        <div className="p-8 text-white h-full flex flex-col">
+        <div className="p-8 text-vscode-text-primary h-full flex flex-col">
             <h2 className="text-2xl font-bold mb-4 text-vscode-text-primary">Project User Management</h2>
             <p className="mb-6 text-vscode-text-secondary">
                 Assign project-specific roles to users from your organization. Organization Admins and Project Admins can manage these settings.

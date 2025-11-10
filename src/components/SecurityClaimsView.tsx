@@ -121,7 +121,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
   const linkedScenarios = (project.threatScenarios || []).filter(ts => ts.securityClaimIds?.includes(selectedId || ''));
 
   return (
-    <div className="flex h-full text-white">
+    <div className="flex h-full text-vscode-text-primary">
       <div className="w-2/5 border-r border-vscode-border flex flex-col">
         <div className="p-4 border-b border-vscode-border flex justify-between items-center">
           <h2 className="text-2xl font-bold text-vscode-text-primary">Security Claims</h2>

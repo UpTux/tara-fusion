@@ -75,7 +75,7 @@ export const ScopeView: React.FC<ScopeViewProps> = ({ project, onProjectChange, 
   };
 
   return (
-    <div className="p-8 text-white flex flex-col h-full">
+    <div className="p-8 text-vscode-text-primary flex flex-col h-full">
       <h2 className="text-2xl font-bold mb-4 text-vscode-text-primary">Scope</h2>
       <p className="mb-6 text-vscode-text-secondary">
         Describe the scope of the project using reStructuredText (RST). Clearly define what is in scope and what is out of scope.

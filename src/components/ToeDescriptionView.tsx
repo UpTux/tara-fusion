@@ -75,7 +75,7 @@ export const ToeDescriptionView: React.FC<ToeDescriptionViewProps> = ({ project,
   };
 
   return (
-    <div className="p-8 text-white flex flex-col h-full">
+    <div className="p-8 text-vscode-text-primary flex flex-col h-full">
       <h2 className="text-2xl font-bold mb-4 text-vscode-text-primary">TOE Description</h2>
       <p className="mb-6 text-vscode-text-secondary">
         Describe the Target of Evaluation using reStructuredText (RST). You can embed PlantUML or Mermaid diagrams to visualize architecture.
