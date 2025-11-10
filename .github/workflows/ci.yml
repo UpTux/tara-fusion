@@ -29,6 +29,10 @@ jobs:
         working-directory: ./src
         run: npm ci
 
+      - name: Run tests
+        working-directory: ./src
+        run: npm run test:run
+
       - name: Build application
         working-directory: ./src
         run: npm run build
@@ -58,8 +62,41 @@ jobs:
         working-directory: ./src
         run: npm run lint
 
+      - name: Type check
+        working-directory: ./src
+        run: npm run type-check
+
       - name: Check code formatting
         working-directory: ./src
         run: |
           echo "Checking TypeScript files..."
           npx prettier --check "**/*.{ts,tsx,js,jsx,json,css,md}" || echo "No prettier config found, skipping..."
+
+  security:
+    runs-on: ubuntu-latest
+    name: Security Checks
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "25.x"
+          cache: "npm"
+          cache-dependency-path: src/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./src
+        run: npm ci
+
+      - name: Run npm audit
+        working-directory: ./src
+        run: npm audit --audit-level=moderate || true
+        continue-on-error: true
+
+      - name: Check for outdated dependencies
+        working-directory: ./src
+        run: npm outdated || true
+        continue-on-error: true
