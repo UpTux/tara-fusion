@@ -161,10 +161,13 @@ const CustomNode: React.FC<{
             // For circumvent tree roots, we need to include their own subtree
             const isCircumventRoot = data.tags.includes('circumvent-root');
 
+            // Check if this node (intermediate or root) is part of a circumvent tree
+            const isPartOfCircumventTree = isCircumventRoot || isNodeInCircumventSubtree(data.id, project.needs);
+
             // For attack-root: calculate initial AFR WITHOUT circumvent trees (includeCircumventTrees = false)
-            // For circumvent-root: include their own subtree (includeCircumventTrees = true)
-            // For intermediate nodes: don't include circumvent trees (includeCircumventTrees = false)
-            const includeCircumventTrees = isCircumventRoot;
+            // For circumvent-root or nodes inside circumvent trees: include circumvent trees (includeCircumventTrees = true)
+            // For intermediate nodes in attack trees: don't include circumvent trees (includeCircumventTrees = false)
+            const includeCircumventTrees = isPartOfCircumventTree;
 
             return calculateNodeMetrics(data.id, project.needs, project.toeConfigurations, includeCircumventTrees);
         }
