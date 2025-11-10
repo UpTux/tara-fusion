@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { NeedType, NeedStatus, SphinxNeed } from '../types';
+import { describe, expect, it } from 'vitest';
+import { NeedStatus, NeedType, SphinxNeed } from '../types';
 import {
-    getTreeNodes,
-    getNodeHeight,
     checkOverlap,
-    getLayoutedElements
+    getLayoutedElements,
+    getNodeHeight,
+    getTreeNodes
 } from './attackTreeLayoutService';
 
 // Helper to create test needs with required fields
@@ -477,10 +477,10 @@ describe('attackTreeLayoutService', () => {
             };
 
             const result = getLayoutedElements('root', needs, tightOptions, 'TB');
-            
+
             // Verify all nodes are positioned
             expect(result).toHaveLength(6);
-            
+
             // Children should have different X positions (spread out)
             const children = result.filter(n => n.id.startsWith('child'));
             const xPositions = children.map(c => c.position?.x).filter(x => x !== undefined);
