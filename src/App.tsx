@@ -1,12 +1,12 @@
 
 
 
-import { useTranslation } from 'react-i18next';
 import { LoginButton } from "@/components/Auth/LoginButton.tsx";
 import { LogoutButton } from "@/components/Auth/LogoutButton.tsx";
 import { Profile } from "@/components/Auth/Profile.tsx";
 import { useAuthenticatedUser } from "@/services/useAuthenticatedUser.ts";
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { ProjectView } from './components/ProjectView';
 import { Sidebar } from './components/Sidebar';
