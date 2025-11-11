@@ -1,6 +1,7 @@
 
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Project, ProjectStatus } from '../types';
 import { ClockIcon } from './icons/ClockIcon';
 
@@ -28,6 +29,7 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) 
 
 
 export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProjectChange, isReadOnly }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(project.name);
   const [securityManager, setSecurityManager] = useState(project.securityManager || '');
   const [comment, setComment] = useState(project.comment || '');
@@ -48,10 +50,10 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
     <div className="p-8 text-vscode-text-primary space-y-8 max-w-4xl mx-auto w-full">
       {/* Project Details Section */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary">Project Details</h2>
+        <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary">{t('projectDetails')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mt-4">
           <div>
-            <Label htmlFor="projectName">Project Name</Label>
+            <Label htmlFor="projectName">{t('projectName')}</Label>
             <Input
               id="projectName"
               type="text"
@@ -62,19 +64,19 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
             />
           </div>
           <div>
-            <Label htmlFor="securityManager">Security Manager</Label>
+            <Label htmlFor="securityManager">{t('securityManager')}</Label>
             <Input
               id="securityManager"
               type="text"
               value={securityManager}
-              placeholder="Enter name"
+              placeholder={t('enterName')}
               onBlur={(e) => handleBlur('securityManager', e.target.value)}
               onChange={(e) => setSecurityManager(e.target.value)}
               disabled={isReadOnly}
             />
           </div>
           <div>
-            <Label htmlFor="projectStatus">Project Status</Label>
+            <Label htmlFor="projectStatus">{t('projectStatus')}</Label>
             <Select
               id="projectStatus"
               value={project.projectStatus}
@@ -89,12 +91,12 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
 
       {/* Comment Section */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary">Comment</h2>
+        <h2 className="text-xl font-semibold mb-4 border-b border-vscode-border pb-2 text-vscode-text-primary">{t('comment')}</h2>
         <Textarea
           value={comment}
           onBlur={(e) => handleBlur('comment', e.target.value)}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Add comments here. Markdown is supported."
+          placeholder={t('addCommentsHere')}
           rows={8}
           disabled={isReadOnly}
         />

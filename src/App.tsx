@@ -6,6 +6,8 @@ import { LogoutButton } from "@/components/Auth/LogoutButton.tsx";
 import { Profile } from "@/components/Auth/Profile.tsx";
 import { useAuthenticatedUser } from "@/services/useAuthenticatedUser.ts";
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { ProjectView } from './components/ProjectView';
 import { Sidebar } from './components/Sidebar';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
@@ -219,10 +221,12 @@ export default function App() {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, active: !u.active } : u));
   }, [currentUserId]);
 
+  const { t } = useTranslation();
+
   const mainViewTitle = useMemo(() => {
-    if (activeMainView === 'users') return 'User Management';
+    if (activeMainView === 'users') return t('userManagement');
     if (activeProject) return activeProject.name;
-    return 'No Project Selected';
+    return t('noProjectSelected');
   }, [activeMainView, activeProject]);
 
   const { user, isAuthenticated, isLoading } = useAuthenticatedUser();
@@ -254,9 +258,10 @@ export default function App() {
           <div className="flex items-center space-x-2 text-sm">
             {/*<span className="font-semibold text-indigo-300">{currentUser.name}</span>*/}
             <ThemeSwitcher />
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <span className="text-vscode-text-secondary">Viewing as:</span>
+                <span className="text-vscode-text-secondary">{t('viewingAs')}</span>
                 <div className="">
                   <Profile />
                 </div>
@@ -296,8 +301,8 @@ export default function App() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-vscode-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-vscode-text-primary">No project selected</h3>
-                <p className="mt-1 text-sm text-vscode-text-secondary">Please select a project from the sidebar to begin.</p>
+                <h3 className="mt-2 text-sm font-medium text-vscode-text-primary">{t('noProjectSelected')}</h3>
+                <p className="mt-1 text-sm text-vscode-text-secondary">{t('pleaseSelectProject')}</p>
               </div>
             </div>
           )}

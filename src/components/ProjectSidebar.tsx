@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { projectViews, ProjectViewType } from '../types';
 import { BeakerIcon } from './icons/BeakerIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
@@ -41,12 +42,24 @@ const getIconForView = (view: ProjectViewType) => {
 };
 
 export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSelectView }) => {
+    const { t } = useTranslation();
+    const toCamelCase = (str: string) => {
+        return str
+            .split(' ')
+            .map((word, index) =>
+                index === 0
+                    ? word.toLowerCase()
+                    : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            )
+            .join('');
+    };
     return (
         <nav className="w-64 bg-vscode-bg-sidebar border-r border-vscode-border p-4 flex flex-col space-y-1 overflow-y-auto">
             {projectViews.map((view, index) => {
                 if (view === '---') {
                     return <div key={`spacer-${index}`} className="h-px bg-vscode-border my-2"></div>;
                 }
+                const translationKey = toCamelCase(view);
                 return (
                     <button
                         key={view}
@@ -62,7 +75,7 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSe
                         aria-current={activeView === view ? 'page' : undefined}
                     >
                         <IconWrapper>{getIconForView(view)}</IconWrapper>
-                        {view}
+                        {t(translationKey)}
                     </button>
                 );
             })}

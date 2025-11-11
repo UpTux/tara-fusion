@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { User } from '../types';
 
 interface CurrentUserSelectorProps {
@@ -8,10 +9,11 @@ interface CurrentUserSelectorProps {
 }
 
 export const CurrentUserSelector: React.FC<CurrentUserSelectorProps> = ({ users, currentUser, onSelectUser }) => {
+  const { t } = useTranslation();
   return (
     <div className="p-4 border-t border-vscode-border">
       <label htmlFor="user-selector" className="block text-xs font-medium text-vscode-text-secondary mb-2">
-        Current User (for demo)
+        {t('currentUserForDemo')}
       </label>
       <select
         id="user-selector"
