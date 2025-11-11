@@ -4,6 +4,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import translationEN from './locales/en/translation.json';
 import translationES from './locales/es/translation.json';
+import translationIT from './locales/it/translation.json';
+import translationFR from './locales/fr/translation.json';
+import translationPT from './locales/pt/translation.json';
+import translationDE from './locales/de/translation.json';
 
 const resources = {
   en: {
@@ -12,13 +16,25 @@ const resources = {
   es: {
     translation: translationES,
   },
+  it: {
+    translation: translationIT,
+  },
+  fr: {
+    translation: translationFR,
+  },
+  pt: {
+    translation: translationPT,
+  },
+  de: {
+    translation: translationDE,
+  },
 };
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    supportedLngs: ['en', 'es'],
+    supportedLngs: ['en', 'es', 'it', 'fr', 'pt', 'de'],
     fallbackLng: 'en',
     resources,
     detection: {
