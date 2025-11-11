@@ -34,6 +34,7 @@ import { ThreatScenariosView } from './ThreatScenariosView';
 import { ThreatsView } from './ThreatsView';
 import { ToeConfigurationView } from './ToeConfigurationView';
 import { ToeDescriptionView } from './ToeDescriptionView';
+import { TraceabilityGraphView } from './TraceabilityGraphView';
 
 interface ProjectViewProps {
   project: Project;
@@ -273,6 +274,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <RequirementsCheckView project={project} />;
       case 'Project Users':
         return <ProjectUsersView project={project} isProjectAdmin={permissions.isProjectAdmin} isOrgAdmin={permissions.isOrgAdmin} />;
+      case 'Traceability Graph':
+        return <TraceabilityGraphView project={project} />;
       case 'Management Summary':
         return <ManagementSummaryView project={project} onProjectChange={handleProjectDetailsChange} isReadOnly={isReadOnly} />;
       default:

@@ -190,5 +190,7 @@
   "recommendations": "Empfehlungen",
   "projectUsersTitle": "Projektbenutzer",
   "projectUsersInfo": "Verwalten Sie die diesem Projekt zugewiesenen Benutzer.",
-  "noProjectUsersInfo": "Projektbenutzer können nicht direkt verwaltet werden. Fügen Sie Benutzer über die Benutzerverwaltung hinzu."
+  "noProjectUsersInfo": "Projektbenutzer können nicht direkt verwaltet werden. Fügen Sie Benutzer über die Benutzerverwaltung hinzu.",
+  "traceabilityGraphTitle": "Rückverfolgbarkeitsgraph",
+  "traceabilityGraphInfo": "Visualisieren Sie Beziehungen und Abhängigkeiten zwischen allen TARA-Artefakten."
 }

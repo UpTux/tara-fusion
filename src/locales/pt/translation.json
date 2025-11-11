@@ -190,5 +190,7 @@
   "recommendations": "Recomendações",
   "projectUsersTitle": "Usuários do Projeto",
   "projectUsersInfo": "Gerencie os usuários atribuídos a este projeto.",
-  "noProjectUsersInfo": "Os usuários do projeto não podem ser gerenciados diretamente. Adicione usuários através do Gerenciamento de Usuários."
+  "noProjectUsersInfo": "Os usuários do projeto não podem ser gerenciados diretamente. Adicione usuários através do Gerenciamento de Usuários.",
+  "traceabilityGraphTitle": "Gráfico de Rastreabilidade",
+  "traceabilityGraphInfo": "Visualize relações e dependências entre todos os artefatos TARA."
 }
