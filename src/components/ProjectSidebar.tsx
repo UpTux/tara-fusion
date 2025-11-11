@@ -44,9 +44,14 @@ const getIconForView = (view: ProjectViewType) => {
 export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSelectView }) => {
     const { t } = useTranslation();
     const toCamelCase = (str: string) => {
-        return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-            return index === 0 ? word.toLowerCase() : word.toUpperCase();
-        }).replace(/\s+/g, '');
+        return str
+            .split(' ')
+            .map((word, index) =>
+                index === 0
+                    ? word.toLowerCase()
+                    : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            )
+            .join('');
     };
     return (
         <nav className="w-64 bg-vscode-bg-sidebar border-r border-vscode-border p-4 flex flex-col space-y-1 overflow-y-auto">
