@@ -86,7 +86,7 @@ export const TraceabilityGraphView: React.FC<TraceabilityGraphViewProps> = ({ pr
                 // Already laid out in layers during graph generation
                 return nodesCopy;
 
-            case 'grid':
+            case 'grid': {
                 // Arrange nodes in a grid
                 const gridCols = Math.ceil(Math.sqrt(nodesCopy.length));
                 const gridSpacing = 300;
@@ -99,8 +99,9 @@ export const TraceabilityGraphView: React.FC<TraceabilityGraphViewProps> = ({ pr
                     };
                 });
                 return nodesCopy;
+            }
 
-            case 'radial':
+            case 'radial': {
                 // Arrange nodes in a circle
                 const radius = Math.max(300, nodesCopy.length * 30);
                 const centerX = 0;
@@ -113,8 +114,9 @@ export const TraceabilityGraphView: React.FC<TraceabilityGraphViewProps> = ({ pr
                     };
                 });
                 return nodesCopy;
+            }
 
-            case 'force':
+            case 'force': {
                 // Simple force-directed layout (spring-based)
                 const iterations = 50;
                 const repulsionStrength = 10000;
@@ -173,6 +175,7 @@ export const TraceabilityGraphView: React.FC<TraceabilityGraphViewProps> = ({ pr
                 });
 
                 return nodesCopy;
+            }
 
             default:
                 return nodesCopy;
