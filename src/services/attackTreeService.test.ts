@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { AttackPotentialTuple, NeedType, SphinxNeed, ToeConfiguration } from '../types';
 import {
     calculateAttackTreeMetrics,
-    traceCriticalPaths,
-    hasCircumventTrees,
-    findParentNodesOfCircumventTree,
-    isNodeInCircumventSubtree,
     calculateNodeMetrics,
+    findParentNodesOfCircumventTree,
+    hasCircumventTrees,
+    isNodeInCircumventSubtree,
+    traceCriticalPaths,
 } from './attackTreeService';
-import { NeedType, SphinxNeed, ToeConfiguration, AttackPotentialTuple } from '../types';
 
 describe('attackTreeService', () => {
     // Helper function to create a basic attack node
