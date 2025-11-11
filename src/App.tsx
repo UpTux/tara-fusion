@@ -227,7 +227,7 @@ export default function App() {
     if (activeMainView === 'users') return t('userManagement');
     if (activeProject) return activeProject.name;
     return t('noProjectSelected');
-  }, [activeMainView, activeProject, t]);
+  }, [activeMainView, activeProject]);
 
   const { user, isAuthenticated, isLoading } = useAuthenticatedUser();
 
