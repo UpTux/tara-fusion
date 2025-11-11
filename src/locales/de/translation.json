@@ -176,6 +176,7 @@
   "treatment": "Behandlung",
   "circumventTreesTitle": "Umgehungsbäume",
   "circumventTreesInfo": "Visualisieren Sie, wie Sicherheitskontrollen umgangen werden können.",
+  "unlinkCircumventTree": "Umgehungsbaum trennen",
   "requirementsCheckTitle": "Anforderungsprüfung",
   "requirementsCheckInfo": "Überprüfen Sie die Einhaltung der Sicherheitsanforderungen.",
   "checkRequirements": "Anforderungen prüfen",

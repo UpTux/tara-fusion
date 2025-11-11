@@ -176,6 +176,7 @@
   "treatment": "Treatment",
   "circumventTreesTitle": "Circumvent Trees",
   "circumventTreesInfo": "Visualize how security controls can be circumvented.",
+  "unlinkCircumventTree": "Unlink Circumvent Tree",
   "requirementsCheckTitle": "Requirements Check",
   "requirementsCheckInfo": "Verify compliance with security requirements.",
   "checkRequirements": "Check Requirements",

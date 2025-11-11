@@ -176,6 +176,7 @@
   "treatment": "Tratamiento",
   "circumventTreesTitle": "Árboles de Evasión",
   "circumventTreesInfo": "Visualice cómo se pueden evadir los controles de seguridad.",
+  "unlinkCircumventTree": "Desvincular Árbol de Evasión",
   "requirementsCheckTitle": "Verificación de Requisitos",
   "requirementsCheckInfo": "Verifique el cumplimiento de los requisitos de seguridad.",
   "checkRequirements": "Verificar Requisitos",

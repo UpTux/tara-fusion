@@ -132,9 +132,10 @@ const CustomNode: React.FC<{
     draggable?: boolean,
     isCircumventTreeNode?: boolean,
     onToggleCollapse?: (circumventRootId: string) => void,
+    onUnlinkCircumventTree?: (circumventRootId: string) => void,
     isCollapsed?: boolean,
     showCollapseButton?: boolean
-}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false, onToggleCollapse, isCollapsed = false, showCollapseButton = false }) => {
+}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false, onToggleCollapse, onUnlinkCircumventTree, isCollapsed = false, showCollapseButton = false }) => {
     const isCircumventRoot = data.tags.includes('circumvent-root');
     const isAttackRoot = data.tags.includes('attack-root');
     const isRoot = isAttackRoot || isCircumventRoot;
@@ -228,15 +229,31 @@ const CustomNode: React.FC<{
                             e.stopPropagation();
                             onToggleCollapse(data.id);
                         }}
-                        className="absolute -top-2 -right-2 bg-teal-600 hover:bg-teal-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-colors nodrag"
+                        className="absolute -top-2 -left-10 bg-blue-600 hover:bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-colors nodrag"
                         title={isCollapsed ? "Expand circumvent tree" : "Collapse circumvent tree"}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             {isCollapsed ? (
-                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                             ) : (
-                                <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                             )}
+                        </svg>
+                    </button>
+                )}
+                {isCircumventRoot && showCollapseButton && onUnlinkCircumventTree && !isReadOnly && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`Unlink this circumvent tree from the attack tree?\n\nThe tree will remain in the project and can be re-linked later.`)) {
+                                onUnlinkCircumventTree(data.id);
+                            }
+                        }}
+                        className="absolute -top-2 -right-10 bg-orange-600 hover:bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-colors nodrag"
+                        title="Unlink circumvent tree from attack tree"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.596a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                         </svg>
                     </button>
                 )}
@@ -679,6 +696,39 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         });
     }, []);
 
+    const handleUnlinkCircumventTreeFromNode = useCallback((circumventTreeId: string) => {
+        if (isReadOnly) return;
+
+        const circumventTree = project.needs.find(n => n.id === circumventTreeId);
+        if (!circumventTree || !circumventTree.tags.includes('circumvent-root')) {
+            return;
+        }
+
+        // Find all parent nodes that link to this circumvent tree
+        const parentNodes = project.needs.filter(need => need.links?.includes(circumventTreeId));
+
+        if (parentNodes.length === 0) {
+            return;
+        }
+
+        // Remove the link from all parent nodes
+        const updatedNeeds = project.needs.map(need => {
+            if (need.links?.includes(circumventTreeId)) {
+                return { ...need, links: need.links.filter(link => link !== circumventTreeId) };
+            }
+            return need;
+        });
+
+        // Remove from collapsed set
+        setCollapsedCircumventTrees(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(circumventTreeId);
+            return newSet;
+        });
+
+        onUpdateNeeds(updatedNeeds, `Unlinked circumvent tree '${circumventTreeId}' from attack tree. The tree is still available in the project.`);
+    }, [project.needs, onUpdateNeeds, isReadOnly, setCollapsedCircumventTrees]);
+
     const memoizedNodeTypes = useMemo(() => ({
         custom: (props: { data: SphinxNeed & { _isCircumventTreeNode?: boolean; _isCollapsed?: boolean; _showCollapseButton?: boolean }; selected: boolean; id: string; draggable?: boolean }) => (
             <CustomNode
@@ -691,11 +741,12 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 draggable={props.draggable}
                 isCircumventTreeNode={props.data._isCircumventTreeNode}
                 onToggleCollapse={handleToggleCollapse}
+                onUnlinkCircumventTree={handleUnlinkCircumventTreeFromNode}
                 isCollapsed={props.data._isCollapsed}
                 showCollapseButton={props.data._showCollapseButton}
             />
         )
-    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection, handleToggleCollapse]);
+    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection, handleToggleCollapse, handleUnlinkCircumventTreeFromNode]);
 
     useEffect(() => {
         if (!selectedTreeRootId) {
@@ -995,6 +1046,40 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         onUpdateNeeds(updatedNeeds, `Unlinked node '${nodeId}' from all parents.`);
     }, [project.needs, onUpdateNeeds, isReadOnly, closeContextMenu]);
 
+    const handleUnlinkCircumventTree = useCallback((circumventTreeId: string) => {
+        if (isReadOnly) return;
+
+        const circumventTree = project.needs.find(n => n.id === circumventTreeId);
+        if (!circumventTree || !circumventTree.tags.includes('circumvent-root')) {
+            return;
+        }
+
+        closeContextMenu();
+
+        // Find all parent nodes that link to this circumvent tree
+        const parentNodes = project.needs.filter(need => need.links?.includes(circumventTreeId));
+
+        if (parentNodes.length === 0) {
+            return;
+        }
+
+        // Remove the link from all parent nodes
+        const updatedNeeds = project.needs.map(need => {
+            if (need.links?.includes(circumventTreeId)) {
+                return { ...need, links: need.links.filter(link => link !== circumventTreeId) };
+            }
+            return need;
+        });
+
+        // Remove from collapsed set
+        setCollapsedCircumventTrees(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(circumventTreeId);
+            return newSet;
+        });
+
+        onUpdateNeeds(updatedNeeds, `Unlinked circumvent tree '${circumventTreeId}' from attack tree. The tree is still available in the project.`);
+    }, [project.needs, onUpdateNeeds, isReadOnly, closeContextMenu, setCollapsedCircumventTrees]);
 
     const handleDeleteNodeFromProject = useCallback((nodeId: string) => {
         if (isReadOnly) return;
@@ -1295,6 +1380,15 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                                         </div>
                                     )}
                                 </div>
+                            </>
+                        )}
+                        {contextMenu.node.data.tags.includes('circumvent-root') && !(project.needs.find(n => n.id === selectedTreeRootId)?.tags.includes('circumvent-root')) && (
+                            <>
+                                <div className="h-px bg-vscode-border my-1"></div>
+                                <button onClick={() => handleUnlinkCircumventTree(contextMenu.node.id)} className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors text-teal-300">
+                                    <LinkBreakIcon className="h-4 w-4 mr-2" />
+                                    Unlink Circumvent Tree
+                                </button>
                             </>
                         )}
                         {!(contextMenu.node.data.tags.includes('attack-root') || contextMenu.node.data.tags.includes('circumvent-root')) && (

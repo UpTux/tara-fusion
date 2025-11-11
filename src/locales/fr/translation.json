@@ -176,6 +176,7 @@
   "treatment": "Traitement",
   "circumventTreesTitle": "Arbres de Contournement",
   "circumventTreesInfo": "Visualisez comment les contrôles de sécurité peuvent être contournés.",
+  "unlinkCircumventTree": "Délier l'Arbre de Contournement",
   "requirementsCheckTitle": "Vérification des Exigences",
   "requirementsCheckInfo": "Vérifiez la conformité avec les exigences de sécurité.",
   "checkRequirements": "Vérifier les Exigences",

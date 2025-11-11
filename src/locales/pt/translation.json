@@ -176,6 +176,7 @@
   "treatment": "Tratamento",
   "circumventTreesTitle": "Árvores de Contorno",
   "circumventTreesInfo": "Visualize como os controles de segurança podem ser contornados.",
+  "unlinkCircumventTree": "Desvincular Árvore de Contorno",
   "requirementsCheckTitle": "Verificação de Requisitos",
   "requirementsCheckInfo": "Verifique a conformidade com os requisitos de segurança.",
   "checkRequirements": "Verificar Requisitos",

@@ -176,6 +176,7 @@
   "treatment": "Trattamento",
   "circumventTreesTitle": "Alberi di Aggiramento",
   "circumventTreesInfo": "Visualizza come i controlli di sicurezza possono essere aggirati.",
+  "unlinkCircumventTree": "Scollega Albero di Aggiramento",
   "requirementsCheckTitle": "Verifica dei Requisiti",
   "requirementsCheckInfo": "Verifica la conformità con i requisiti di sicurezza.",
   "checkRequirements": "Verifica Requisiti",
