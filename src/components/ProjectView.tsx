@@ -24,6 +24,7 @@ import { ProjectCockpit } from './ProjectCockpit';
 import { ProjectSidebar } from './ProjectSidebar';
 import { ProjectUsersView } from './ProjectUsersView';
 import { PropertiesPanel } from './PropertiesPanel';
+import { RelatedDocumentsView } from './RelatedDocumentsView';
 import { RequirementsCheckView } from './RequirementsCheckView';
 import { RiskTreatmentView } from './RiskTreatmentView';
 import { ScopeView } from './ScopeView';
@@ -278,6 +279,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <TraceabilityGraphView project={project} />;
       case 'Management Summary':
         return <ManagementSummaryView project={project} onProjectChange={handleProjectDetailsChange} isReadOnly={isReadOnly} />;
+      case 'Related Documents':
+        return <RelatedDocumentsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       default:
         return <PlaceholderView title={activeView} />;
     }

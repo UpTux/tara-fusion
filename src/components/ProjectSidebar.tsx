@@ -38,6 +38,9 @@ const getIconForView = (view: ProjectViewType) => {
     if (lowerView.includes('graph') || lowerView.includes('summary')) {
         return <ChartBarIcon />;
     }
+    if (lowerView.includes('related documents') || lowerView.includes('glossary')) {
+        return <DocumentTextIcon />;
+    }
     return <DocumentTextIcon />;
 };
 

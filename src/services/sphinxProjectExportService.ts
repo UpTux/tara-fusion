@@ -294,6 +294,42 @@ const generateRiskTreatmentRst = (project: Project): string => {
     return content;
 }
 
+const generateRelatedDocumentsRst = (project: Project): string => {
+    let content = rstHeader('Related Documents', 0);
+
+    if (!project.relatedDocuments || project.relatedDocuments.length === 0) {
+        content += 'No related documents have been defined for this project.\n\n';
+        return content;
+    }
+
+    content += 'The following documents are related to this threat analysis and risk assessment:\n\n';
+
+    const headers = ['ID', 'Title', 'Version', 'Authors', 'Link'];
+    const rows = project.relatedDocuments.map(doc => [
+        doc.id,
+        doc.title,
+        doc.version,
+        doc.authors.join(', '),
+        doc.url ? `:link:\`${doc.url}\`` : 'N/A'
+    ]);
+    content += rstListTable(headers, rows, undefined, [12, 25, 10, 25, 28]);
+
+    content += rstHeader('Document Details', 1);
+    project.relatedDocuments.forEach(doc => {
+        const description = doc.comment || 'No additional information provided.';
+        const metadata = {
+            id: doc.id,
+            title: doc.title,
+            version: doc.version,
+            authors: doc.authors,
+            url: doc.url,
+        };
+        content += generateNeedRst(metadata, 'doc', doc.title, doc.id, description);
+    });
+
+    return content;
+};
+
 const generateThreatDetailRst = (threat: any, project: Project): string => {
     const asset = (project.assets || []).find(a => a.id === threat.assetId);
     const damageScenarios = (project.damageScenarios || []).filter(ds => threat.damageScenarioIds.includes(ds.id));
@@ -443,6 +479,7 @@ export async function exportProjectToSphinxZip(project: Project, images: Map<str
     source.file('04_threat_analysis.rst', generateThreatAnalysisRst(project));
     source.file('05_attack_trees.rst', generateAttackTreesRst(project));
     source.file('06_risk_treatment.rst', generateRiskTreatmentRst(project));
+    source.file('07_related_documents.rst', generateRelatedDocumentsRst(project));
 
     // Generate individual threat detail pages
     const threatsFolder = source.folder('threats');

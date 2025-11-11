@@ -216,6 +216,15 @@ export interface SecurityClaim {
   // This relationship is maintained via ThreatScenario.securityClaimIds
 }
 
+export interface RelatedDocument {
+  id: string;
+  authors: string[];
+  title: string;
+  version: string;
+  url: string;
+  comment?: string;
+}
+
 export interface ImpactCategorySettings {
   categories: string[];
   justification?: string;
@@ -244,6 +253,7 @@ export interface Project {
   securityGoals?: SecurityGoal[];
   securityClaims?: SecurityClaim[];
   managementSummary?: string;
+  relatedDocuments?: RelatedDocument[];
 }
 
 export interface Organization {
