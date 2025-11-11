@@ -7,6 +7,7 @@ import { LogoutButton } from "@/components/Auth/LogoutButton.tsx";
 import { Profile } from "@/components/Auth/Profile.tsx";
 import { useAuthenticatedUser } from "@/services/useAuthenticatedUser.ts";
 import { useCallback, useMemo, useState } from 'react';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { ProjectView } from './components/ProjectView';
 import { Sidebar } from './components/Sidebar';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
@@ -257,6 +258,7 @@ export default function App() {
           <div className="flex items-center space-x-2 text-sm">
             {/*<span className="font-semibold text-indigo-300">{currentUser.name}</span>*/}
             <ThemeSwitcher />
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-vscode-text-secondary">{t('viewingAs')}</span>

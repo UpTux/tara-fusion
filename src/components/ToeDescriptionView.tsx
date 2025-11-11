@@ -1,6 +1,7 @@
 
 
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Project } from '../types';
 import { CodeBracketIcon } from './icons/CodeBracketIcon';
 import { ShareIcon } from './icons/ShareIcon';
@@ -41,6 +42,7 @@ const mermaidTemplate = `.. mermaid::
 `;
 
 export const ToeDescriptionView: React.FC<ToeDescriptionViewProps> = ({ project, onProjectChange, isReadOnly }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState(project.toeDescription || '');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -76,9 +78,9 @@ export const ToeDescriptionView: React.FC<ToeDescriptionViewProps> = ({ project,
 
   return (
     <div className="p-8 text-vscode-text-primary flex flex-col h-full">
-      <h2 className="text-2xl font-bold mb-4 text-vscode-text-primary">TOE Description</h2>
+      <h2 className="text-2xl font-bold mb-4 text-vscode-text-primary">{t('toeDescription')}</h2>
       <p className="mb-6 text-vscode-text-secondary">
-        Describe the Target of Evaluation using reStructuredText (RST). You can embed PlantUML or Mermaid diagrams to visualize architecture.
+        {t('toeDescriptionInfo')}
       </p>
 
       <div className="bg-vscode-bg-sidebar border border-vscode-border rounded-lg flex flex-col flex-1">
@@ -90,7 +92,7 @@ export const ToeDescriptionView: React.FC<ToeDescriptionViewProps> = ({ project,
               disabled={isReadOnly}
             >
               <ShareIcon className="w-4 h-4 mr-2" />
-              Insert PlantUML
+              {t('insertPlantUML')}
             </button>
             <button
               onClick={() => insertTemplate(mermaidTemplate)}
@@ -98,7 +100,7 @@ export const ToeDescriptionView: React.FC<ToeDescriptionViewProps> = ({ project,
               disabled={isReadOnly}
             >
               <CodeBracketIcon className="w-4 h-4 mr-2" />
-              Insert Mermaid
+              {t('insertMermaid')}
             </button>
           </div>
           <button
@@ -108,9 +110,9 @@ export const ToeDescriptionView: React.FC<ToeDescriptionViewProps> = ({ project,
                     ${saveStatus === 'saved' ? 'bg-green-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50'}
                 `}
           >
-            {saveStatus === 'idle' && 'Save Changes'}
-            {saveStatus === 'saving' && 'Saving...'}
-            {saveStatus === 'saved' && 'Saved!'}
+            {saveStatus === 'idle' && t('save')}
+            {saveStatus === 'saving' && t('saving')}
+            {saveStatus === 'saved' && t('saved')}
           </button>
         </div>
         <textarea
