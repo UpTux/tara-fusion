@@ -26,9 +26,21 @@
   "inactive": "Inactive",
   "deleteUser": "Delete user",
   "userManagementTips": "User Management Tips",
-  "orgAdminTip": "• <strong>Organization Admin</strong> can manage all users and projects within the organization",
-  "designerTip": "• <strong>Designer</strong> can create new projects and be assigned to projects with specific roles",
-  "memberTip": "• <strong>Member</strong> can be assigned to projects with specific project roles",
+  "orgAdminTip": {
+    "prefix": "• ",
+    "role": "Organization Admin",
+    "suffix": " can manage all users and projects within the organization"
+  },
+  "designerTip": {
+    "prefix": "• ",
+    "role": "Designer",
+    "suffix": " can create new projects and be assigned to projects with specific roles"
+  },
+  "memberTip": {
+    "prefix": "• ",
+    "role": "Member",
+    "suffix": " can be assigned to projects with specific project roles"
+  },
   "deactivatedUserTip": "• Deactivated users cannot log in but their data is preserved",
   "cannotModifySelfTip": "• You cannot modify or delete your own user account",
   "noOrganization": "No Organization",
