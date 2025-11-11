@@ -90,7 +90,8 @@ jobs:
         id: hash
         run: |
           cd src/dist
-          sha256sum * > ../../checksums.txt
+          # Only hash files, not directories
+          find . -type f -exec sha256sum {} \; > ../../checksums.txt
           cd ../..
           sha256sum tara-fusion-${{ steps.version.outputs.version }}.tar.gz >> checksums.txt
           sha256sum tara-fusion-${{ steps.version.outputs.version }}.zip >> checksums.txt
