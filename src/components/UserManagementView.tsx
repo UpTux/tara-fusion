@@ -210,9 +210,21 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                         <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
                             <h4 className="text-sm font-semibold text-blue-300 mb-2">{t('userManagementTips')}</h4>
                             <ul className="text-sm text-vscode-text-secondary space-y-1">
-                                <li dangerouslySetInnerHTML={{ __html: t('orgAdminTip') }} />
-                                <li dangerouslySetInnerHTML={{ __html: t('designerTip') }} />
-                                <li dangerouslySetInnerHTML={{ __html: t('memberTip') }} />
+                                <li>
+                                    {t('orgAdminTip.prefix')}
+                                    <strong>{t('orgAdminTip.role')}</strong>
+                                    {t('orgAdminTip.suffix')}
+                                </li>
+                                <li>
+                                    {t('designerTip.prefix')}
+                                    <strong>{t('designerTip.role')}</strong>
+                                    {t('designerTip.suffix')}
+                                </li>
+                                <li>
+                                    {t('memberTip.prefix')}
+                                    <strong>{t('memberTip.role')}</strong>
+                                    {t('memberTip.suffix')}
+                                </li>
                                 <li>{t('deactivatedUserTip')}</li>
                                 <li>{t('cannotModifySelfTip')}</li>
                             </ul>
