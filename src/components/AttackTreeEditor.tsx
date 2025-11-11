@@ -17,7 +17,7 @@ import ReactFlow, {
     ReactFlowProvider,
     useReactFlow,
 } from 'reactflow';
-import { calculateAttackTreeMetrics, calculateNodeMetrics, hasCircumventTrees, isNodeInCircumventSubtree, traceCriticalPaths } from '../services/attackTreeService';
+import { calculateAttackTreeMetrics, calculateNodeMetrics, findCircumventTreeRoot, findTechnicalTreeRoot, hasCircumventTrees, isNodeInCircumventSubtree, isNodeInTechnicalSubtree, traceCriticalPaths } from '../services/attackTreeService';
 import { accessOptions, equipmentOptions, expertiseOptions, knowledgeOptions, timeOptions } from '../services/feasibilityOptions';
 import { getAttackFeasibilityRating, getFeasibilityRatingColor } from '../services/riskService';
 import { AttackFeasibilityRating, AttackPotentialTuple, NeedStatus, NeedType, Project, SphinxNeed } from '../types';
@@ -43,6 +43,9 @@ const getNodeColor = (need: SphinxNeed, afr?: AttackFeasibilityRating, residualA
     }
     if (need.tags.includes('circumvent-root')) {
         return 'bg-teal-700 border-teal-500';
+    }
+    if (need.tags.includes('technical-root')) {
+        return 'bg-purple-700 border-purple-500';
     }
 
     const isRoot = need.tags.includes('attack-root');
@@ -131,23 +134,25 @@ const CustomNode: React.FC<{
     layoutDirection: LayoutDirection,
     draggable?: boolean,
     isCircumventTreeNode?: boolean,
+    isTechnicalTreeNode?: boolean,
     onToggleCollapse?: (circumventRootId: string) => void,
     onUnlinkCircumventTree?: (circumventRootId: string) => void,
     isCollapsed?: boolean,
     showCollapseButton?: boolean
-}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false, onToggleCollapse, onUnlinkCircumventTree, isCollapsed = false, showCollapseButton = false }) => {
+}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false, isTechnicalTreeNode = false, onToggleCollapse, onUnlinkCircumventTree, isCollapsed = false, showCollapseButton = false }) => {
     const isCircumventRoot = data.tags.includes('circumvent-root');
+    const isTechnicalRoot = data.tags.includes('technical-root');
     const isAttackRoot = data.tags.includes('attack-root');
-    const isRoot = isAttackRoot || isCircumventRoot;
+    const isRoot = isAttackRoot || isCircumventRoot || isTechnicalRoot;
     const isLeaf = data.type === NeedType.ATTACK && !data.logic_gate && !isRoot;
     const isIntermediate = data.type === NeedType.ATTACK && !isLeaf && !isRoot;
 
-    // Properties are read-only if viewing a circumvent tree node in attack tree view, or if globally read-only
-    const propertiesReadOnly = isCircumventTreeNode || isReadOnly;
+    // Properties are read-only if viewing a circumvent tree node or technical tree node in attack tree view, or if globally read-only
+    const propertiesReadOnly = isCircumventTreeNode || isTechnicalTreeNode || isReadOnly;
 
-    // Circumvent tree roots need target handle when shown in attack tree view (isCircumventTreeNode = true)
-    // but not when viewing the circumvent tree itself (isCircumventTreeNode = false)
-    const showTargetHandle = !isAttackRoot && (!isCircumventRoot || isCircumventTreeNode);
+    // Circumvent tree roots and technical tree roots need target handle when shown in attack tree view (isCircumventTreeNode/isTechnicalTreeNode = true)
+    // but not when viewing the circumvent/technical tree itself (isCircumventTreeNode/isTechnicalTreeNode = false)
+    const showTargetHandle = !isAttackRoot && (!isCircumventRoot || isCircumventTreeNode) && (!isTechnicalRoot || isTechnicalTreeNode);
 
     const handlePotentialChange = (field: keyof AttackPotentialTuple, value: string) => {
         if (propertiesReadOnly) return;
@@ -162,16 +167,17 @@ const CustomNode: React.FC<{
     // Calculate metrics for intermediate and root nodes
     const calculatedMetrics = useMemo(() => {
         if (isIntermediate || isRoot) {
-            // For circumvent tree roots, we need to include their own subtree
+            // For circumvent tree roots or technical tree roots, we need to include their own subtree
             const isCircumventRoot = data.tags.includes('circumvent-root');
+            const isTechnicalRoot = data.tags.includes('technical-root');
 
             // Check if this node (intermediate or root) is part of a circumvent tree
             const isPartOfCircumventTree = isCircumventRoot || isNodeInCircumventSubtree(data.id, project.needs);
 
             // For attack-root: calculate initial AFR WITHOUT circumvent trees (includeCircumventTrees = false)
-            // For circumvent-root or nodes inside circumvent trees: include circumvent trees (includeCircumventTrees = true)
+            // For circumvent-root, technical-root, or nodes inside circumvent trees: include circumvent trees (includeCircumventTrees = true)
             // For intermediate nodes in attack trees: don't include circumvent trees (includeCircumventTrees = false)
-            const includeCircumventTrees = isPartOfCircumventTree;
+            const includeCircumventTrees = isPartOfCircumventTree || isTechnicalRoot;
 
             return calculateNodeMetrics(data.id, project.needs, project.toeConfigurations, includeCircumventTrees);
         }
@@ -377,7 +383,8 @@ type LayoutDirection = 'TB' | 'LR'; // Top-to-Bottom or Left-to-Right
 const getNodeHeight = (need: SphinxNeed, allNeeds: SphinxNeed[], baseHeight: number): number => {
     const isAttackRoot = need.tags.includes('attack-root');
     const isCircumventRoot = need.tags.includes('circumvent-root');
-    const isRoot = isAttackRoot || isCircumventRoot;
+    const isTechnicalRoot = need.tags.includes('technical-root');
+    const isRoot = isAttackRoot || isCircumventRoot || isTechnicalRoot;
     const isLeaf = need.type === NeedType.ATTACK && !need.logic_gate && !isRoot;
 
     // Leaf nodes have ApEditor with 5 dropdowns + total display
@@ -582,8 +589,10 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     const [contextMenu, setContextMenu] = useState<{ top: number; left: number; node: Node<SphinxNeed>; } | null>(null);
     const [isLinkLeafSubMenuOpen, setIsLinkLeafSubMenuOpen] = useState(false);
     const [isLinkCTSubMenuOpen, setIsLinkCTSubMenuOpen] = useState(false);
+    const [isLinkTTSubMenuOpen, setIsLinkTTSubMenuOpen] = useState(false);
     const [leafSearch, setLeafSearch] = useState('');
     const [ctSearch, setCtSearch] = useState('');
+    const [ttSearch, setTtSearch] = useState('');
     const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('TB');
     const [collapsedCircumventTrees, setCollapsedCircumventTrees] = useState<Set<string>>(new Set());
 
@@ -601,7 +610,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
             n.type === NeedType.ATTACK &&
             !n.logic_gate &&
             !n.tags.includes('attack-root') &&
-            !n.tags.includes('circumvent-root')
+            !n.tags.includes('circumvent-root') &&
+            !n.tags.includes('technical-root')
         ).sort((a, b) => a.id.localeCompare(b.id));
     }, [project.needs]);
 
@@ -609,6 +619,13 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         return project.needs.filter(n =>
             n.type === NeedType.ATTACK &&
             n.tags.includes('circumvent-root')
+        ).sort((a, b) => a.id.localeCompare(b.id));
+    }, [project.needs]);
+
+    const allTechnicalTreeRoots = useMemo(() => {
+        return project.needs.filter(n =>
+            n.type === NeedType.ATTACK &&
+            n.tags.includes('technical-root')
         ).sort((a, b) => a.id.localeCompare(b.id));
     }, [project.needs]);
 
@@ -622,20 +639,53 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     }, [allAttackLeaves, leafSearch]);
 
     const filteredCTs = useMemo(() => {
-        if (!ctSearch) return allCircumventTreeRoots;
+        // Get the currently selected tree root to check if we're viewing a circumvent tree
+        const selectedTreeRoot = project.needs.find(n => n.id === selectedTreeRootId);
+        const isViewingCircumventTree = selectedTreeRoot?.tags.includes('circumvent-root');
+
+        let trees = allCircumventTreeRoots;
+
+        // If currently viewing a circumvent tree, exclude it from the list (prevent self-linking)
+        if (isViewingCircumventTree && selectedTreeRootId) {
+            trees = trees.filter(ct => ct.id !== selectedTreeRootId);
+        }
+
+        if (!ctSearch) return trees;
         const searchTerm = ctSearch.toLowerCase();
-        return allCircumventTreeRoots.filter(ct =>
+        return trees.filter(ct =>
             ct.id.toLowerCase().includes(searchTerm) ||
             ct.title.toLowerCase().includes(searchTerm)
         );
-    }, [allCircumventTreeRoots, ctSearch]);
+    }, [allCircumventTreeRoots, ctSearch, selectedTreeRootId, project.needs]);
+
+    const filteredTTs = useMemo(() => {
+        // Get the currently selected tree root to check if we're viewing a technical tree
+        const selectedTreeRoot = project.needs.find(n => n.id === selectedTreeRootId);
+        const isViewingTechnicalTree = selectedTreeRoot?.tags.includes('technical-root');
+
+        let trees = allTechnicalTreeRoots;
+
+        // If currently viewing a technical tree, exclude it from the list (prevent self-linking)
+        if (isViewingTechnicalTree && selectedTreeRootId) {
+            trees = trees.filter(tt => tt.id !== selectedTreeRootId);
+        }
+
+        if (!ttSearch) return trees;
+        const searchTerm = ttSearch.toLowerCase();
+        return trees.filter(tt =>
+            tt.id.toLowerCase().includes(searchTerm) ||
+            tt.title.toLowerCase().includes(searchTerm)
+        );
+    }, [allTechnicalTreeRoots, ttSearch, selectedTreeRootId, project.needs]);
 
     const closeContextMenu = useCallback(() => {
         setContextMenu(null);
         setIsLinkLeafSubMenuOpen(false);
         setIsLinkCTSubMenuOpen(false);
+        setIsLinkTTSubMenuOpen(false);
         setLeafSearch('');
         setCtSearch('');
+        setTtSearch('');
     }, []);
 
     useEffect(() => {
@@ -730,7 +780,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     }, [project.needs, onUpdateNeeds, isReadOnly, setCollapsedCircumventTrees]);
 
     const memoizedNodeTypes = useMemo(() => ({
-        custom: (props: { data: SphinxNeed & { _isCircumventTreeNode?: boolean; _isCollapsed?: boolean; _showCollapseButton?: boolean }; selected: boolean; id: string; draggable?: boolean }) => (
+        custom: (props: { data: SphinxNeed & { _isCircumventTreeNode?: boolean; _isTechnicalTreeNode?: boolean; _isCollapsed?: boolean; _showCollapseButton?: boolean }; selected: boolean; id: string; draggable?: boolean }) => (
             <CustomNode
                 {...props}
                 isCritical={criticalNodeIds.has(props.data.id)}
@@ -740,6 +790,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 layoutDirection={layoutDirection}
                 draggable={props.draggable}
                 isCircumventTreeNode={props.data._isCircumventTreeNode}
+                isTechnicalTreeNode={props.data._isTechnicalTreeNode}
                 onToggleCollapse={handleToggleCollapse}
                 onUnlinkCircumventTree={handleUnlinkCircumventTreeFromNode}
                 isCollapsed={props.data._isCollapsed}
@@ -757,9 +808,10 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
 
         const allTreeNodes = getTreeNodes(selectedTreeRootId, project.needs);
 
-        // Check if we're viewing a circumvent tree
+        // Check if we're viewing a circumvent tree or technical tree
         const selectedTreeRoot = project.needs.find(n => n.id === selectedTreeRootId);
         const isViewingCircumventTree = selectedTreeRoot?.tags.includes('circumvent-root');
+        const isViewingTechnicalTree = selectedTreeRoot?.tags.includes('technical-root');
 
         // Filter out nodes that are children of collapsed circumvent trees
         const visibleNeeds = allTreeNodes.filter(n => {
@@ -767,8 +819,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 return false;
             }
 
-            // When viewing a circumvent tree directly, show all nodes (don't apply collapse filtering)
-            if (isViewingCircumventTree) {
+            // When viewing a circumvent tree or technical tree directly, show all nodes (don't apply collapse filtering)
+            if (isViewingCircumventTree || isViewingTechnicalTree) {
                 return true;
             }
 
@@ -802,8 +854,12 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         const flowNodes: Node<SphinxNeed>[] = visibleNeeds.map(need => {
             // Determine if this node is part of a circumvent tree
             const nodeIsCircumventTreeNode = need.tags.includes('circumvent-root') || isNodeInCircumventSubtree(need.id, project.needs);
-            // Properties are read-only when viewing a circumvent tree node in an attack tree
-            const isPropertyReadOnly = !isViewingCircumventTree && nodeIsCircumventTreeNode;
+            // Determine if this node is part of a technical tree
+            const nodeIsTechnicalTreeNode = need.tags.includes('technical-root') || isNodeInTechnicalSubtree(need.id, project.needs);
+
+            // Properties are read-only when viewing a circumvent tree node or technical tree node in an attack tree
+            const isCircumventPropertyReadOnly = !isViewingCircumventTree && nodeIsCircumventTreeNode;
+            const isTechnicalPropertyReadOnly = !isViewingTechnicalTree && nodeIsTechnicalTreeNode;
 
             // Check if this circumvent root is collapsed
             const isCollapsed = need.tags.includes('circumvent-root') && collapsedCircumventTrees.has(need.id);
@@ -818,12 +874,13 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 data: {
                     ...need,
                     // Add flag to data so it gets passed to CustomNode
-                    _isCircumventTreeNode: isPropertyReadOnly,
+                    _isCircumventTreeNode: isCircumventPropertyReadOnly,
+                    _isTechnicalTreeNode: isTechnicalPropertyReadOnly,
                     _isCollapsed: isCollapsed,
                     _showCollapseButton: showCollapseButton,
                 },
                 draggable: true, // Always allow dragging
-                connectable: !isPropertyReadOnly, // Don't allow connections to/from circumvent tree nodes in attack tree view
+                connectable: !isCircumventPropertyReadOnly && !isTechnicalPropertyReadOnly, // Don't allow connections to/from circumvent/technical tree nodes in attack tree view
             };
         });
 
@@ -836,6 +893,22 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                     const isCritical = criticalNodeIds.has(need.id) && criticalNodeIds.has(linkId);
                     const targetNode = visibleNeedsMap.get(linkId);
                     const isCircumventTreeEdge = targetNode?.tags.includes('circumvent-root');
+                    const isTechnicalTreeEdge = targetNode?.tags.includes('technical-root');
+
+                    // Determine edge color: critical (red) > technical (purple) > circumvent (teal) > default (indigo)
+                    let edgeColor = '#818cf8'; // default indigo
+                    let edgeWidth = 2;
+
+                    if (isCritical) {
+                        edgeColor = '#f87171'; // red for critical paths
+                        edgeWidth = 3;
+                    } else if (isTechnicalTreeEdge) {
+                        edgeColor = '#c084fc'; // purple for technical trees
+                        edgeWidth = 2.5;
+                    } else if (isCircumventTreeEdge) {
+                        edgeColor = '#14b8a6'; // teal for circumvent trees
+                        edgeWidth = 2.5;
+                    }
 
                     flowEdges.push({
                         id: `${need.id}-${linkId}`,
@@ -844,8 +917,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                         type: 'smoothstep',
                         animated: isCritical,
                         style: {
-                            stroke: isCritical ? '#f87171' : (isCircumventTreeEdge ? '#14b8a6' : '#818cf8'),
-                            strokeWidth: isCritical ? 3 : (isCircumventTreeEdge ? 2.5 : 2),
+                            stroke: edgeColor,
+                            strokeWidth: edgeWidth,
                             strokeDasharray: isCircumventTreeEdge ? '5,5' : undefined
                         },
                         markerEnd: {
@@ -1119,17 +1192,50 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
 
         if (parentNeedIndex !== -1 && childNeed) {
             const parentNeed = { ...updatedNeeds[parentNeedIndex] };
+
+            // Prevent linking a technical tree to itself
+            const isChildTechnicalTree = childNeed.tags.includes('technical-root');
+            if (isChildTechnicalTree) {
+                // Find which technical tree (if any) the parent node belongs to
+                const parentTechnicalRoot = findTechnicalTreeRoot(parentNeed.id, project.needs);
+
+                // If parent belongs to the same technical tree we're trying to link, prevent it (self-linking)
+                if (parentTechnicalRoot && parentTechnicalRoot.id === childIdToLink) {
+                    closeContextMenu();
+                    return;
+                }
+            }
+
+            // Prevent linking a circumvent tree to itself
+            const isChildCircumventTree = childNeed.tags.includes('circumvent-root');
+            if (isChildCircumventTree) {
+                // Find which circumvent tree (if any) the parent node belongs to
+                const parentCircumventRoot = findCircumventTreeRoot(parentNeed.id, project.needs);
+
+                // If parent belongs to the same circumvent tree we're trying to link, prevent it (self-linking)
+                if (parentCircumventRoot && parentCircumventRoot.id === childIdToLink) {
+                    closeContextMenu();
+                    return;
+                }
+            }
+
             if (!(parentNeed.links || []).includes(childIdToLink)) {
                 parentNeed.links = [...(parentNeed.links || []), childIdToLink];
 
                 // Per ISO/SAE 21434: Set parent to AND gate when linking a circumvent tree
-                const isChildCircumventTree = childNeed.tags.includes('circumvent-root');
                 if (isChildCircumventTree && parentNeed.logic_gate !== 'OR') {
                     // Automatically set to AND when linking a circumvent tree
                     parentNeed.logic_gate = 'AND';
 
                     // Automatically collapse the circumvent tree when it's linked
                     setCollapsedCircumventTrees(prev => new Set(prev).add(childIdToLink));
+                } else if (isChildTechnicalTree) {
+                    // Technical trees are reusable subtrees - no special gate logic required
+                    // They can be linked to any node type (attack, circumvent, or technical trees)
+                    // Keep existing logic gate or set default if needed
+                    if ((parentNeed.tags.includes('attack-root') || parentNeed.tags.includes('circumvent-root') || parentNeed.tags.includes('technical-root')) && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
+                        parentNeed.logic_gate = 'OR';
+                    }
                 } else if ((parentNeed.tags.includes('attack-root') || parentNeed.tags.includes('circumvent-root')) && parentNeed.links.length > 1 && !parentNeed.logic_gate) {
                     // Default logic gate for root nodes with multiple children
                     parentNeed.logic_gate = 'OR';
@@ -1165,7 +1271,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         onUpdateNeeds(layoutedNeeds, `Applied ${layoutDirection === 'TB' ? 'top-to-bottom' : 'left-to-right'} layout to tree '${selectedTreeRootId}'.`);
     }, [selectedTreeRootId, project.needs, onUpdateNeeds, isReadOnly, layoutDirection]);
 
-    const isNodeLeaf = contextMenu?.node.data.type === NeedType.ATTACK && !contextMenu?.node.data.logic_gate && !contextMenu?.node.data.tags.includes('attack-root') && !contextMenu?.node.data.tags.includes('circumvent-root');
+    const isNodeLeaf = contextMenu?.node.data.type === NeedType.ATTACK && !contextMenu?.node.data.logic_gate && !contextMenu?.node.data.tags.includes('attack-root') && !contextMenu?.node.data.tags.includes('circumvent-root') && !contextMenu?.node.data.tags.includes('technical-root');
 
     return (
         <div className="w-full h-full relative" ref={reactFlowWrapper}>
@@ -1380,6 +1486,48 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                                         </div>
                                     )}
                                 </div>
+                                <div
+                                    className="relative"
+                                    onMouseEnter={() => setIsLinkTTSubMenuOpen(true)}
+                                    onMouseLeave={() => setIsLinkTTSubMenuOpen(false)}
+                                >
+                                    <div className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors cursor-pointer justify-between">
+                                        <div className="flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.596a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                            </svg>
+                                            Link Technical Tree
+                                        </div>
+                                        <span className="text-vscode-text-secondary text-xs">&#9656;</span>
+                                    </div>
+                                    {isLinkTTSubMenuOpen && (
+                                        <div className="absolute left-full -top-1 ml-1 w-64 bg-vscode-bg-sidebar border border-vscode-border rounded-md shadow-lg p-1">
+                                            <input
+                                                type="text"
+                                                placeholder="Search by ID or title..."
+                                                value={ttSearch}
+                                                onChange={e => { e.stopPropagation(); setTtSearch(e.target.value); }}
+                                                onClick={e => e.stopPropagation()}
+                                                className="w-full bg-vscode-bg-input text-vscode-text-primary text-xs rounded-sm px-2 py-1 mb-1 border border-vscode-border-light focus:ring-vscode-accent focus:border-vscode-accent"
+                                            />
+                                            <div className="max-h-48 overflow-y-auto">
+                                                {filteredTTs.length > 0 ? filteredTTs.map(tt => (
+                                                    <button
+                                                        key={tt.id}
+                                                        onClick={() => handleLinkExisting(contextMenu.node, tt.id)}
+                                                        className="w-full text-left text-xs px-2 py-1.5 hover:bg-vscode-bg-hover rounded"
+                                                        title={tt.title}
+                                                    >
+                                                        <span className="font-mono text-purple-400">{tt.id}</span>
+                                                        <span className="block text-vscode-text-primary truncate">{tt.title}</span>
+                                                    </button>
+                                                )) : (
+                                                    <div className="text-center text-xs text-vscode-text-secondary py-2">No technical trees found.</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </>
                         )}
                         {contextMenu.node.data.tags.includes('circumvent-root') && !(project.needs.find(n => n.id === selectedTreeRootId)?.tags.includes('circumvent-root')) && (
@@ -1391,7 +1539,16 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                                 </button>
                             </>
                         )}
-                        {!(contextMenu.node.data.tags.includes('attack-root') || contextMenu.node.data.tags.includes('circumvent-root')) && (
+                        {contextMenu.node.data.tags.includes('technical-root') && !(project.needs.find(n => n.id === selectedTreeRootId)?.tags.includes('technical-root')) && (
+                            <>
+                                <div className="h-px bg-vscode-border my-1"></div>
+                                <button onClick={() => handleUnlinkNode(contextMenu.node.id)} className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors text-purple-300">
+                                    <LinkBreakIcon className="h-4 w-4 mr-2" />
+                                    Unlink Technical Tree
+                                </button>
+                            </>
+                        )}
+                        {!(contextMenu.node.data.tags.includes('attack-root') || contextMenu.node.data.tags.includes('circumvent-root') || contextMenu.node.data.tags.includes('technical-root')) && (
                             <>
                                 <div className="h-px bg-vscode-border my-1"></div>
                                 <button onClick={() => handleUnlinkNode(contextMenu.node.id)} className="w-full text-left px-3 py-1.5 hover:bg-vscode-bg-hover rounded flex items-center transition-colors text-yellow-300">
@@ -1467,17 +1624,22 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
         [project.needs]
     );
 
-    const [selectedTreeRootId, setSelectedTreeRootId] = useState<string | null>(attackTreeRoots[0]?.id || circumventTreeRoots[0]?.id || null);
+    const technicalTreeRoots = useMemo(() =>
+        project.needs.filter(n => n.type === NeedType.ATTACK && n.tags.includes('technical-root')),
+        [project.needs]
+    );
+
+    const [selectedTreeRootId, setSelectedTreeRootId] = useState<string | null>(attackTreeRoots[0]?.id || circumventTreeRoots[0]?.id || technicalTreeRoots[0]?.id || null);
 
     useEffect(() => {
-        const allRoots = [...attackTreeRoots, ...circumventTreeRoots];
+        const allRoots = [...attackTreeRoots, ...circumventTreeRoots, ...technicalTreeRoots];
         if (!selectedTreeRootId && allRoots.length > 0) {
             setSelectedTreeRootId(allRoots[0].id);
         }
         if (selectedTreeRootId && !allRoots.some(r => r.id === selectedTreeRootId)) {
             setSelectedTreeRootId(allRoots[0]?.id || null);
         }
-    }, [attackTreeRoots, circumventTreeRoots, selectedTreeRootId]);
+    }, [attackTreeRoots, circumventTreeRoots, technicalTreeRoots, selectedTreeRootId]);
 
     const handleSelectNeed = useCallback((need: SphinxNeed | null) => {
         setSelectedNeed(need);
@@ -1545,10 +1707,33 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
                         </div>
                     )}
 
-                    {attackTreeRoots.length === 0 && circumventTreeRoots.length === 0 && (
+                    {technicalTreeRoots.length > 0 && (
+                        <div className="mb-4">
+                            <h3 className="px-3 py-1 text-sm font-semibold text-vscode-text-secondary">Technical Attack Trees</h3>
+                            <ul className="space-y-1">
+                                {technicalTreeRoots.map(root => (
+                                    <li key={root.id}>
+                                        <button
+                                            onClick={() => setSelectedTreeRootId(root.id)}
+                                            className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors
+                        ${selectedTreeRootId === root.id
+                                                    ? 'bg-purple-600/30 text-purple-200 font-semibold'
+                                                    : 'text-vscode-text-primary hover:bg-vscode-bg-hover'
+                                                }`}
+                                        >
+                                            <span className="font-mono text-purple-400 text-xs block">{root.id}</span>
+                                            {root.title}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {attackTreeRoots.length === 0 && circumventTreeRoots.length === 0 && technicalTreeRoots.length === 0 && (
                         <div className="p-4 text-center text-vscode-text-secondary text-sm">
                             <p>No attack trees found.</p>
-                            <p className="mt-2">Threats and Circumvent Trees will appear here as roots.</p>
+                            <p className="mt-2">Threats, Circumvent Trees, and Technical Attack Trees will appear here as roots.</p>
                         </div>
                     )}
                 </div>

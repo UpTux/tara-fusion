@@ -31,6 +31,7 @@ import { ScopeView } from './ScopeView';
 import { SecurityClaimsView } from './SecurityClaimsView';
 import { SecurityControlsView } from './SecurityControlsView';
 import { SecurityGoalsView } from './SecurityGoalsView';
+import { TechnicalAttackTreesView } from './TechnicalAttackTreesView';
 import { ThreatScenariosView } from './ThreatScenariosView';
 import { ThreatsView } from './ThreatsView';
 import { ToeConfigurationView } from './ToeConfigurationView';
@@ -265,6 +266,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <AttackLeavesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Circumvent Trees':
         return <CircumventTreesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
+      case 'Technical Attack Trees':
+        return <TechnicalAttackTreesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Security Goals':
         return <SecurityGoalsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Security Claims':

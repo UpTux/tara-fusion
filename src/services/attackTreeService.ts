@@ -231,6 +231,114 @@ export function isNodeInCircumventSubtree(nodeId: string, allNeeds: SphinxNeed[]
   return false;
 }
 
+/**
+ * Check if a node is part of a technical tree subtree
+ */
+export function isNodeInTechnicalSubtree(nodeId: string, allNeeds: SphinxNeed[]): boolean {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [];
+
+  // Find all technical tree roots
+  const technicalRoots = allNeeds.filter(n => n.tags.includes('technical-root'));
+
+  // For each technical tree root, traverse its subtree
+  for (const root of technicalRoots) {
+    queue.push(root.id);
+    visited.clear();
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId || visited.has(currentId)) continue;
+
+      visited.add(currentId);
+
+      if (currentId === nodeId) {
+        return true;
+      }
+
+      const currentNode = needsMap.get(currentId);
+      if (currentNode?.links) {
+        queue.push(...currentNode.links);
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Find the technical tree root that a node belongs to (if any)
+ */
+export function findTechnicalTreeRoot(nodeId: string, allNeeds: SphinxNeed[]): SphinxNeed | null {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [];
+
+  // Find all technical tree roots
+  const technicalRoots = allNeeds.filter(n => n.tags.includes('technical-root'));
+
+  // For each technical tree root, traverse its subtree
+  for (const root of technicalRoots) {
+    queue.push(root.id);
+    visited.clear();
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId || visited.has(currentId)) continue;
+
+      visited.add(currentId);
+
+      if (currentId === nodeId) {
+        return root;
+      }
+
+      const currentNode = needsMap.get(currentId);
+      if (currentNode?.links) {
+        queue.push(...currentNode.links);
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Find the circumvent tree root that a node belongs to (if any)
+ */
+export function findCircumventTreeRoot(nodeId: string, allNeeds: SphinxNeed[]): SphinxNeed | null {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [];
+
+  // Find all circumvent tree roots
+  const circumventRoots = allNeeds.filter(n => n.tags.includes('circumvent-root'));
+
+  // For each circumvent tree root, traverse its subtree
+  for (const root of circumventRoots) {
+    queue.push(root.id);
+    visited.clear();
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId || visited.has(currentId)) continue;
+
+      visited.add(currentId);
+
+      if (currentId === nodeId) {
+        return root;
+      }
+
+      const currentNode = needsMap.get(currentId);
+      if (currentNode?.links) {
+        queue.push(...currentNode.links);
+      }
+    }
+  }
+
+  return null;
+}
+
 export function traceCriticalPaths(rootId: string, criticalLeafSets: string[][], allNeeds: SphinxNeed[]): Set<string> {
   const childToParentsMap = new Map<string, string[]>();
   allNeeds.forEach(need => {
