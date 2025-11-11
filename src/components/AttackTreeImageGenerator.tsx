@@ -11,22 +11,54 @@ import ReactFlow, {
     ReactFlowProvider,
     useReactFlow,
 } from 'reactflow';
-import { NeedType, Project, SphinxNeed } from '../types';
+import { calculateAttackTreeMetrics, hasCircumventTrees } from '../services/attackTreeService';
+import { getAttackFeasibilityRating } from '../services/riskService';
+import { AttackFeasibilityRating, NeedType, Project, SphinxNeed } from '../types';
 
 // --- Helper functions for isolated rendering ---
 
-const getNodeColor = (need: SphinxNeed): string => {
-    if (need.type !== NeedType.ATTACK) return 'bg-vscode-bg-input border-vscode-border';
-    if (need.tags.includes('circumvent-root')) return 'bg-teal-700 border-teal-500';
+const getNodeColor = (need: SphinxNeed, afr?: AttackFeasibilityRating, residualAfr?: AttackFeasibilityRating): string => {
+    if (need.type !== NeedType.ATTACK) {
+        return 'bg-vscode-bg-input border-vscode-border';
+    }
+    if (need.tags.includes('circumvent-root')) {
+        return 'bg-teal-700 border-teal-500';
+    }
 
     const isRoot = need.tags.includes('attack-root');
     const isIntermediate = !!need.logic_gate && !isRoot;
 
-    if (isIntermediate) return 'bg-blue-600 border-blue-400';
+    // For attack-root nodes, use AFR color
+    if (isRoot) {
+        // Use residual AFR if circumvent tree is linked, otherwise use regular AFR
+        const targetAfr = residualAfr || afr;
+        if (targetAfr) {
+            // Map AFR to background and border colors
+            switch (targetAfr) {
+                case AttackFeasibilityRating.HIGH:
+                    return 'bg-red-700 border-red-500';
+                case AttackFeasibilityRating.MEDIUM:
+                    return 'bg-orange-700 border-orange-500';
+                case AttackFeasibilityRating.LOW:
+                    return 'bg-yellow-700 border-yellow-500';
+                case AttackFeasibilityRating.VERY_LOW:
+                    return 'bg-green-700 border-green-500';
+                default:
+                    return 'bg-gray-700 border-gray-500';
+            }
+        }
+        // Fallback to default red if no AFR available
+        return 'bg-red-800 border-red-500';
+    }
+
+    if (isIntermediate) {
+        return 'bg-blue-600 border-blue-400';
+    }
+
     return 'bg-red-800 border-red-500';
 };
 
-const getTreeNodes = (rootId: string, allNeeds: SphinxNeed[]): SphinxNeed[] => {
+const getTreeNodes = (rootId: string, allNeeds: SphinxNeed[], includeCircumventTrees: boolean = true): SphinxNeed[] => {
     const needsMap = new Map(allNeeds.map(n => [n.id, n]));
     const treeNodeIds = new Set<string>();
     const queue: string[] = [rootId];
@@ -38,7 +70,9 @@ const getTreeNodes = (rootId: string, allNeeds: SphinxNeed[]): SphinxNeed[] => {
         const currentNode = needsMap.get(currentId);
         if (currentNode && currentNode.links) {
             for (const link of currentNode.links) {
-                if (needsMap.has(link) && !treeNodeIds.has(link)) {
+                const linkedNode = needsMap.get(link);
+                // Include all linked nodes
+                if (linkedNode && !treeNodeIds.has(link)) {
                     treeNodeIds.add(link);
                     queue.push(link);
                 }
@@ -99,15 +133,18 @@ const getLayoutedElements = (rootId: string, allNeeds: SphinxNeed[], options: { 
     });
 };
 
-const StaticNode: React.FC<{ data: SphinxNeed }> = ({ data }) => {
+const StaticNode: React.FC<{ data: SphinxNeed; afr?: AttackFeasibilityRating; residualAfr?: AttackFeasibilityRating }> = ({ data, afr, residualAfr }) => {
     const isRoot = data.tags.includes('attack-root') || data.tags.includes('circumvent-root');
     const isLeaf = data.type === NeedType.ATTACK && !data.logic_gate && !isRoot;
     const totalAp = isLeaf ? Object.values(data.attackPotential || {}).reduce((sum: number, val) => sum + Number(val || 0), 0) : null;
 
+    const isAttackRoot = data.tags.includes('attack-root');
+    const showTargetHandle = !isAttackRoot && (!data.tags.includes('circumvent-root') || false);
+
     return (
         <>
-            {!isRoot && <Handle type="target" position={Position.Top} className="!bg-vscode-bg-input !border-indigo-400" />}
-            <div className={`${getNodeColor(data)} rounded-lg p-3 w-64 text-white shadow-xl border-2`}>
+            {showTargetHandle && <Handle type="target" position={Position.Top} className="!bg-vscode-bg-input !border-indigo-400" />}
+            <div className={`${getNodeColor(data, afr, residualAfr)} rounded-lg p-3 w-64 text-white shadow-xl border-2`}>
                 {data.logic_gate && (
                     <div className="absolute -top-3 -right-3 bg-vscode-bg-sidebar border-2 border-indigo-400 rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs text-indigo-300">
                         {data.logic_gate}
@@ -120,6 +157,20 @@ const StaticNode: React.FC<{ data: SphinxNeed }> = ({ data }) => {
                     <div className="mt-2 pt-2 border-t border-vscode-border text-xs font-mono text-vscode-text-primary">
                         <span>AP Total: </span>
                         <span className="font-bold text-indigo-300">{totalAp}</span>
+                    </div>
+                )}
+                {isAttackRoot && afr && (
+                    <div className="mt-2 pt-2 border-t border-vscode-border text-xs font-mono">
+                        <div className="flex justify-between">
+                            <span className="text-vscode-text-primary">AFR:</span>
+                            <span className="font-bold text-indigo-300">{afr}</span>
+                        </div>
+                        {residualAfr && residualAfr !== afr && (
+                            <div className="flex justify-between mt-1">
+                                <span className="text-vscode-text-primary">Residual AFR:</span>
+                                <span className="font-bold text-green-300">{residualAfr}</span>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -142,6 +193,26 @@ const TreeRenderer: React.FC<TreeRendererProps> = ({ project, rootId, onRendered
     const [reactFlowStyles, setReactFlowStyles] = useState<string | null>(null);
     const [isFlowInitialized, setIsFlowInitialized] = useState(false);
 
+    // Calculate metrics for the root node
+    const rootNode = project.needs.find(n => n.id === rootId);
+    const isAttackRoot = rootNode?.tags.includes('attack-root');
+
+    const metrics = useMemo(() => {
+        if (!isAttackRoot || !rootNode) return undefined;
+        return calculateAttackTreeMetrics(rootId, project.needs, project.toeConfigurations || [], false);
+    }, [isAttackRoot, rootNode, rootId, project.needs, project.toeConfigurations]);
+
+    const afr = metrics ? getAttackFeasibilityRating(metrics.attackPotential) : undefined;
+
+    const residualMetrics = useMemo(() => {
+        if (!isAttackRoot || !rootNode) return undefined;
+        const hasCircumvent = hasCircumventTrees(rootId, project.needs);
+        if (!hasCircumvent) return undefined;
+        return calculateAttackTreeMetrics(rootId, project.needs, project.toeConfigurations || [], true);
+    }, [isAttackRoot, rootNode, rootId, project.needs, project.toeConfigurations]);
+
+    const residualAfr = residualMetrics ? getAttackFeasibilityRating(residualMetrics.attackPotential) : undefined;
+
     useEffect(() => {
         fetch('https://cdn.jsdelivr.net/npm/reactflow@11.11.3/dist/style.css')
             .then(response => response.text())
@@ -160,30 +231,50 @@ const TreeRenderer: React.FC<TreeRendererProps> = ({ project, rootId, onRendered
             verticalGap: 100,
         });
 
-        const allTreeNodes = getTreeNodes(rootId, layoutedNeeds);
+        const allTreeNodes = getTreeNodes(rootId, layoutedNeeds, true); // Include circumvent trees
         const visibleNeeds = allTreeNodes.filter(n => n.type !== 'risk' && n.type !== 'mitigation');
         const visibleNeedsMap = new Map(visibleNeeds.map(need => [need.id, need]));
 
-        const flowNodes: Node<SphinxNeed>[] = visibleNeeds.map(need => ({
-            id: need.id,
-            type: 'static',
-            position: need.position || { x: 0, y: 0 },
-            data: need,
-        }));
+        const flowNodes: Node<SphinxNeed & { afr?: AttackFeasibilityRating; residualAfr?: AttackFeasibilityRating }>[] = visibleNeeds.map(need => {
+            // Only pass AFR values for the root node
+            const nodeData = need.id === rootId && isAttackRoot
+                ? { ...need, afr, residualAfr }
+                : need;
+
+            return {
+                id: need.id,
+                type: 'static',
+                position: need.position || { x: 0, y: 0 },
+                data: nodeData,
+            };
+        });
 
         const flowEdges: Edge[] = visibleNeeds.map(need =>
-            (need.links || []).filter(linkId => visibleNeedsMap.has(linkId)).map(linkId => ({
-                id: `${need.id}-${linkId}`,
-                source: need.id,
-                target: linkId,
-                type: 'smoothstep',
-                style: { stroke: '#818cf8', strokeWidth: 2 },
-                markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#818cf8' },
-            }))
+            (need.links || []).filter(linkId => visibleNeedsMap.has(linkId)).map(linkId => {
+                const targetNode = visibleNeedsMap.get(linkId);
+                const isCircumventConnection = targetNode?.tags.includes('circumvent-root');
+
+                return {
+                    id: `${need.id}-${linkId}`,
+                    source: need.id,
+                    target: linkId,
+                    type: 'smoothstep',
+                    style: {
+                        stroke: isCircumventConnection ? '#14b8a6' : '#818cf8', // teal for circumvent connections
+                        strokeWidth: isCircumventConnection ? 3 : 2,
+                    },
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                        width: 20,
+                        height: 20,
+                        color: isCircumventConnection ? '#14b8a6' : '#818cf8',
+                    },
+                };
+            })
         ).flat();
 
         return { nodes: flowNodes, edges: flowEdges };
-    }, [project, rootId]);
+    }, [project, rootId, isAttackRoot, afr, residualAfr]);
 
     const onInit = useCallback(() => setIsFlowInitialized(true), []);
 

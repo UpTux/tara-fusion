@@ -4,8 +4,10 @@ import { calculateAP, calculateHighestImpact, calculateRiskLevel, getAttackFeasi
 
 // Import template files
 import confPyTemplate from './templates/conf.py.template?raw';
+import furoCssTemplate from './templates/furo.css?raw';
 import indexRstTemplate from './templates/index.rst.template?raw';
 import pyprojectTomlTemplate from './templates/pyproject.toml.template?raw';
+import ubprojectTomlTemplate from './templates/ubproject.toml.template?raw';
 
 const rstHeader = (title: string, level: number): string => {
     const underlines = ['=', '-', '`', ':', '.', "'", '"', '~', '^', '_', '*', '+', '#', '<', '>'];
@@ -77,8 +79,16 @@ const generatePyProjectToml = (): string => {
     return pyprojectTomlTemplate.trim();
 };
 
+const generateFuroCss = (): string => {
+    return furoCssTemplate.trim();
+};
+
+const generateUbProjectToml = (projectName: string): string => {
+    return ubprojectTomlTemplate.replace('{{PROJECT_NAME}}', projectName.replace(/"/g, '\\"'));
+};
+
 const generateConfPy = (projectName: string): string => {
-    return confPyTemplate.replace('{{PROJECT_NAME}}', projectName.replace(/'/g, "\\'"));
+    return confPyTemplate.replace('{{PROJECT_NAME}}', projectName.replace(/"/g, '\\"'));
 };
 
 const generateIndexRst = (projectName: string): string => {
@@ -419,7 +429,9 @@ export async function exportProjectToSphinxZip(project: Project, images: Map<str
     const zip = new JSZip();
 
     zip.file('pyproject.toml', generatePyProjectToml());
+    zip.file('source/ubproject.toml', generateUbProjectToml(project.name));
     zip.file('source/conf.py', generateConfPy(project.name));
+    zip.file('source/_static/furo.css', generateFuroCss());
 
     const source = zip.folder('source');
     if (!source) throw new Error("Could not create source folder in zip.");
