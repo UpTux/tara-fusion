@@ -309,6 +309,7 @@ export const projectViews = [
   '---',
   'Attack Trees',
   'Technical Attack Trees',
+  'MITRE ATT&CK Database',
   'Circumvent Trees',
   'Attack Leaves',
   '---',

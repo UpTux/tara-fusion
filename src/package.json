@@ -18,6 +18,7 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.8.0",
     "@google/genai": "^1.27.0",
+    "@mitre-attack/attack-data-model": "main",
     "html-to-image": "^1.11.11",
     "i18next": "^25.6.1",
     "i18next-browser-languagedetector": "^8.2.0",

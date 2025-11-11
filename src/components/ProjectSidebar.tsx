@@ -5,6 +5,7 @@ import { BeakerIcon } from './icons/BeakerIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CubeIcon } from './icons/CubeIcon';
+import { DatabaseIcon } from './icons/DatabaseIcon';
 import { DocumentTextIcon } from './icons/DocumentTextIcon';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
 import { ViewfinderCircleIcon } from './icons/ViewfinderCircleIcon';
@@ -22,6 +23,9 @@ const getIconForView = (view: ProjectViewType) => {
     const lowerView = view.toLowerCase();
     if (lowerView.includes('cockpit')) {
         return <ClockIcon />;
+    }
+    if (lowerView.includes('mitre') || lowerView.includes('database')) {
+        return <DatabaseIcon />;
     }
     if (lowerView.includes('misuse cases')) {
         return <BeakerIcon />;

@@ -18,6 +18,7 @@ import { SparklesIcon } from './icons/SparklesIcon';
 import { UploadIcon } from './icons/UploadIcon';
 import { ManagementSummaryView } from './ManagementSummaryView';
 import { MisuseCasesView } from './MisuseCasesView';
+import { MitreAttackDatabaseView } from './MitreAttackDatabaseView';
 import { GeminiThreatModal } from './modals/GeminiThreatModal';
 import { PlaceholderView } from './PlaceholderView';
 import { ProjectCockpit } from './ProjectCockpit';
@@ -268,6 +269,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <CircumventTreesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Technical Attack Trees':
         return <TechnicalAttackTreesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
+      case 'MITRE ATT&CK Database':
+        return <MitreAttackDatabaseView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Security Goals':
         return <SecurityGoalsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Security Claims':
