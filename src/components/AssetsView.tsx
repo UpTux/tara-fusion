@@ -11,10 +11,12 @@ import {
 import { generateThreatName } from '../services/threatGenerator';
 import { Asset, NeedStatus, NeedType, Project, SecurityProperty, SphinxNeed, Threat } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { CodeBracketIcon } from './icons/CodeBracketIcon';
 import { DatabaseIcon } from './icons/DatabaseIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { Emb3dAssetModal } from './modals/Emb3dAssetModal';
+import { TerraformImportModal } from './modals/TerraformImportModal';
 
 interface AssetsViewProps {
   project: Project;
@@ -80,6 +82,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
   const [editorState, setEditorState] = useState<Asset | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showEmb3dModal, setShowEmb3dModal] = useState(false);
+  const [showTerraformModal, setShowTerraformModal] = useState(false);
 
   useEffect(() => {
     const currentAssets = project.assets || [];
@@ -312,6 +315,73 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
     setShowEmb3dModal(false);
   };
 
+  const handleTerraformImport = (importedAssets: Asset[]) => {
+    if (isReadOnly) return;
+
+    const updatedAssets = [...(project.assets || []), ...importedAssets];
+    let updatedThreats = [...(project.threats || [])];
+    const updatedNeeds = [...(project.needs || [])];
+
+    let totalNewThreats = 0;
+
+    // For each imported asset, create threats for each security property
+    importedAssets.forEach(asset => {
+      const allThreatsAndNeedsIds = new Set([...updatedThreats.map(t => t.id), ...updatedNeeds.map(n => n.id)]);
+      let counter = updatedThreats.length + 1;
+
+      asset.securityProperties.forEach(prop => {
+        let newId = `THR_${String(counter).padStart(3, '0')}`;
+        while (allThreatsAndNeedsIds.has(newId)) {
+          counter++;
+          newId = `THR_${String(counter).padStart(3, '0')}`;
+        }
+        allThreatsAndNeedsIds.add(newId);
+
+        const threatName = generateThreatName(prop, asset.name);
+
+        const newThreat: Threat = {
+          id: newId,
+          name: threatName,
+          assetId: asset.id,
+          securityProperty: prop,
+          scales: false,
+          initialAFR: 'TBD',
+          residualAFR: 'TBD',
+          reasoningScaling: '',
+          comment: '',
+          damageScenarioIds: [],
+          source: 'manual',
+        };
+        updatedThreats.push(newThreat);
+
+        const newNeed: SphinxNeed = {
+          id: newId,
+          type: NeedType.ATTACK,
+          title: threatName,
+          description: `Attack targeting the ${prop} of asset '${asset.name}'. Source: Terraform infrastructure.`,
+          status: NeedStatus.OPEN,
+          tags: ['threat', 'attack-root', 'terraform'],
+          links: [],
+          logic_gate: 'AND',
+          position: { x: Math.random() * 100, y: Math.random() * 800 }
+        };
+        updatedNeeds.push(newNeed);
+        totalNewThreats++;
+      });
+    });
+
+    const historyMessage = `Imported ${importedAssets.length} assets from Terraform with ${totalNewThreats} associated threats.`;
+
+    onUpdateProject(addHistoryEntry({
+      ...project,
+      assets: updatedAssets,
+      threats: updatedThreats,
+      needs: updatedNeeds,
+    }, historyMessage));
+
+    setShowTerraformModal(false);
+  };
+
   return (
     <div className="flex h-full text-vscode-text-primary">
       {/* Assets List */}
@@ -326,6 +396,14 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
               disabled={isReadOnly}
             >
               <DatabaseIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setShowTerraformModal(true)}
+              title="Import from Terraform"
+              className="p-1.5 text-vscode-text-secondary hover:text-vscode-text-primary hover:bg-vscode-bg-hover rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isReadOnly}
+            >
+              <CodeBracketIcon className="w-5 h-5" />
             </button>
             <button
               onClick={handleAdd}
@@ -440,6 +518,15 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
           availableAssets={getEmb3dAssets()}
           onConfirm={handleEmb3dImport}
           onClose={() => setShowEmb3dModal(false)}
+        />
+      )}
+
+      {/* Terraform Import Modal */}
+      {showTerraformModal && (
+        <TerraformImportModal
+          onClose={() => setShowTerraformModal(false)}
+          onImport={handleTerraformImport}
+          toeConfigurationIds={(project.toeConfigurations || []).map(c => c.id)}
         />
       )}
     </div>
