@@ -5,6 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.2-61dafb)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6.2-646cff)](https://vitejs.dev/)
+[![codecov](https://codecov.io/github/patdhlk/tara-fusion/graph/badge.svg?token=GWIX6DAEBT)](https://codecov.io/github/patdhlk/tara-fusion)
 
 TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis and Risk Assessment (TARA)** for security-critical systems. It combines traditional TARA methodologies with AI-powered threat intelligence using Google's Gemini API, providing an integrated environment for security analysis, risk assessment, and documentation generation.
 
