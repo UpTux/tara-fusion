@@ -8,13 +8,14 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "build": "npm run build:web && electron-builder",
-    "build:web": "cd ../src && npm run build && cd ../app",
-    "build:mac": "npm run build:web && electron-builder --mac",
-    "build:win": "npm run build:web && electron-builder --win",
-    "build:linux": "npm run build:web && electron-builder --linux",
-    "build:all": "npm run build:web && electron-builder -mwl",
-    "pack": "electron-builder --dir",
+    "build": "npm run build:web && npm run copy:web && electron-builder",
+    "build:web": "cd ../src && npm run build",
+    "copy:web": "node -e \"require('fs').cpSync('../src/dist', './dist-web', {recursive: true})\"",
+    "build:mac": "npm run build:web && npm run copy:web && electron-builder --mac",
+    "build:win": "npm run build:web && npm run copy:web && electron-builder --win",
+    "build:linux": "npm run build:web && npm run copy:web && electron-builder --linux",
+    "build:all": "npm run build:web && npm run copy:web && electron-builder -mwl",
+    "pack": "npm run build:web && npm run copy:web && electron-builder --dir",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
@@ -29,13 +30,6 @@
       "preload.js",
       "dist-web/**/*",
       "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "../src/dist",
-        "to": "dist-web",
-        "filter": ["**/*"]
-      }
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
