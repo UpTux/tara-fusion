@@ -9,6 +9,10 @@
 
 TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis and Risk Assessment (TARA)** for security-critical systems. It combines traditional TARA methodologies with AI-powered threat intelligence using Google's Gemini API, providing an integrated environment for security analysis, risk assessment, and documentation generation.
 
+**Available as:**
+- 🌐 **Web Application** - Run in any modern browser
+- 💻 **Desktop Application** - Native app for macOS, Windows, and Linux (see [Electron App](#electron-desktop-app))
+
 ---
 
 ## 🎯 Overview
@@ -165,6 +169,37 @@ Run TypeScript type checking:
 ```bash
 npm run type-check
 ```
+
+### Electron Desktop App
+
+TARA Fusion is also available as a native desktop application for macOS, Windows, and Linux. The desktop app provides a better integrated experience with offline capabilities (except AI features).
+
+#### Download Desktop App
+
+Download pre-built desktop apps from the [Releases](https://github.com/patdhlk/tara-fusion/releases) page:
+
+- **macOS**: Download `.dmg` file for your architecture (Intel, Apple Silicon, or Universal)
+- **Windows**: Download `.exe` installer for your architecture (x64 or ARM64)
+- **Linux**: Download `.AppImage`, `.deb`, or `.rpm` package for your architecture
+
+#### Build Desktop App Locally
+
+```bash
+cd app
+
+# Install dependencies
+npm install
+
+# Build for current platform
+npm run build
+
+# Or build for specific platform
+npm run build:mac     # macOS
+npm run build:win     # Windows
+npm run build:linux   # Linux
+```
+
+For more details, see the [app/README.md](app/README.md).
 
 ---
 
