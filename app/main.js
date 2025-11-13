@@ -41,9 +41,14 @@ function createWindow() {
   createMenu();
 
   // Open DevTools in development
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
+
+  // Log any console messages from renderer
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`[Renderer]: ${message}`);
+  });
 }
 
 function createMenu() {
