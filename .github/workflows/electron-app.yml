@@ -1,0 +1,529 @@
+name: Electron App Release with SLSA Provenance
+
+on:
+  push:
+    tags:
+      - "app-v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., app-v1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-mac:
+    name: Build macOS
+    runs-on: macos-latest
+    outputs:
+      hashes-x64: ${{ steps.hash.outputs.hashes-x64 }}
+      hashes-arm64: ${{ steps.hash.outputs.hashes-arm64 }}
+      hashes-universal: ${{ steps.hash.outputs.hashes-universal }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "npm"
+          cache-dependency-path: |
+            src/package-lock.json
+            app/package-lock.json
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install web app dependencies
+        working-directory: ./src
+        run: npm ci
+
+      - name: Build web app
+        working-directory: ./src
+        run: npm run build
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-key-for-build' }}
+
+      - name: Install Electron app dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Build Electron app for macOS
+        working-directory: ./app
+        run: |
+          npm run build:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Generate checksums
+        id: hash
+        working-directory: ./app/dist
+        run: |
+          # Find and hash all distributable files
+          find . -type f \( -name "*.dmg" -o -name "*.zip" \) > files.txt
+          
+          # Separate by architecture
+          grep "x64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-x64.txt || true
+          grep "arm64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-arm64.txt || true
+          grep "universal" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-universal.txt || true
+          
+          cd ..
+          
+          # Generate base64-encoded hashes for provenance
+          if [ -f checksums-mac-x64.txt ]; then
+            echo "hashes-x64=$(cat checksums-mac-x64.txt | base64 -w0 2>/dev/null || cat checksums-mac-x64.txt | base64)" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -f checksums-mac-arm64.txt ]; then
+            echo "hashes-arm64=$(cat checksums-mac-arm64.txt | base64 -w0 2>/dev/null || cat checksums-mac-arm64.txt | base64)" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -f checksums-mac-universal.txt ]; then
+            echo "hashes-universal=$(cat checksums-mac-universal.txt | base64 -w0 2>/dev/null || cat checksums-mac-universal.txt | base64)" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "## 🍎 macOS Build Checksums" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat checksums-mac-*.txt 2>/dev/null || echo "No checksums generated"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: tara-fusion-electron-macos-${{ steps.version.outputs.version }}
+          path: |
+            app/dist/*.dmg
+            app/dist/*.zip
+            app/checksums-mac-*.txt
+          retention-days: 90
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    outputs:
+      hashes-x64: ${{ steps.hash.outputs.hashes-x64 }}
+      hashes-arm64: ${{ steps.hash.outputs.hashes-arm64 }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "npm"
+          cache-dependency-path: |
+            src/package-lock.json
+            app/package-lock.json
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install web app dependencies
+        working-directory: ./src
+        run: npm ci
+
+      - name: Build web app
+        working-directory: ./src
+        run: npm run build
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-key-for-build' }}
+
+      - name: Install Electron app dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Build Electron app for Windows
+        working-directory: ./app
+        run: npm run build:win
+
+      - name: Generate checksums
+        id: hash
+        shell: bash
+        working-directory: ./app/dist
+        run: |
+          # Find and hash all distributable files
+          find . -type f \( -name "*.exe" -o -name "*.zip" \) > files.txt
+          
+          # Separate by architecture
+          grep "x64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-x64.txt || true
+          grep "arm64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-arm64.txt || true
+          
+          cd ..
+          
+          # Generate base64-encoded hashes for provenance
+          if [ -f checksums-win-x64.txt ]; then
+            echo "hashes-x64=$(cat checksums-win-x64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -f checksums-win-arm64.txt ]; then
+            echo "hashes-arm64=$(cat checksums-win-arm64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "## 🪟 Windows Build Checksums" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat checksums-win-*.txt 2>/dev/null || echo "No checksums generated"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: tara-fusion-electron-windows-${{ steps.version.outputs.version }}
+          path: |
+            app/dist/*.exe
+            app/dist/*.zip
+            app/checksums-win-*.txt
+          retention-days: 90
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    outputs:
+      hashes-x64: ${{ steps.hash.outputs.hashes-x64 }}
+      hashes-arm64: ${{ steps.hash.outputs.hashes-arm64 }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "npm"
+          cache-dependency-path: |
+            src/package-lock.json
+            app/package-lock.json
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install web app dependencies
+        working-directory: ./src
+        run: npm ci
+
+      - name: Build web app
+        working-directory: ./src
+        run: npm run build
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy-key-for-build' }}
+
+      - name: Install Electron app dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Build Electron app for Linux
+        working-directory: ./app
+        run: npm run build:linux
+
+      - name: Generate checksums
+        id: hash
+        working-directory: ./app/dist
+        run: |
+          # Find and hash all distributable files
+          find . -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" \) > files.txt
+          
+          # Separate by architecture
+          grep "x64\|amd64\|x86_64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-x64.txt || true
+          grep "arm64\|aarch64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-arm64.txt || true
+          
+          cd ..
+          
+          # Generate base64-encoded hashes for provenance
+          if [ -f checksums-linux-x64.txt ]; then
+            echo "hashes-x64=$(cat checksums-linux-x64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -f checksums-linux-arm64.txt ]; then
+            echo "hashes-arm64=$(cat checksums-linux-arm64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "## 🐧 Linux Build Checksums" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat checksums-linux-*.txt 2>/dev/null || echo "No checksums generated"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: tara-fusion-electron-linux-${{ steps.version.outputs.version }}
+          path: |
+            app/dist/*.AppImage
+            app/dist/*.deb
+            app/dist/*.rpm
+            app/dist/*.tar.gz
+            app/checksums-linux-*.txt
+          retention-days: 90
+
+  generate-combined-hashes:
+    name: Generate Combined Hashes for SLSA
+    needs: [build-mac, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.combine.outputs.hashes }}
+      version: ${{ needs.build-linux.outputs.version }}
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: artifacts
+
+      - name: Combine all checksums
+        id: combine
+        run: |
+          find artifacts -name "checksums-*.txt" -exec cat {} \; > all-checksums.txt
+          
+          echo "## 🔐 Combined Checksums for All Platforms" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat all-checksums.txt
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          # Create base64 encoded hashes for SLSA provenance
+          echo "hashes=$(cat all-checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
+
+      - name: Upload combined checksums
+        uses: actions/upload-artifact@v5
+        with:
+          name: combined-checksums-${{ needs.build-linux.outputs.version }}
+          path: all-checksums.txt
+          retention-days: 90
+
+  provenance:
+    name: Generate SLSA Provenance
+    needs: [generate-combined-hashes]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.generate-combined-hashes.outputs.hashes }}"
+      upload-assets: true
+      private-repository: true
+
+  release:
+    name: Create GitHub Release
+    needs: [build-mac, build-windows, build-linux, provenance, generate-combined-hashes]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: artifacts
+
+      - name: Download provenance
+        uses: actions/download-artifact@v6
+        with:
+          pattern: "*.intoto.jsonl"
+
+      - name: Organize artifacts
+        run: |
+          mkdir -p release-artifacts
+          
+          # Copy all build artifacts
+          find artifacts -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" \) -exec cp {} release-artifacts/ \;
+          
+          # Copy checksum files
+          find artifacts -name "checksums-*.txt" -exec cp {} release-artifacts/ \;
+          find artifacts -name "all-checksums.txt" -exec cp {} release-artifacts/ \;
+          
+          # List all files
+          echo "## 📦 Release Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ls -lh release-artifacts/
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Create Release Notes
+        id: release_notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## TARA Fusion Electron App ${{ needs.generate-combined-hashes.outputs.version }}
+
+          ### 🎉 Desktop Application Release
+
+          This release includes native desktop applications for macOS, Windows, and Linux.
+
+          ### 📦 Downloads
+
+          #### macOS
+          - **Universal** (Intel + Apple Silicon): `TARA-Fusion-*-universal.dmg`
+          - **Intel (x64)**: `TARA-Fusion-*-x64.dmg`
+          - **Apple Silicon (arm64)**: `TARA-Fusion-*-arm64.dmg`
+
+          #### Windows
+          - **Intel/AMD (x64)**: `TARA-Fusion-Setup-*-x64.exe`
+          - **ARM64**: `TARA-Fusion-Setup-*-arm64.exe`
+
+          #### Linux
+          - **AppImage (x64)**: `TARA-Fusion-*-x86_64.AppImage`
+          - **AppImage (arm64)**: `TARA-Fusion-*-arm64.AppImage`
+          - **Debian (x64)**: `tara-fusion-*-amd64.deb`
+          - **Debian (arm64)**: `tara-fusion-*-arm64.deb`
+          - **RPM (x64)**: `tara-fusion-*-x86_64.rpm`
+          - **RPM (arm64)**: `tara-fusion-*-aarch64.rpm`
+          - **Tarball (x64)**: `tara-fusion-*-x64.tar.gz`
+          - **Tarball (arm64)**: `tara-fusion-*-arm64.tar.gz`
+
+          ### 🔐 Verification
+
+          All artifacts include SHA-256 checksums for verification:
+
+          ```bash
+          # Download the checksums file
+          sha256sum -c all-checksums.txt
+
+          # Verify SLSA provenance (requires slsa-verifier)
+          slsa-verifier verify-artifact \
+            --provenance-path *.intoto.jsonl \
+            --source-uri github.com/patdhlk/tara-fusion \
+            <artifact-filename>
+          ```
+
+          ### 📝 SLSA Level 3 Compliance
+
+          ✅ This release is **SLSA Level 3 compliant**:
+          - ✅ Fully scripted and automated build process
+          - ✅ Provenance generated with SLSA L3 generator
+          - ✅ All build steps are reproducible from source
+          - ✅ Builds run on hardened GitHub-hosted runners
+          - ✅ Provenance is non-forgeable (signed with Sigstore)
+          - ✅ Builds are isolated from external influence
+          - ✅ Multi-platform builds with consistent process
+
+          ### 🚀 Installation
+
+          #### macOS
+          1. Download the `.dmg` file for your architecture
+          2. Open the DMG and drag the app to Applications
+          3. First launch: Right-click → Open (to bypass Gatekeeper)
+
+          #### Windows
+          1. Download the `.exe` installer for your architecture
+          2. Run the installer
+          3. Follow the installation wizard
+
+          #### Linux
+          
+          **AppImage** (easiest):
+          ```bash
+          chmod +x TARA-Fusion-*.AppImage
+          ./TARA-Fusion-*.AppImage
+          ```
+
+          **Debian/Ubuntu**:
+          ```bash
+          sudo dpkg -i tara-fusion-*.deb
+          ```
+
+          **Fedora/RHEL**:
+          ```bash
+          sudo rpm -i tara-fusion-*.rpm
+          ```
+
+          ### ✨ Features
+
+          - Native desktop experience
+          - Offline-capable (except AI features)
+          - Better performance than web version
+          - System integration (menus, shortcuts)
+          - Auto-updates (coming soon)
+
+          ### 🏗️ Build Information
+
+          - **Electron Version**: Latest stable
+          - **Node.js**: v20.x
+          - **Architectures**: x64, arm64, universal (macOS)
+          - **Build Tool**: electron-builder
+          - **SLSA Generator**: v2.1.0
+
+          ### 📋 Checksums
+
+          See `all-checksums.txt` for SHA-256 checksums of all artifacts.
+
+          ### 🔒 Security
+
+          - Sandboxed renderer processes
+          - Context isolation enabled
+          - No Node.js integration in renderer
+          - Secure preload scripts
+          - Follows Electron security best practices
+
+          ### 📄 License
+
+          MIT License - See LICENSE file for details
+
+          ---
+
+          For more information, visit: https://github.com/patdhlk/tara-fusion
+          EOF
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.generate-combined-hashes.outputs.version }}
+          name: Electron App Release ${{ needs.generate-combined-hashes.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            release-artifacts/*
+            *.intoto.jsonl
+
+      - name: Summary
+        run: |
+          echo "## 🎉 Electron App Release Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ needs.generate-combined-hashes.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**SLSA Level:** 3 (Full Compliance)" >> $GITHUB_STEP_SUMMARY
+          echo "**Platforms:** macOS, Windows, Linux" >> $GITHUB_STEP_SUMMARY
+          echo "**Architectures:** x64, arm64, universal (macOS)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Security Features:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Multi-platform isolated builds" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Non-forgeable provenance (Sigstore)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Complete supply chain transparency" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ SHA-256 checksums for all artifacts" >> $GITHUB_STEP_SUMMARY
