@@ -1,9 +1,13 @@
 {
   "name": "tara-fusion-electron",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "TARA Fusion - AI-Powered Threat Analysis & Risk Assessment Desktop App",
   "main": "main.js",
-  "author": "TARA Fusion Team",
+  "author": {
+    "name": "TARA Fusion Team",
+    "email": "info@tara-fusion.com"
+  },
+  "homepage": "https://github.com/patdhlk/tara-fusion",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -109,7 +113,10 @@
         }
       ],
       "icon": "build/icon.png",
-      "category": "Development"
+      "category": "Development",
+      "maintainer": "TARA Fusion Team <info@tarafusion.com>",
+      "vendor": "TARA Fusion Team",
+      "synopsis": "AI-Powered Threat Analysis & Risk Assessment"
     },
     "nsis": {
       "oneClick": false,
