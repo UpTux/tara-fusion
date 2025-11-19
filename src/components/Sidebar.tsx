@@ -1,8 +1,8 @@
 
 
 
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import React from 'react';
 import { calculatePermissions } from '../services/permissionService';
 import { Organization, OrganizationRole, Project, ProjectMembership, User } from '../types';
 import { CurrentUserSelector } from './CurrentUserSelector';
@@ -11,6 +11,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { UploadIcon } from './icons/UploadIcon';
 import { UsersIcon } from './icons/UsersIcon';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface SidebarProps {
   organizations: Organization[];
@@ -46,6 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   projectMemberships,
 }) => {
   const { t } = useTranslation();
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>, organizationId: string) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -57,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onCreateProjectFromFile(content, organizationId);
       } catch (error) {
         console.error('Failed to read project file:', error);
-        alert('Failed to read project file.');
+        setErrorModal({ isOpen: true, message: 'Failed to read project file.' });
       }
     };
     reader.readAsText(file);
@@ -153,7 +155,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           </button>
                           {permissions.isProjectAdmin && (
                             <button
-                              onClick={() => onDeleteProject(proj.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteProject(proj.id);
+                              }}
                               className="ml-1 mr-1 p-1.5 rounded-sm text-vscode-text-secondary hover:text-red-400 hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 flex-shrink-0"
                               title={`Delete ${proj.name}`}
                             >
@@ -182,6 +187,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <CurrentUserSelector users={users} currentUser={currentUser} onSelectUser={onSelectUser} />
+      {errorModal.isOpen && (
+        <ErrorModal
+          message={errorModal.message}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+        />
+      )}
     </aside>
   );
 };

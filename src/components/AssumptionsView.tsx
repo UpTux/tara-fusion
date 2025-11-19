@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Assumption, Project } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface AssumptionsViewProps {
   project: Project;
@@ -26,6 +27,7 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
   const [selectedId, setSelectedId] = useState<string | null>(assumptions[0]?.id || null);
   const [editorState, setEditorState] = useState<Assumption | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   useEffect(() => {
     setAssumptions(project.assumptions || []);
@@ -109,12 +111,18 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
 
   const handleDelete = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete assumption ${selectedId}?`)) {
-      const updatedAssumptions = assumptions.filter(a => a.id !== selectedId);
-      const updatedProject = addHistoryEntry({ ...project, assumptions: updatedAssumptions }, `Deleted assumption ${selectedId}.`);
-      onUpdateProject(updatedProject);
-      setSelectedId(updatedAssumptions[0]?.id || null);
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Assumption',
+      message: `Are you sure you want to delete assumption ${selectedId}?`,
+      onConfirm: () => {
+        const updatedAssumptions = assumptions.filter(a => a.id !== selectedId);
+        const updatedProject = addHistoryEntry({ ...project, assumptions: updatedAssumptions }, `Deleted assumption ${selectedId}.`);
+        onUpdateProject(updatedProject);
+        setSelectedId(updatedAssumptions[0]?.id || null);
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   return (
@@ -211,6 +219,15 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
           </div>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

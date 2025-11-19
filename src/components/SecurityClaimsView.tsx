@@ -5,6 +5,7 @@ import { Project, SecurityClaim } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface SecurityClaimsViewProps {
   project: Project;
@@ -63,6 +64,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
   const [claims, setClaims] = useState<SecurityClaim[]>(project.securityClaims || []);
   const [selectedId, setSelectedId] = useState<string | null>(claims[0]?.id || null);
   const [editorState, setEditorState] = useState<SecurityClaim | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const currentClaims = project.securityClaims || [];
@@ -108,14 +110,19 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
     handleUpdate('assumptionIds', newSelectedIds);
   };
 
-  const handleDelete = () => {
+  const handleDeleteRequest = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete Security Claim ${selectedId}? This will remove it from any linked Threat Scenarios.`)) {
-      const updatedClaims = claims.filter(c => c.id !== selectedId);
-      const updatedScenarios = (project.threatScenarios || []).map(ts => ({ ...ts, securityClaimIds: (ts.securityClaimIds || []).filter(id => id !== selectedId) }));
-      onUpdateProject(addHistoryEntry({ ...project, securityClaims: updatedClaims, threatScenarios: updatedScenarios }, `Deleted Security Claim ${selectedId}.`));
-      setSelectedId(updatedClaims[0]?.id || null);
-    }
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedId) return;
+
+    const updatedClaims = claims.filter(c => c.id !== selectedId);
+    const updatedScenarios = (project.threatScenarios || []).map(ts => ({ ...ts, securityClaimIds: (ts.securityClaimIds || []).filter(id => id !== selectedId) }));
+    onUpdateProject(addHistoryEntry({ ...project, securityClaims: updatedClaims, threatScenarios: updatedScenarios }, `Deleted Security Claim ${selectedId}.`));
+    setSelectedId(updatedClaims[0]?.id || null);
+    setIsDeleteModalOpen(false);
   };
 
   const linkedScenarios = (project.threatScenarios || []).filter(ts => ts.securityClaimIds?.includes(selectedId || ''));
@@ -149,7 +156,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
           <div className="space-y-8">
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-bold text-vscode-text-primary">{editorState.id}: {editorState.name}</h2>
-              <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}><TrashIcon className="w-4 h-4 mr-2" />Delete</button>
+              <button onClick={handleDeleteRequest} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}><TrashIcon className="w-4 h-4 mr-2" />Delete</button>
             </div>
 
             <div className="bg-vscode-bg-sidebar p-4 rounded-lg border border-indigo-500/30">
@@ -191,6 +198,16 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
           <div className="flex items-center justify-center h-full text-vscode-text-secondary"><div className="text-center"><h3 className="text-lg">No Security Claim Selected</h3><p>Select a claim from the list or create a new one.</p></div></div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Security Claim"
+        message={`Are you sure you want to delete Security Claim ${selectedId}? This will remove it from any linked Threat Scenarios.`}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
     </div>
   );
 };

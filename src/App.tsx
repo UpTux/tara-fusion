@@ -12,11 +12,14 @@ import { ProjectView } from './components/ProjectView';
 import { Sidebar } from './components/Sidebar';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { UserManagementView } from './components/UserManagementView';
+import { ConfirmationModal } from './components/modals/ConfirmationModal';
+import { CreateProjectModal } from './components/modals/CreateProjectModal';
+import { ErrorModal } from './components/modals/ErrorModal';
 import { demoProjectPhoenix } from './data/demoProject';
-import { calculatePermissions, Permissions } from './services/permissionService';
+import { Permissions, calculatePermissions } from './services/permissionService';
 import { recalculateProject } from './services/projectCalculationService';
 import { parseProjectJson } from './services/projectImportExportService';
-import { ImpactCategorySettings, Organization, OrganizationRole, Project, ProjectMembership, ProjectStatus, User } from './types';
+import { ImpactCategorySettings, Organization, OrganizationRole, Project, ProjectMembership, ProjectStatus, TaraMethodology, User } from './types';
 
 const defaultImpactCategories: ImpactCategorySettings = {
   categories: [
@@ -56,6 +59,15 @@ export default function App() {
   const [currentUserId, setCurrentUserId] = useState<string>('user_1');
 
   const [activeMainView, setActiveMainView] = useState<'projects' | 'users'>('projects');
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const [createProjectOrgId, setCreateProjectOrgId] = useState<string | null>(null);
+
+  const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
+  const [projectToDeleteId, setProjectToDeleteId] = useState<string | null>(null);
+
+  const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
+  const [userToDeleteId, setUserToDeleteId] = useState<string | null>(null);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
   const activeProject = projects.find(p => p.id === activeProjectId) || null;
   const activeOrganization = organizations.find(o => o.id === activeProject?.organizationId) || null;
@@ -73,6 +85,13 @@ export default function App() {
   }, []);
 
   const handleAddProject = useCallback((organizationId: string) => {
+    setCreateProjectOrgId(organizationId);
+    setIsCreateProjectModalOpen(true);
+  }, []);
+
+  const handleCreateProject = useCallback((name: string, methodology: TaraMethodology) => {
+    if (!createProjectOrgId) return;
+
     const existingProjectIds = new Set(projects.map(p => p.id));
     let i = projects.length + 1;
     let newProjectId: string;
@@ -83,8 +102,9 @@ export default function App() {
 
     const newProject: Project = {
       id: newProjectId,
-      name: `New Project ${newProjectId.split('_')[1]}`,
-      organizationId: organizationId,
+      name: name,
+      organizationId: createProjectOrgId,
+      methodology: methodology,
       needs: [],
       projectStatus: ProjectStatus.IN_PROGRESS,
       history: [`${new Date().toLocaleString()}: Project created.`]
@@ -93,7 +113,9 @@ export default function App() {
     setProjects(prevProjects => [...prevProjects, newProject]);
     setActiveProjectId(newProject.id);
     setActiveMainView('projects');
-  }, [projects]);
+    setIsCreateProjectModalOpen(false);
+    setCreateProjectOrgId(null);
+  }, [projects, createProjectOrgId]);
 
   const handleAddDemoProject = useCallback((organizationId: string) => {
     const existingProjectIds = new Set(projects.map(p => p.id));
@@ -108,6 +130,7 @@ export default function App() {
       ...demoProjectPhoenix,
       id: newProjectId,
       organizationId: organizationId,
+      methodology: TaraMethodology.ATTACK_FEASIBILITY,
       history: [`${new Date().toLocaleString()}: Project Phoenix imported as demo data.`, ...(demoProjectPhoenix.history || [])],
     } as Project;
 
@@ -136,6 +159,7 @@ export default function App() {
         id: newProjectId,
         name: `${importedProjectData.name || 'Untitled Project'} (Copy)`,
         organizationId: organizationId,
+        methodology: importedProjectData.methodology || TaraMethodology.ATTACK_FEASIBILITY,
         history: [`${new Date().toLocaleString()}: Project created from file.`, ...(importedProjectData.history || [])],
       };
 
@@ -148,32 +172,37 @@ export default function App() {
 
     } catch (error) {
       console.error('Failed to create project from file:', error);
-      alert(`Failed to create project from file. ${error instanceof Error ? error.message : 'Please check file format.'}`);
+      setErrorModal({ isOpen: true, message: `Failed to create project from file. ${error instanceof Error ? error.message : 'Please check file format.'}` });
     }
   }, [projects]);
 
   const handleImportProject = useCallback((jsonString: string) => {
     const activeOrgId = activeOrganization?.id;
     if (!activeOrgId) {
-      alert("Please select a project within an organization first to import a project into it.");
+      setErrorModal({ isOpen: true, message: "Please select a project within an organization first to import a project into it." });
       return;
     }
     handleCreateProjectFromFile(jsonString, activeOrgId);
   }, [activeOrganization, handleCreateProjectFromFile]);
 
-  const handleDeleteProject = useCallback((projectId: string) => {
-    const projectToDelete = projects.find(p => p.id === projectId);
-    if (!projectToDelete) return;
+  const handleDeleteProjectRequest = useCallback((projectId: string) => {
+    setProjectToDeleteId(projectId);
+    setIsDeleteProjectModalOpen(true);
+  }, []);
 
-    if (window.confirm(`Are you sure you want to permanently delete the project "${projectToDelete.name}"? This action cannot be undone.`)) {
-      setProjects(prev => prev.filter(p => p.id !== projectId));
-      setProjectMemberships(prev => prev.filter(pm => pm.projectId !== projectId));
+  const handleConfirmDeleteProject = useCallback(() => {
+    if (!projectToDeleteId) return;
 
-      if (activeProjectId === projectId) {
-        setActiveProjectId(null);
-      }
+    setProjects(prev => prev.filter(p => p.id !== projectToDeleteId));
+    setProjectMemberships(prev => prev.filter(pm => pm.projectId !== projectToDeleteId));
+
+    if (activeProjectId === projectToDeleteId) {
+      setActiveProjectId(null);
     }
-  }, [projects, activeProjectId]);
+
+    setIsDeleteProjectModalOpen(false);
+    setProjectToDeleteId(null);
+  }, [projectToDeleteId, activeProjectId]);
 
   // User Management Functions
   const handleAddUser = useCallback((user: Omit<User, 'id'>) => {
@@ -197,24 +226,32 @@ export default function App() {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
   }, []);
 
-  const handleDeleteUser = useCallback((userId: string) => {
+  const handleDeleteUserRequest = useCallback((userId: string) => {
     const userToDelete = users.find(u => u.id === userId);
     if (!userToDelete) return;
 
     if (userId === currentUserId) {
-      alert('You cannot delete yourself!');
+      setErrorModal({ isOpen: true, message: 'You cannot delete yourself!' });
       return;
     }
 
-    if (window.confirm(`Are you sure you want to permanently delete user "${userToDelete.name}"? This will also remove their project memberships.`)) {
-      setUsers(prev => prev.filter(u => u.id !== userId));
-      setProjectMemberships(prev => prev.filter(pm => pm.userId !== userId));
-    }
+    setUserToDeleteId(userId);
+    setIsDeleteUserModalOpen(true);
   }, [users, currentUserId]);
+
+  const handleConfirmDeleteUser = useCallback(() => {
+    if (!userToDeleteId) return;
+
+    setUsers(prev => prev.filter(u => u.id !== userToDeleteId));
+    setProjectMemberships(prev => prev.filter(pm => pm.userId !== userToDeleteId));
+
+    setIsDeleteUserModalOpen(false);
+    setUserToDeleteId(null);
+  }, [userToDeleteId]);
 
   const handleToggleUserActive = useCallback((userId: string) => {
     if (userId === currentUserId) {
-      alert('You cannot deactivate yourself!');
+      setErrorModal({ isOpen: true, message: 'You cannot deactivate yourself!' });
       return;
     }
 
@@ -244,7 +281,7 @@ export default function App() {
         onAddProject={handleAddProject}
         onAddDemoProject={handleAddDemoProject}
         onCreateProjectFromFile={handleCreateProjectFromFile}
-        onDeleteProject={handleDeleteProject}
+        onDeleteProject={handleDeleteProjectRequest}
         users={users}
         currentUser={currentUser}
         onSelectUser={setCurrentUserId}
@@ -292,7 +329,7 @@ export default function App() {
               currentUser={currentUser}
               onAddUser={handleAddUser}
               onUpdateUser={handleUpdateUser}
-              onDeleteUser={handleDeleteUser}
+              onDeleteUser={handleDeleteUserRequest}
               onToggleUserActive={handleToggleUserActive}
             />
           ) : (
@@ -308,6 +345,39 @@ export default function App() {
           )}
         </div>
       </main>
+      <CreateProjectModal
+        isOpen={isCreateProjectModalOpen}
+        onClose={() => setIsCreateProjectModalOpen(false)}
+        onCreate={handleCreateProject}
+      />
+      <ConfirmationModal
+        isOpen={isDeleteProjectModalOpen}
+        title={t('deleteProject') || 'Delete Project'}
+        message={projects.find(p => p.id === projectToDeleteId)
+          ? `Are you sure you want to permanently delete the project "${projects.find(p => p.id === projectToDeleteId)?.name}"? This action cannot be undone.`
+          : 'Are you sure you want to delete this project?'}
+        confirmLabel={t('delete') || 'Delete'}
+        isDangerous={true}
+        onConfirm={handleConfirmDeleteProject}
+        onCancel={() => setIsDeleteProjectModalOpen(false)}
+      />
+      <ConfirmationModal
+        isOpen={isDeleteUserModalOpen}
+        title={t('deleteUser') || 'Delete User'}
+        message={users.find(u => u.id === userToDeleteId)
+          ? `Are you sure you want to permanently delete user "${users.find(u => u.id === userToDeleteId)?.name}"? This will also remove their project memberships.`
+          : 'Are you sure you want to delete this user?'}
+        confirmLabel={t('delete') || 'Delete'}
+        isDangerous={true}
+        onConfirm={handleConfirmDeleteUser}
+        onCancel={() => setIsDeleteUserModalOpen(false)}
+      />
+      {errorModal.isOpen && (
+        <ErrorModal
+          message={errorModal.message}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+        />
+      )}
     </div>
   );
 }

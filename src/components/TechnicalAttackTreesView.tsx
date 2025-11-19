@@ -1,9 +1,11 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NeedStatus, NeedType, Project, SphinxNeed } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface TechnicalAttackTreesViewProps {
     project: Project;
@@ -13,6 +15,8 @@ interface TechnicalAttackTreesViewProps {
 
 export const TechnicalAttackTreesView: React.FC<TechnicalAttackTreesViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
     const { t } = useTranslation();
+    const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+    const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     const technicalTreeRoots = useMemo(() =>
         project.needs.filter(n => n.tags?.includes('technical-root')),
@@ -61,21 +65,33 @@ export const TechnicalAttackTreesView: React.FC<TechnicalAttackTreesViewProps> =
         const referencingNodes = project.needs.filter(n => n.links?.includes(rootId));
         if (referencingNodes.length > 0) {
             const referencingIds = referencingNodes.map(n => n.id).join(', ');
-            alert(t('cannotDeleteReferencedTechnicalTree', { rootId, referencingIds }));
+            setErrorModal({
+                isOpen: true,
+                message: t('cannotDeleteReferencedTechnicalTree', { rootId, referencingIds })
+            });
             return;
         }
 
         // Check if this root has children
         if (rootToDelete.links && rootToDelete.links.length > 0) {
-            alert(t('cannotDeleteTechnicalTreeWithChildren', { rootId }));
+            setErrorModal({
+                isOpen: true,
+                message: t('cannotDeleteTechnicalTreeWithChildren', { rootId })
+            });
             return;
         }
 
-        if (window.confirm(t('confirmDeleteTechnicalTree', { rootId }))) {
-            const updatedNeeds = project.needs.filter(n => n.id !== rootId);
-            const updatedProject = addHistoryEntry({ ...project, needs: updatedNeeds }, `Deleted Technical Attack Tree root ${rootId}.`);
-            onUpdateProject(updatedProject);
-        }
+        setConfirmationModal({
+            isOpen: true,
+            title: t('deleteTechnicalTree'),
+            message: t('confirmDeleteTechnicalTree', { rootId }),
+            onConfirm: () => {
+                const updatedNeeds = project.needs.filter(n => n.id !== rootId);
+                const updatedProject = addHistoryEntry({ ...project, needs: updatedNeeds }, `Deleted Technical Attack Tree root ${rootId}.`);
+                onUpdateProject(updatedProject);
+                setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+            }
+        });
     };
 
     const getReferencingNodes = (rootId: string): SphinxNeed[] => {
@@ -179,6 +195,21 @@ export const TechnicalAttackTreesView: React.FC<TechnicalAttackTreesViewProps> =
                     <li>• {t('technicalTreeTip4')}</li>
                 </ul>
             </div>
+            {errorModal.isOpen && (
+                <ErrorModal
+                    message={errorModal.message}
+                    onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                />
+            )}
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                confirmLabel={t('delete')}
+                isDangerous={true}
+                onConfirm={confirmationModal.onConfirm}
+                onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

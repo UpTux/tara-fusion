@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Project, SecurityControl } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface SecurityControlsViewProps {
   project: Project;
@@ -26,6 +27,7 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
   const [selectedId, setSelectedId] = useState<string | null>(securityControls[0]?.id || null);
   const [editorState, setEditorState] = useState<SecurityControl | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   useEffect(() => {
     const currentControls = project.securityControls || [];
@@ -96,12 +98,18 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
 
   const handleDelete = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete Security Control ${selectedId}?`)) {
-      const updatedControls = securityControls.filter(sc => sc.id !== selectedId);
-      const updatedProject = addHistoryEntry({ ...project, securityControls: updatedControls }, `Deleted Security Control ${selectedId}.`);
-      onUpdateProject(updatedProject);
-      setSelectedId(updatedControls[0]?.id || null);
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Security Control',
+      message: `Are you sure you want to delete Security Control ${selectedId}?`,
+      onConfirm: () => {
+        const updatedControls = securityControls.filter(sc => sc.id !== selectedId);
+        const updatedProject = addHistoryEntry({ ...project, securityControls: updatedControls }, `Deleted Security Control ${selectedId}.`);
+        onUpdateProject(updatedProject);
+        setSelectedId(updatedControls[0]?.id || null);
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   return (
@@ -210,6 +218,15 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
           </div>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

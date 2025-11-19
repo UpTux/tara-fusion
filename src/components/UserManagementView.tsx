@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Organization, OrganizationRole, User } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface UserManagementViewProps {
     users: User[];
@@ -29,6 +30,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
     const [newUserName, setNewUserName] = useState('');
     const [newUserEmail, setNewUserEmail] = useState('');
     const [newUserRole, setNewUserRole] = useState<OrganizationRole>(OrganizationRole.MEMBER);
+    const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
     const isCurrentUserOrgAdmin = useMemo(() => {
         return currentUser.role === OrganizationRole.ORG_ADMIN;
@@ -45,21 +47,21 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
 
     const handleAddUser = () => {
         if (!newUserName.trim() || !newUserEmail.trim() || !selectedOrgId) {
-            alert('Please fill in all fields');
+            setErrorModal({ isOpen: true, message: 'Please fill in all fields' });
             return;
         }
 
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(newUserEmail)) {
-            alert('Please enter a valid email address');
+            setErrorModal({ isOpen: true, message: 'Please enter a valid email address' });
             return;
         }
 
         // Check if email already exists in the organization
         const emailExists = users.some(u => u.email === newUserEmail && u.organizationId === selectedOrgId);
         if (emailExists) {
-            alert('A user with this email already exists in this organization');
+            setErrorModal({ isOpen: true, message: 'A user with this email already exists in this organization' });
             return;
         }
 
@@ -80,7 +82,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
 
     const handleRoleChange = (userId: string, newRole: OrganizationRole) => {
         if (userId === currentUser.id) {
-            alert('You cannot change your own role!');
+            setErrorModal({ isOpen: true, message: 'You cannot change your own role!' });
             return;
         }
         onUpdateUser(userId, { role: newRole });
@@ -304,6 +306,12 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                         </div>
                     </div>
                 </div>
+            )}
+            {errorModal.isOpen && (
+                <ErrorModal
+                    message={errorModal.message}
+                    onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                />
             )}
         </div>
     );

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Project, RelatedDocument } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface RelatedDocumentsViewProps {
     project: Project;
@@ -30,6 +31,7 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
     const [selectedId, setSelectedId] = useState<string | null>(documents[0]?.id || null);
     const [editorState, setEditorState] = useState<RelatedDocument | null>(null);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+    const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     useEffect(() => {
         const currentDocuments = project.relatedDocuments || [];
@@ -93,16 +95,21 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
 
     const handleDelete = (id: string) => {
         if (isReadOnly) return;
-        const confirmDelete = window.confirm(t('confirmDeleteDocument', { id }));
-        if (!confirmDelete) return;
+        setConfirmationModal({
+            isOpen: true,
+            title: t('deleteDocument'),
+            message: t('confirmDeleteDocument', { id }),
+            onConfirm: () => {
+                const updatedDocuments = documents.filter(d => d.id !== id);
+                const updatedProject = addHistoryEntry({ ...project, relatedDocuments: updatedDocuments }, `Deleted Related Document ${id}.`);
+                onUpdateProject(updatedProject);
 
-        const updatedDocuments = documents.filter(d => d.id !== id);
-        const updatedProject = addHistoryEntry({ ...project, relatedDocuments: updatedDocuments }, `Deleted Related Document ${id}.`);
-        onUpdateProject(updatedProject);
-
-        if (selectedId === id) {
-            setSelectedId(updatedDocuments[0]?.id || null);
-        }
+                if (selectedId === id) {
+                    setSelectedId(updatedDocuments[0]?.id || null);
+                }
+                setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+            }
+        });
     };
 
     const handleAuthorsChange = (authorsString: string) => {
@@ -262,6 +269,15 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
                     </div>
                 )}
             </div>
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                confirmLabel={t('delete')}
+                isDangerous={true}
+                onConfirm={confirmationModal.onConfirm}
+                onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

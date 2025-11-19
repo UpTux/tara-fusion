@@ -14,6 +14,7 @@ import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import { DatabaseIcon } from './icons/DatabaseIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 import { Emb3dAssetModal } from './modals/Emb3dAssetModal';
 
 interface AssetsViewProps {
@@ -80,6 +81,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
   const [editorState, setEditorState] = useState<Asset | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showEmb3dModal, setShowEmb3dModal] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const currentAssets = project.assets || [];
@@ -237,25 +239,29 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
     }, 500);
   };
 
-  const handleDelete = () => {
+  const handleDeleteRequest = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete Asset ${selectedId}? Any related threats will also be removed.`)) {
+    setIsDeleteModalOpen(true);
+  };
 
-      const updatedAssets = assets.filter(a => a.id !== selectedId);
-      const threatsToRemove = (project.threats || []).filter(t => t.assetId === selectedId).map(t => t.id);
-      const updatedThreats = (project.threats || []).filter(t => t.assetId !== selectedId);
-      const updatedNeeds = (project.needs || []).filter(n => !threatsToRemove.includes(n.id));
+  const handleConfirmDelete = () => {
+    if (!selectedId) return;
 
-      const updatedProject = addHistoryEntry({
-        ...project,
-        assets: updatedAssets,
-        threats: updatedThreats,
-        needs: updatedNeeds
-      }, `Deleted Asset ${selectedId} and its ${threatsToRemove.length} associated threats.`);
+    const updatedAssets = assets.filter(a => a.id !== selectedId);
+    const threatsToRemove = (project.threats || []).filter(t => t.assetId === selectedId).map(t => t.id);
+    const updatedThreats = (project.threats || []).filter(t => t.assetId !== selectedId);
+    const updatedNeeds = (project.needs || []).filter(n => !threatsToRemove.includes(n.id));
 
-      onUpdateProject(updatedProject);
-      setSelectedId(updatedAssets[0]?.id || null);
-    }
+    const updatedProject = addHistoryEntry({
+      ...project,
+      assets: updatedAssets,
+      threats: updatedThreats,
+      needs: updatedNeeds
+    }, `Deleted Asset ${selectedId} and its ${threatsToRemove.length} associated threats.`);
+
+    onUpdateProject(updatedProject);
+    setSelectedId(updatedAssets[0]?.id || null);
+    setIsDeleteModalOpen(false);
   };
 
   const handleEmb3dImport = (selectedEmb3dAssets: Emb3dAsset[]) => {
@@ -367,7 +373,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
           <div className="space-y-8">
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-bold text-vscode-text-primary">{editorState.id}: {editorState.name}</h2>
-              <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
+              <button onClick={handleDeleteRequest} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
                 <TrashIcon className="w-4 h-4 mr-2" />
                 Delete
               </button>
@@ -442,6 +448,16 @@ export const AssetsView: React.FC<AssetsViewProps> = ({ project, onUpdateProject
           onClose={() => setShowEmb3dModal(false)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Asset"
+        message={`Are you sure you want to delete Asset ${selectedId}? Any related threats will also be removed.`}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
     </div>
   );
 };

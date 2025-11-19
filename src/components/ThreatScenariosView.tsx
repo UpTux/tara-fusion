@@ -6,6 +6,7 @@ import { AttackPotentialTuple, Project, ThreatScenario } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import { InformationCircleIcon } from './icons/InformationCircleIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 import { FeasibilityRatingGuideModal } from './modals/FeasibilityRatingGuideModal';
 
 interface ThreatScenariosViewProps {
@@ -78,6 +79,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
   const [selectedId, setSelectedId] = useState<string | null>(scenarios[0]?.id || null);
   const [editorState, setEditorState] = useState<ThreatScenario | null>(null);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
+  const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   useEffect(() => {
     const currentScenarios = project.threatScenarios || [];
@@ -120,29 +122,34 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
 
   const handleDelete = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete Threat Scenario ${selectedId}? This will also remove the link from the parent threat.`)) {
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Threat Scenario',
+      message: `Are you sure you want to delete Threat Scenario ${selectedId}? This will also remove the link from the parent threat.`,
+      onConfirm: () => {
+        const scenarioToDelete = scenarios.find(ds => ds.id === selectedId);
+        if (!scenarioToDelete) return;
 
-      const scenarioToDelete = scenarios.find(ds => ds.id === selectedId);
-      if (!scenarioToDelete) return;
+        // Remove the scenario itself
+        const updatedScenarios = scenarios.filter(ds => ds.id !== selectedId);
 
-      // Remove the scenario itself
-      const updatedScenarios = scenarios.filter(ds => ds.id !== selectedId);
-
-      // Remove the link from the parent threat
-      const updatedThreats = (project.threats || []).map(t => {
-        if (t.id === scenarioToDelete.threatId) {
-          return {
-            ...t,
-            damageScenarioIds: t.damageScenarioIds.filter(dsId => !scenarioToDelete.damageScenarioIds.includes(dsId))
+        // Remove the link from the parent threat
+        const updatedThreats = (project.threats || []).map(t => {
+          if (t.id === scenarioToDelete.threatId) {
+            return {
+              ...t,
+              damageScenarioIds: t.damageScenarioIds.filter(dsId => !scenarioToDelete.damageScenarioIds.includes(dsId))
+            }
           }
-        }
-        return t;
-      });
+          return t;
+        });
 
-      const updatedProject = addHistoryEntry({ ...project, threats: updatedThreats, threatScenarios: updatedScenarios }, `Deleted Threat Scenario ${selectedId} and its threat link.`);
-      onUpdateProject(updatedProject);
-      setSelectedId(updatedScenarios[0]?.id || null);
-    }
+        const updatedProject = addHistoryEntry({ ...project, threats: updatedThreats, threatScenarios: updatedScenarios }, `Deleted Threat Scenario ${selectedId} and its threat link.`);
+        onUpdateProject(updatedProject);
+        setSelectedId(updatedScenarios[0]?.id || null);
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   const derivedImpact = useMemo(() => {
@@ -408,6 +415,15 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
       {isGuideModalOpen && (
         <FeasibilityRatingGuideModal onClose={() => setIsGuideModalOpen(false)} />
       )}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

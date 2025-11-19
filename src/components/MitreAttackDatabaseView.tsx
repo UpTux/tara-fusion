@@ -15,6 +15,7 @@ import { Project } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
 import { DatabaseIcon } from './icons/DatabaseIcon';
 import { PlusIcon } from './icons/PlusIcon';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface MitreAttackDatabaseViewProps {
     project: Project;
@@ -38,6 +39,8 @@ export const MitreAttackDatabaseView: React.FC<MitreAttackDatabaseViewProps> = (
     const [selectedMatrix, setSelectedMatrix] = useState<string>('all');
     const [expandedTechniques, setExpandedTechniques] = useState<Set<string>>(new Set());
     const [selectedTechnique, setSelectedTechnique] = useState<MitreTechnique | null>(null);
+    const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+    const [successModal, setSuccessModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
     // Load MITRE ATT&CK data on mount
     useEffect(() => {
@@ -134,7 +137,10 @@ export const MitreAttackDatabaseView: React.FC<MitreAttackDatabaseViewProps> = (
         const newNeeds = convertTechniqueToTechnicalTree(technique, existingIds, includeSubtechniques);
 
         if (newNeeds.length === 0) {
-            alert(t('mitreImportFailed'));
+            setErrorModal({
+                isOpen: true,
+                message: t('mitreImportFailed')
+            });
             return;
         }
 
@@ -146,7 +152,10 @@ export const MitreAttackDatabaseView: React.FC<MitreAttackDatabaseViewProps> = (
         const updatedProject = addHistoryEntry({ ...project, needs: updatedNeeds }, message);
         onUpdateProject(updatedProject);
 
-        alert(t('mitreImportSuccess', { techniqueId: technique.id, rootId: newNeeds[0].id }));
+        setSuccessModal({
+            isOpen: true,
+            message: t('mitreImportSuccess', { techniqueId: technique.id, rootId: newNeeds[0].id })
+        });
     };
 
     if (loading) {
@@ -295,10 +304,10 @@ export const MitreAttackDatabaseView: React.FC<MitreAttackDatabaseViewProps> = (
                                                         </span>
                                                         <span
                                                             className={`px-1.5 py-0.5 text-xs font-medium rounded ${technique.matrix === 'enterprise'
-                                                                    ? 'bg-blue-500/20 text-blue-300'
-                                                                    : technique.matrix === 'mobile'
-                                                                        ? 'bg-green-500/20 text-green-300'
-                                                                        : 'bg-orange-500/20 text-orange-300'
+                                                                ? 'bg-blue-500/20 text-blue-300'
+                                                                : technique.matrix === 'mobile'
+                                                                    ? 'bg-green-500/20 text-green-300'
+                                                                    : 'bg-orange-500/20 text-orange-300'
                                                                 }`}
                                                         >
                                                             {technique.matrix === 'enterprise'
@@ -516,6 +525,35 @@ export const MitreAttackDatabaseView: React.FC<MitreAttackDatabaseViewProps> = (
                     )}
                 </div>
             </div>
+            {errorModal.isOpen && (
+                <ErrorModal
+                    message={errorModal.message}
+                    onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                />
+            )}
+            {successModal.isOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setSuccessModal({ ...successModal, isOpen: false })}>
+                    <div className="bg-vscode-bg-sidebar border border-green-500 rounded-lg shadow-xl w-full max-w-md flex flex-col animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-4 border-b border-vscode-border flex items-center space-x-2 bg-green-900/20 rounded-t-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h2 className="text-lg font-bold text-green-500">Success</h2>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-vscode-text-primary">{successModal.message}</p>
+                        </div>
+                        <div className="flex justify-end space-x-4 p-4 border-t border-vscode-border bg-vscode-bg-sidebar rounded-b-lg">
+                            <button
+                                onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
+                                className="px-4 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors text-sm font-medium"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

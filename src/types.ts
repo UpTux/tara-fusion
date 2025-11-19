@@ -230,10 +230,17 @@ export interface ImpactCategorySettings {
   justification?: string;
 }
 
+export enum TaraMethodology {
+  ATTACK_FEASIBILITY = 'Attack Feasibility Rating',
+  STRIDE = 'STRIDE',
+  LIKELIHOOD = 'Likelihood',
+}
+
 export interface Project {
   id: string;
   name: string;
   organizationId: string;
+  methodology: TaraMethodology; // New field for TARA methodology
   needs: SphinxNeed[];
   securityManager?: string;
   projectStatus?: ProjectStatus;

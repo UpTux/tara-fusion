@@ -29,6 +29,7 @@ import { KeyIcon } from './icons/KeyIcon';
 import { LinkBreakIcon } from './icons/LinkBreakIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { WrenchIcon } from './icons/WrenchIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 import { ErrorModal } from './modals/ErrorModal';
 
 interface AttackTreeEditorProps {
@@ -139,8 +140,10 @@ const CustomNode: React.FC<{
     onToggleCollapse?: (circumventRootId: string) => void,
     onUnlinkCircumventTree?: (circumventRootId: string) => void,
     isCollapsed?: boolean,
-    showCollapseButton?: boolean
-}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false, isTechnicalTreeNode = false, onToggleCollapse, onUnlinkCircumventTree, isCollapsed = false, showCollapseButton = false }) => {
+    showCollapseButton?: boolean,
+    onDeleteRequest?: (nodeId: string) => void,
+    onUnlinkRequest?: (nodeId: string) => void
+}> = ({ data, selected, isCritical, onUpdateNeed, isReadOnly, project, layoutDirection, draggable = true, isCircumventTreeNode = false, isTechnicalTreeNode = false, onToggleCollapse, onUnlinkCircumventTree, isCollapsed = false, showCollapseButton = false, onDeleteRequest, onUnlinkRequest }) => {
     const isCircumventRoot = data.tags.includes('circumvent-root');
     const isTechnicalRoot = data.tags.includes('technical-root');
     const isAttackRoot = data.tags.includes('attack-root');
@@ -252,8 +255,8 @@ const CustomNode: React.FC<{
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (window.confirm(`Unlink this circumvent tree from the attack tree?\n\nThe tree will remain in the project and can be re-linked later.`)) {
-                                onUnlinkCircumventTree(data.id);
+                            if (onUnlinkRequest) {
+                                onUnlinkRequest(data.id);
                             }
                         }}
                         className="absolute -top-2 -right-10 bg-orange-600 hover:bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-colors nodrag"
@@ -606,6 +609,14 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
     } | null>(null);
     const [criticalNodeIds, setCriticalNodeIds] = useState<Set<string>>(new Set());
     const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+    const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; confirmLabel: string; isDangerous: boolean; onConfirm: () => void }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        confirmLabel: '',
+        isDangerous: false,
+        onConfirm: () => { }
+    });
 
     const allAttackLeaves = useMemo(() => {
         return project.needs.filter(n =>
@@ -779,7 +790,60 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         });
 
         onUpdateNeeds(updatedNeeds, `Unlinked circumvent tree '${circumventTreeId}' from attack tree. The tree is still available in the project.`);
+        onUpdateNeeds(updatedNeeds, `Unlinked circumvent tree '${circumventTreeId}' from attack tree. The tree is still available in the project.`);
     }, [project.needs, onUpdateNeeds, isReadOnly, setCollapsedCircumventTrees]);
+
+    const handleUnlinkRequest = useCallback((nodeId: string) => {
+        setConfirmationModal({
+            isOpen: true,
+            title: 'Unlink Circumvent Tree',
+            message: 'Unlink this circumvent tree from the attack tree?\n\nThe tree will remain in the project and can be re-linked later.',
+            confirmLabel: 'Unlink',
+            isDangerous: false,
+            onConfirm: () => {
+                handleUnlinkCircumventTreeFromNode(nodeId);
+                setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+            }
+        });
+    }, [handleUnlinkCircumventTreeFromNode]);
+
+    const handleDeleteNodeRequest = useCallback((nodeId: string) => {
+        if (isReadOnly) return;
+
+        // Check if node has children
+        const node = project.needs.find(n => n.id === nodeId);
+        const hasChildren = node?.links && node.links.length > 0;
+
+        setConfirmationModal({
+            isOpen: true,
+            title: 'Delete Node',
+            message: hasChildren
+                ? `Are you sure you want to delete node ${nodeId}? It has connected children.`
+                : `Are you sure you want to delete node ${nodeId}?`,
+            confirmLabel: 'Delete',
+            isDangerous: true,
+            onConfirm: () => {
+                // This logic needs to be implemented or passed down. 
+                // Since deleteNode logic is inside onNodesDelete which is handled by ReactFlow,
+                // we might need to trigger that or expose a delete function.
+                // However, ReactFlow handles deletion via Backspace key usually.
+                // If we want a button, we need to implement the deletion logic here.
+
+                // Implementation similar to onNodesDelete but for a single node
+                const needsToDelete = new Set([nodeId]);
+                const updatedNeeds = project.needs.filter(need => !needsToDelete.has(need.id));
+
+                // Also remove links to deleted nodes
+                const cleanedNeeds = updatedNeeds.map(need => ({
+                    ...need,
+                    links: need.links?.filter(linkId => !needsToDelete.has(linkId)) || []
+                }));
+
+                onUpdateNeeds(cleanedNeeds, `Deleted node ${nodeId}`);
+                setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+            }
+        });
+    }, [isReadOnly, project.needs, onUpdateNeeds]);
 
     const memoizedNodeTypes = useMemo(() => ({
         custom: (props: { data: SphinxNeed & { _isCircumventTreeNode?: boolean; _isTechnicalTreeNode?: boolean; _isCollapsed?: boolean; _showCollapseButton?: boolean }; selected: boolean; id: string; draggable?: boolean }) => (
@@ -797,6 +861,8 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 onUnlinkCircumventTree={handleUnlinkCircumventTreeFromNode}
                 isCollapsed={props.data._isCollapsed}
                 showCollapseButton={props.data._showCollapseButton}
+                onUnlinkRequest={handleUnlinkRequest}
+                onDeleteRequest={handleDeleteNodeRequest}
             />
         )
     }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection, handleToggleCollapse, handleUnlinkCircumventTreeFromNode]);
@@ -992,14 +1058,20 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         }
 
         if (targetNeed.type === NeedType.RISK || targetNeed.type === NeedType.MITIGATION) {
-            alert('Connection to RISK or MITIGATION nodes is not allowed in the attack tree view.');
+            setErrorModal({
+                isOpen: true,
+                message: 'Connection to RISK or MITIGATION nodes is not allowed in the attack tree view.'
+            });
             return;
         }
 
         const isSourceRoot = sourceNeed.tags.includes('attack-root') || sourceNeed.tags.includes('circumvent-root');
         const isSourceLeaf = sourceNeed.type === NeedType.ATTACK && !sourceNeed.logic_gate && !isSourceRoot;
         if (isSourceLeaf) {
-            alert('Connection failed: An Attack Leaf cannot have outgoing connections.');
+            setErrorModal({
+                isOpen: true,
+                message: 'Connection failed: An Attack Leaf cannot have outgoing connections.'
+            });
             return;
         }
 
@@ -1026,14 +1098,20 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                     return childNode?.tags.includes('circumvent-root');
                 });
                 if (!allChildrenAreCTs) {
-                    alert('A Circumvent Tree can only be a child of an OR node if all other children of that node are also Circumvent Trees.');
+                    setErrorModal({
+                        isOpen: true,
+                        message: 'A Circumvent Tree can only be a child of an OR node if all other children of that node are also Circumvent Trees.'
+                    });
                     return;
                 }
                 // If all children are circumvent trees, keep OR gate
             } else if (!sourceNeed.logic_gate) {
                 // No gate set yet, will be set to AND below
             } else if (sourceNeed.logic_gate !== 'AND') {
-                alert('A Circumvent Tree must be a child of an AND node (or an OR node if all siblings are also Circumvent Trees).');
+                setErrorModal({
+                    isOpen: true,
+                    message: 'A Circumvent Tree must be a child of an AND node (or an OR node if all siblings are also Circumvent Trees).'
+                });
                 return;
             }
         }
@@ -1167,32 +1245,38 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
 
     const handleDeleteNodeFromProject = useCallback((nodeId: string) => {
         if (isReadOnly) return;
-        if (!window.confirm(`Are you sure you want to permanently delete node ${nodeId} from the project? This will remove it from all attack trees.`)) {
-            closeContextMenu();
-            return;
-        }
 
-        closeContextMenu();
+        setConfirmationModal({
+            isOpen: true,
+            title: 'Delete Node from Project',
+            message: `Are you sure you want to permanently delete node ${nodeId} from the project? This will remove it from all attack trees.`,
+            confirmLabel: 'Delete',
+            isDangerous: true,
+            onConfirm: () => {
+                closeContextMenu();
 
-        const newNeeds: SphinxNeed[] = [];
-        for (const need of project.needs) {
-            if (need.id === nodeId) {
-                continue;
+                const newNeeds: SphinxNeed[] = [];
+                for (const need of project.needs) {
+                    if (need.id === nodeId) {
+                        continue;
+                    }
+
+                    if (need.links && need.links.includes(nodeId)) {
+                        newNeeds.push({
+                            ...need,
+                            links: need.links.filter(linkId => linkId !== nodeId),
+                        });
+                    } else {
+                        newNeeds.push(need);
+                    }
+                }
+
+                onUpdateNeeds(newNeeds, `Deleted node '${nodeId}' from project.`);
+                onSelectNeed(null);
+                setConfirmationModal(prev => ({ ...prev, isOpen: false }));
             }
-
-            if (need.links && need.links.includes(nodeId)) {
-                newNeeds.push({
-                    ...need,
-                    links: need.links.filter(linkId => linkId !== nodeId),
-                });
-            } else {
-                newNeeds.push(need);
-            }
-        }
-
-        onUpdateNeeds(newNeeds, `Deleted node '${nodeId}' from project.`);
-        onSelectNeed(null);
-    }, [project, onUpdateNeeds, onSelectNeed, isReadOnly, closeContextMenu]);
+        });
+    }, [project, onUpdateNeeds, onSelectNeed, isReadOnly, closeContextMenu, setConfirmationModal]);
 
     const handleLinkExisting = useCallback((parentNode: Node<SphinxNeed>, childIdToLink: string) => {
         if (isReadOnly) return;
@@ -1575,10 +1659,20 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                     </div>
                 </div>
             )}
-            <ErrorModal
-                isOpen={errorModal.isOpen}
-                message={errorModal.message}
-                onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+            {errorModal.isOpen && (
+                <ErrorModal
+                    message={errorModal.message}
+                    onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                />
+            )}
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                confirmLabel={confirmationModal.confirmLabel}
+                isDangerous={confirmationModal.isDangerous}
+                onConfirm={confirmationModal.onConfirm}
+                onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
             />
         </div>
     );

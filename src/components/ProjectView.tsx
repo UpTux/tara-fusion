@@ -11,15 +11,9 @@ import { AttackTreeEditor } from './AttackTreeEditor';
 import { AttackTreeImageGenerator } from './AttackTreeImageGenerator';
 import { CircumventTreesView } from './CircumventTreesView';
 import { DamageScenariosView } from './DamageScenariosView';
-import { BookOpenIcon } from './icons/BookOpenIcon';
-import { DownloadIcon } from './icons/DownloadIcon';
-import { MenuIcon } from './icons/MenuIcon';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { UploadIcon } from './icons/UploadIcon';
 import { ManagementSummaryView } from './ManagementSummaryView';
 import { MisuseCasesView } from './MisuseCasesView';
 import { MitreAttackDatabaseView } from './MitreAttackDatabaseView';
-import { GeminiThreatModal } from './modals/GeminiThreatModal';
 import { PlaceholderView } from './PlaceholderView';
 import { ProjectCockpit } from './ProjectCockpit';
 import { ProjectSidebar } from './ProjectSidebar';
@@ -38,6 +32,13 @@ import { ThreatsView } from './ThreatsView';
 import { ToeConfigurationView } from './ToeConfigurationView';
 import { ToeDescriptionView } from './ToeDescriptionView';
 import { TraceabilityGraphView } from './TraceabilityGraphView';
+import { BookOpenIcon } from './icons/BookOpenIcon';
+import { DownloadIcon } from './icons/DownloadIcon';
+import { MenuIcon } from './icons/MenuIcon';
+import { SparklesIcon } from './icons/SparklesIcon';
+import { UploadIcon } from './icons/UploadIcon';
+import { ErrorModal } from './modals/ErrorModal';
+import { GeminiThreatModal } from './modals/GeminiThreatModal';
 
 interface ProjectViewProps {
   project: Project;
@@ -53,6 +54,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
   const [activeView, setActiveView] = useState<ProjectViewType>('Project Cockpit');
   const [isExporting, setIsExporting] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
   const isReadOnly = !permissions.canEditProject;
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
@@ -74,7 +76,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export needs:', error);
-      alert('Failed to export project needs data.');
+      setErrorModal({ isOpen: true, message: 'Failed to export project needs data.' });
     }
   };
 
@@ -92,7 +94,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         onUpdateProject(updatedProject);
       } catch (error) {
         console.error('Failed to import needs:', error);
-        alert('Failed to import needs.json. Please check the file format.');
+        setErrorModal({ isOpen: true, message: 'Failed to import needs.json. Please check the file format.' });
       }
     };
     reader.readAsText(file);
@@ -113,7 +115,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export project:', error);
-      alert('Failed to export project data.');
+      setErrorModal({ isOpen: true, message: 'Failed to export project data.' });
     }
   };
 
@@ -135,7 +137,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export Sphinx project:', error);
-      alert('Failed to export Sphinx project.');
+      setErrorModal({ isOpen: true, message: 'Failed to export Sphinx project.' });
     } finally {
       setIsExporting(false);
     }
@@ -153,7 +155,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         onImportProject(content);
       } catch (error) {
         console.error('Failed to import project:', error);
-        alert('Failed to import project file.');
+        setErrorModal({ isOpen: true, message: 'Failed to import project file.' });
       }
     };
     reader.readAsText(file);
@@ -429,6 +431,12 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         <AttackTreeImageGenerator
           project={project}
           onComplete={onImagesGeneratedForExport}
+        />
+      )}
+      {errorModal.isOpen && (
+        <ErrorModal
+          message={errorModal.message}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
         />
       )}
     </div>
