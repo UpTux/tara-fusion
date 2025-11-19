@@ -165,6 +165,7 @@ export interface Threat {
   residualAFR: AttackFeasibilityRating | 'TBD'; // REQ-DATA-401: Residual attack feasibility rating (computed from residual attack tree)
   source?: 'manual' | 'emb3d' | 'ai-generated'; // Track the origin of the threat
   emb3dThreatId?: string; // Reference to MITRE Emb3d Threat ID (e.g., TID-101)
+  strideCategory?: StrideCategory; // STRIDE category for STRIDE methodology projects
 }
 
 export enum RiskTreatmentDecision {
@@ -234,6 +235,16 @@ export enum TaraMethodology {
   ATTACK_FEASIBILITY = 'Attack Feasibility Rating',
   STRIDE = 'STRIDE',
   LIKELIHOOD = 'Likelihood',
+}
+
+// STRIDE Threat Categories
+export enum StrideCategory {
+  SPOOFING = 'Spoofing',
+  TAMPERING = 'Tampering',
+  REPUDIATION = 'Repudiation',
+  INFORMATION_DISCLOSURE = 'Information Disclosure',
+  DENIAL_OF_SERVICE = 'Denial of Service',
+  ELEVATION_OF_PRIVILEGE = 'Elevation of Privilege',
 }
 
 export interface Project {
