@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NeedStatus, NeedType, Project } from '../types';
+import { NeedStatus, NeedType, Project, TaraMethodology } from '../types';
 
 // Mock the template imports
 const mockConfPyTemplate = 'project = "{{PROJECT_NAME}}"';
@@ -101,6 +101,7 @@ describe('sphinxProjectExportService', () => {
     describe('generateAttackTreesRst', () => {
         it('should return message when no attack trees exist', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -115,6 +116,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should generate needflow directive with correct root_id', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -142,6 +144,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should generate needtable with filter instead of ids', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -180,6 +183,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should include image directive for attack tree', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -207,6 +211,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should traverse entire attack tree and include all nodes', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -263,6 +268,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should handle multiple attack tree roots', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -300,6 +306,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should handle circumvent tree roots', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -325,6 +332,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should not include non-ATTACK type nodes in roots', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -349,6 +357,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should properly quote IDs in filter expression', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -386,6 +395,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should generate proper RST section headers', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -455,6 +465,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should generate RST for empty related documents', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -469,6 +480,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should generate RST for single related document', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -497,6 +509,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should generate RST for multiple related documents', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -531,6 +544,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should handle documents without URLs', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -556,6 +570,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should handle documents with multiple authors', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
@@ -578,6 +593,7 @@ describe('sphinxProjectExportService', () => {
 
         it('should generate proper RST table structure', () => {
             const project: Project = {
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',

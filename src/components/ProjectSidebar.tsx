@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { projectViews, ProjectViewType } from '../types';
+import { getProjectViewsForMethodology, ProjectViewType, TaraMethodology } from '../types';
 import { BeakerIcon } from './icons/BeakerIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
 import { ClockIcon } from './icons/ClockIcon';
@@ -13,6 +13,7 @@ import { ViewfinderCircleIcon } from './icons/ViewfinderCircleIcon';
 interface ProjectSidebarProps {
     activeView: ProjectViewType;
     onSelectView: (view: ProjectViewType) => void;
+    methodology: TaraMethodology;
 }
 
 const IconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -48,7 +49,7 @@ const getIconForView = (view: ProjectViewType) => {
     return <DocumentTextIcon />;
 };
 
-export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSelectView }) => {
+export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSelectView, methodology }) => {
     const { t } = useTranslation();
     const toCamelCase = (str: string) => {
         return str
@@ -60,9 +61,12 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSe
             )
             .join('');
     };
+    
+    const visibleViews = getProjectViewsForMethodology(methodology);
+    
     return (
         <nav className="w-64 bg-vscode-bg-sidebar border-r border-vscode-border p-4 flex flex-col space-y-1 overflow-y-auto">
-            {projectViews.map((view, index) => {
+            {visibleViews.map((view, index) => {
                 if (view === '---') {
                     return <div key={`spacer-${index}`} className="h-px bg-vscode-border my-2"></div>;
                 }

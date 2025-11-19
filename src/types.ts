@@ -165,6 +165,7 @@ export interface Threat {
   residualAFR: AttackFeasibilityRating | 'TBD'; // REQ-DATA-401: Residual attack feasibility rating (computed from residual attack tree)
   source?: 'manual' | 'emb3d' | 'ai-generated'; // Track the origin of the threat
   emb3dThreatId?: string; // Reference to MITRE Emb3d Threat ID (e.g., TID-101)
+  strideCategory?: StrideCategory; // STRIDE category for STRIDE methodology projects
 }
 
 export enum RiskTreatmentDecision {
@@ -234,6 +235,16 @@ export enum TaraMethodology {
   ATTACK_FEASIBILITY = 'Attack Feasibility Rating',
   STRIDE = 'STRIDE',
   LIKELIHOOD = 'Likelihood',
+}
+
+// STRIDE Threat Categories
+export enum StrideCategory {
+  SPOOFING = 'Spoofing',
+  TAMPERING = 'Tampering',
+  REPUDIATION = 'Repudiation',
+  INFORMATION_DISCLOSURE = 'Information Disclosure',
+  DENIAL_OF_SERVICE = 'Denial of Service',
+  ELEVATION_OF_PRIVILEGE = 'Elevation of Privilege',
 }
 
 export interface Project {
@@ -333,3 +344,22 @@ export const projectViews = [
 ] as const;
 
 export type ProjectViewType = typeof projectViews[number];
+
+// Views that should be hidden for STRIDE methodology (attack tree related views)
+const attackTreeViews: readonly ProjectViewType[] = [
+  'Attack Trees',
+  'Technical Attack Trees',
+  'Circumvent Trees',
+  'Attack Leaves',
+] as const;
+
+/**
+ * Get the appropriate views for a project based on its methodology.
+ * For STRIDE projects, attack tree views are excluded.
+ */
+export function getProjectViewsForMethodology(methodology: TaraMethodology): readonly ProjectViewType[] {
+  if (methodology === TaraMethodology.STRIDE) {
+    return projectViews.filter(view => !attackTreeViews.includes(view));
+  }
+  return projectViews;
+}
