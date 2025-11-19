@@ -64,9 +64,9 @@ export async function loadMitreAttackData(): Promise<MitreAttackDatabase> {
     try {
         // Load all three matrices
         const matrices = [
-            { name: 'enterprise' as const, url: '/attack-stix-data/enterprise-attack/enterprise-attack-18.0.json' },
-            { name: 'mobile' as const, url: '/attack-stix-data/mobile-attack/mobile-attack-18.0.json' },
-            { name: 'ics' as const, url: '/attack-stix-data/ics-attack/ics-attack-18.0.json' },
+            { name: 'enterprise' as const, url: 'attack-stix-data/enterprise-attack/enterprise-attack-18.0.json' },
+            { name: 'mobile' as const, url: 'attack-stix-data/mobile-attack/mobile-attack-18.0.json' },
+            { name: 'ics' as const, url: 'attack-stix-data/ics-attack/ics-attack-18.0.json' },
         ];
 
         const techniques = new Map<string, MitreTechnique>();
