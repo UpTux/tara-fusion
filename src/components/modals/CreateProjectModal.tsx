@@ -74,11 +74,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                 </p>
                             </div>
 
-                            {/* STRIDE - Disabled Placeholder */}
-                            <div className="border border-vscode-border/50 rounded-md p-4 opacity-50 cursor-not-allowed bg-vscode-bg-input/30">
+                            {/* STRIDE - Now Active */}
+                            <div
+                                className={`border rounded-md p-4 cursor-pointer transition-all ${selectedMethodology === TaraMethodology.STRIDE
+                                    ? 'border-vscode-accent bg-vscode-accent/10 ring-1 ring-vscode-accent'
+                                    : 'border-vscode-border hover:border-vscode-text-secondary'
+                                    }`}
+                                onClick={() => setSelectedMethodology(TaraMethodology.STRIDE)}
+                            >
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="font-semibold text-vscode-text-secondary">STRIDE</span>
-                                    <span className="text-[10px] uppercase border border-vscode-border px-1 rounded text-vscode-text-secondary">Coming Soon</span>
+                                    <span className="font-semibold text-vscode-text-bright">STRIDE</span>
+                                    {selectedMethodology === TaraMethodology.STRIDE && (
+                                        <div className="w-3 h-3 rounded-full bg-vscode-accent"></div>
+                                    )}
                                 </div>
                                 <p className="text-xs text-vscode-text-secondary">
                                     Microsoft's threat modeling methodology (Spoofing, Tampering, Repudiation, etc.).

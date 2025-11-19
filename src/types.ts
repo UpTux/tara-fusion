@@ -333,3 +333,22 @@ export const projectViews = [
 ] as const;
 
 export type ProjectViewType = typeof projectViews[number];
+
+// Views that should be hidden for STRIDE methodology (attack tree related views)
+const attackTreeViews: readonly ProjectViewType[] = [
+  'Attack Trees',
+  'Technical Attack Trees',
+  'Circumvent Trees',
+  'Attack Leaves',
+] as const;
+
+/**
+ * Get the appropriate views for a project based on its methodology.
+ * For STRIDE projects, attack tree views are excluded.
+ */
+export function getProjectViewsForMethodology(methodology: TaraMethodology): readonly ProjectViewType[] {
+  if (methodology === TaraMethodology.STRIDE) {
+    return projectViews.filter(view => !attackTreeViews.includes(view));
+  }
+  return projectViews;
+}

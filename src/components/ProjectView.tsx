@@ -415,7 +415,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         </div>
       </div>
       <div className="flex-1 flex overflow-hidden">
-        <ProjectSidebar activeView={activeView} onSelectView={setActiveView} />
+        <ProjectSidebar activeView={activeView} onSelectView={setActiveView} methodology={project.methodology} />
         <main className="flex-1 flex flex-col overflow-y-auto">
           {renderActiveView()}
         </main>
