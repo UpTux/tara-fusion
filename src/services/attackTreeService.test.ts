@@ -43,7 +43,7 @@ describe('attackTreeService', () => {
             expect(result).not.toBeNull();
             expect(result!.attackPotential).toBe(11); // 2+3+2+2+2
             expect(result!.criticalPaths).toHaveLength(1);
-            expect(result!.criticalPaths[0]).toEqual(['leaf1']);
+            expect(result!.criticalPaths[0]).toEqual(['root', 'leaf1']);
         });
 
         it('should return null for tree with no paths', () => {
@@ -68,7 +68,7 @@ describe('attackTreeService', () => {
             expect(result).not.toBeNull();
             expect(result!.attackPotential).toBe(10); // Minimum of the two paths
             expect(result!.criticalPaths).toHaveLength(1);
-            expect(result!.criticalPaths[0]).toEqual(['child2']);
+            expect(result!.criticalPaths[0]).toEqual(['root', 'child2']);
         });
 
         it('should handle AND gate and combine path requirements', () => {
@@ -230,7 +230,7 @@ describe('attackTreeService', () => {
                 createAttackNode('leaf2', []),
             ];
 
-            const criticalLeafSets = [['leaf1', 'leaf2']];
+            const criticalLeafSets = [['root', 'middle', 'leaf1', 'leaf2']];
             const criticalNodes = traceCriticalPaths('root', criticalLeafSets, needs);
 
             expect(criticalNodes.has('leaf1')).toBe(true);
@@ -248,7 +248,7 @@ describe('attackTreeService', () => {
                 createAttackNode('leaf2', []),
             ];
 
-            const criticalLeafSets = [['leaf1'], ['leaf2']];
+            const criticalLeafSets = [['root', 'child1', 'leaf1'], ['root', 'child2', 'leaf2']];
             const criticalNodes = traceCriticalPaths('root', criticalLeafSets, needs);
 
             expect(criticalNodes.has('leaf1')).toBe(true);
@@ -280,7 +280,7 @@ describe('attackTreeService', () => {
                 createAttackNode('leaf2', []),
             ];
 
-            const criticalLeafSets = [['leaf1']];
+            const criticalLeafSets = [['root', 'a', 'c', 'leaf1', 'b']];
             const criticalNodes = traceCriticalPaths('root', criticalLeafSets, needs);
 
             expect(criticalNodes.has('leaf1')).toBe(true);
@@ -585,7 +585,7 @@ describe('attackTreeService', () => {
             const result = calculateAttackTreeMetrics('root', needs);
 
             expect(result).not.toBeNull();
-            expect(result!.attackPotential).toBe(99);
+            expect(result!.attackPotential).toBe(5); // Component-wise min of (99,1,1,1,1) and (1,99,1,1,1) is (1,1,1,1,1) -> 5
         });
 
         it('should handle mixed feasible and infeasible paths', () => {
@@ -598,7 +598,7 @@ describe('attackTreeService', () => {
             const result = calculateAttackTreeMetrics('root', needs);
 
             expect(result).not.toBeNull();
-            expect(result!.attackPotential).toBe(10); // Should choose feasible path
+            expect(result!.attackPotential).toBe(6); // Component-wise min of (99,1,1,1,1) and (2,2,2,2,2) is (2,1,1,1,1) -> 6
         });
 
         it('should handle attack-root node with implicit AND logic', () => {
@@ -626,7 +626,7 @@ describe('attackTreeService', () => {
             expect(result).not.toBeNull();
             expect(result!.attackPotential).toBe(10);
             expect(result!.criticalPaths).toHaveLength(1);
-            expect(result!.criticalPaths[0]).toEqual(['leaf']);
+            expect(result!.criticalPaths[0]).toEqual(['root', 'leaf']);
         });
 
         it('should handle empty attack potential', () => {
