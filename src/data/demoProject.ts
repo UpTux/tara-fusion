@@ -7,6 +7,7 @@ import {
     ProjectStatus,
     RiskTreatmentDecision,
     SecurityProperty,
+    TaraMethodology,
 } from '../types';
 
 /**
@@ -26,6 +27,7 @@ import {
  */
 export const demoProjectPhoenix: Omit<Project, 'id' | 'organizationId'> = {
     name: 'Project Phoenix',
+    methodology: TaraMethodology.ATTACK_FEASIBILITY,
     securityManager: 'Alice Johnson',
     projectStatus: ProjectStatus.IN_PROGRESS,
     comment: 'Initial TARA for the Phoenix banking application. Focus on external threats.',
