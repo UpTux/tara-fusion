@@ -467,3 +467,32 @@ export function calculateNodeMetrics(
     hasSubtree: true
   };
 }
+
+/**
+ * Detects if adding a link from sourceId to targetId would create a cycle.
+ * Returns true if a cycle would be created (i.e., source is reachable from target).
+ */
+export function detectCycle(sourceId: string, targetId: string, allNeeds: SphinxNeed[]): boolean {
+  if (sourceId === targetId) return true;
+
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [targetId];
+
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (!currentId) continue;
+
+    if (currentId === sourceId) return true;
+
+    if (visited.has(currentId)) continue;
+    visited.add(currentId);
+
+    const node = needsMap.get(currentId);
+    if (node?.links) {
+      queue.push(...node.links);
+    }
+  }
+
+  return false;
+}

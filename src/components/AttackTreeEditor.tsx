@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
-    addEdge,
-    applyEdgeChanges,
-    applyNodeChanges,
     Background,
     BackgroundVariant,
     Connection,
@@ -15,12 +12,16 @@ import ReactFlow, {
     NodeChange,
     Position,
     ReactFlowProvider,
+    addEdge,
+    applyEdgeChanges,
+    applyNodeChanges,
     useReactFlow,
 } from 'reactflow';
-import { calculateAttackTreeMetrics, calculateNodeMetrics, findCircumventTreeRoot, findTechnicalTreeRoot, hasCircumventTrees, isNodeInCircumventSubtree, isNodeInTechnicalSubtree, traceCriticalPaths } from '../services/attackTreeService';
+import { calculateAttackTreeMetrics, calculateNodeMetrics, detectCycle, findCircumventTreeRoot, findTechnicalTreeRoot, hasCircumventTrees, isNodeInCircumventSubtree, isNodeInTechnicalSubtree, traceCriticalPaths } from '../services/attackTreeService';
 import { accessOptions, equipmentOptions, expertiseOptions, knowledgeOptions, timeOptions } from '../services/feasibilityOptions';
 import { getAttackFeasibilityRating, getFeasibilityRatingColor } from '../services/riskService';
 import { AttackFeasibilityRating, AttackPotentialTuple, NeedStatus, NeedType, Project, SphinxNeed } from '../types';
+import { PropertiesPanel } from './PropertiesPanel';
 import { AcademicCapIcon } from './icons/AcademicCapIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { DocumentTextIcon } from './icons/DocumentTextIcon';
@@ -28,7 +29,7 @@ import { KeyIcon } from './icons/KeyIcon';
 import { LinkBreakIcon } from './icons/LinkBreakIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { WrenchIcon } from './icons/WrenchIcon';
-import { PropertiesPanel } from './PropertiesPanel';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface AttackTreeEditorProps {
     project: Project;
@@ -604,6 +605,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         hasCircumventTrees: boolean;
     } | null>(null);
     const [criticalNodeIds, setCriticalNodeIds] = useState<Set<string>>(new Set());
+    const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
     const allAttackLeaves = useMemo(() => {
         return project.needs.filter(n =>
@@ -979,6 +981,15 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
         const targetNeed = project.needs.find(n => n.id === params.target);
 
         if (!sourceNeed || !targetNeed) return;
+
+        // Check for circular references
+        if (detectCycle(params.source, params.target, project.needs)) {
+            setErrorModal({
+                isOpen: true,
+                message: `Cannot connect '${params.source}' to '${params.target}' because it would create a circular reference.`
+            });
+            return;
+        }
 
         if (targetNeed.type === NeedType.RISK || targetNeed.type === NeedType.MITIGATION) {
             alert('Connection to RISK or MITIGATION nodes is not allowed in the attack tree view.');
@@ -1388,7 +1399,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
             {contextMenu && (
                 <div
                     style={{ top: contextMenu.top, left: contextMenu.left }}
-                    className="absolute z-50 bg-vscode-bg-sidebar/95 backdrop-blur-sm border border-vscode-border rounded-md shadow-lg text-vscode-text-primary text-sm animate-fade-in-fast"
+                    className="absolute z-50 bg-vscode-bg-sidebar border border-vscode-border rounded-md shadow-xl text-vscode-text-primary text-sm animate-fade-in-fast"
                 >
                     <div className="p-1">
                         <div className="px-3 py-1.5 text-xs text-vscode-text-secondary border-b border-vscode-border mb-1">Actions for {contextMenu.node.id}</div>
@@ -1564,6 +1575,11 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                     </div>
                 </div>
             )}
+            <ErrorModal
+                isOpen={errorModal.isOpen}
+                message={errorModal.message}
+                onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+            />
         </div>
     );
 };
