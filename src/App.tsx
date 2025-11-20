@@ -7,6 +7,7 @@ import { Profile } from "@/components/Auth/Profile.tsx";
 import { useAuthenticatedUser } from "@/services/useAuthenticatedUser.ts";
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { InitializationView } from './components/InitializationView';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { ProjectView } from './components/ProjectView';
 import { Sidebar } from './components/Sidebar';
@@ -50,13 +51,13 @@ const initialProjectMemberships: ProjectMembership[] = [];
 
 
 export default function App() {
-  const [organizations] = useState<Organization[]>(initialOrganizations);
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [projectMemberships, setProjectMemberships] = useState<ProjectMembership[]>(initialProjectMemberships);
-  const [currentUserId, setCurrentUserId] = useState<string>('user_1');
+  const [users, setUsers] = useState<User[]>([]);
+  const [projectMemberships, setProjectMemberships] = useState<ProjectMembership[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   const [activeMainView, setActiveMainView] = useState<'projects' | 'users'>('projects');
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
@@ -77,6 +78,35 @@ export default function App() {
     calculatePermissions(currentUserId, activeProject, users, projectMemberships),
     [currentUserId, activeProject, users, projectMemberships]
   );
+
+  const handleLoadDemoData = useCallback(() => {
+    setOrganizations(initialOrganizations);
+    setUsers(initialUsers);
+    setProjects(initialProjects);
+    setProjectMemberships(initialProjectMemberships);
+    setCurrentUserId(initialUsers[0]?.id || '');
+  }, []);
+
+  const handleCreateFresh = useCallback((username: string, orgName: string) => {
+    const newOrg: Organization = {
+      id: 'org_1',
+      name: orgName,
+      impactCategorySettings: defaultImpactCategories
+    };
+
+    const newUser: User = {
+      id: 'user_1',
+      name: username,
+      email: '',
+      organizationId: newOrg.id,
+      role: OrganizationRole.ORG_ADMIN,
+      active: true
+    };
+
+    setOrganizations([newOrg]);
+    setUsers([newUser]);
+    setCurrentUserId(newUser.id);
+  }, []);
 
   const updateProject = useCallback((updatedProject: Project) => {
     setProjects(prevProjects =>
@@ -267,6 +297,15 @@ export default function App() {
   }, [activeMainView, activeProject]);
 
   const { user, isAuthenticated, isLoading } = useAuthenticatedUser();
+
+  if (users.length === 0) {
+    return (
+      <InitializationView
+        onLoadDemoData={handleLoadDemoData}
+        onCreateFresh={handleCreateFresh}
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen bg-vscode-bg-main text-vscode-text-primary font-sans">

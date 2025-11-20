@@ -261,5 +261,15 @@
   "allMatrices": "Todas las Matrices",
   "enterpriseMatrix": "Enterprise",
   "mobileMatrix": "Mobile",
-  "icsMatrix": "ICS/OT"
+  "icsMatrix": "ICS/OT",
+  "welcomeToTaraFusion": "Bienvenido a TARA Fusion",
+  "initializationMessage": "Por favor elija cómo desea comenzar.",
+  "loadDemoData": "Cargar Datos de Demostración",
+  "createNewSetup": "Crear Nueva Configuración",
+  "enterDetails": "Por favor ingrese sus datos para comenzar.",
+  "username": "Nombre de Usuario",
+  "organizationName": "Nombre de la Organización",
+  "back": "Atrás",
+  "getStarted": "Comenzar",
+  "or": "o"
 }
