@@ -1,0 +1,60 @@
+# Sphinx-Needs configuration for TARA Fusion Export
+# See: https://sphinx-needs.readthedocs.io/en/latest/configuration.html#needs-from-toml
+
+[needs]
+types = [
+    { directive = "req", title = "Requirement", prefix = "R_", color = "#BFD8D2", style = "node" },
+    { directive = "spec", title = "Specification", prefix = "S_", color = "#FEDCD2", style = "node" },
+    { directive = "impl", title = "Implementation", prefix = "I_", color = "#DF744A", style = "node" },
+    { directive = "test", title = "Test Case", prefix = "T_", color = "#DCB239", style = "node" },
+    { directive = "feat", title = "Feature", prefix = "F_", color = "#8ac354", style = "node" },
+    { directive = "need", title = "Need", prefix = "N_", color = "#666666", style = "node" },
+    { directive = "issue", title = "Issue", prefix = "ISS_", color = "#959045", style = "node" },
+    { directive = "risk", title = "Risk", prefix = "RISK_", color = "#E6B333", style = "node" },
+    { directive = "action", title = "Action", prefix = "ACT_", color = "#459074", style = "node" },
+    { directive = "attack", title = "Attack Step", prefix = "ATT_", color = "#FF6666", style = "node" },
+    # TARA types
+    { directive = "ass", title = "Assumption", prefix = "ASS_", color = "#FFC107", style = "node" },
+    { directive = "asset", title = "Asset", prefix = "ASSET_", color = "#A9A9A9", style = "node" },
+    { directive = "sc", title = "Security Control", prefix = "SC_", color = "#9C27B0", style = "node" },
+    { directive = "ds", title = "Damage Scenario", prefix = "DS_", color = "#CD5C5C", style = "node" },
+    { directive = "threat", title = "Threat", prefix = "THR_", color = "#F29379", style = "node" },
+    { directive = "ts", title = "Threat Scenario", prefix = "TS_", color = "#FFA07A", style = "node" },
+    { directive = "sg", title = "Security Goal", prefix = "SG_", color = "#4CAF50", style = "node" },
+    { directive = "scl", title = "Security Claim", prefix = "SCLM_", color = "#2196F3", style = "node" },
+    { directive = "mc", title = "Misuse Case", prefix = "MC_", color = "#FF5722", style = "node" },
+]
+
+extra_options = [
+    "active",
+    "active_r_r_a",
+    "attack_potential",
+    "attacker_type",
+    "comment",
+    "impact",
+    "impact_category",
+    "initial_a_f_r",
+    "knowledge",
+    "logic_gate",
+    "reasoning",
+    "reasoning_scaling",
+    "requirements_link",
+    "residual_a_f_r",
+    "responsible",
+    "scales",
+    "security_properties",
+    "security_property",
+    "treatment_decision",
+]
+
+extra_links = [
+    { option = "asset_id", incoming = "is targeted by", outgoing = "targets asset" },
+    { option = "assumption_ids", incoming = "is assumed by", outgoing = "assumes" },
+    { option = "damage_scenario_ids", incoming = "is referenced by", outgoing = "references damage scenarios" },
+    { option = "misuse_case_ids", incoming = "is misused by", outgoing = "references misuse cases" },
+    { option = "security_claim_ids", incoming = "is claimed by", outgoing = "claims" },
+    { option = "security_control_id", incoming = "controls", outgoing = "is controlled by" },
+    { option = "security_goal_ids", incoming = "is goal of", outgoing = "has security goals" },
+    { option = "threat_id", incoming = "is realized by", outgoing = "realizes threat" },
+    { option = "toe_configuration_ids", incoming = "is configured in", outgoing = "references configurations" },
+]

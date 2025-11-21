@@ -7,6 +7,7 @@ import {
     ProjectStatus,
     RiskTreatmentDecision,
     SecurityProperty,
+    TaraMethodology,
 } from '../types';
 
 /**
@@ -26,6 +27,7 @@ import {
  */
 export const demoProjectPhoenix: Omit<Project, 'id' | 'organizationId'> = {
     name: 'Project Phoenix',
+    methodology: TaraMethodology.ATTACK_FEASIBILITY,
     securityManager: 'Alice Johnson',
     projectStatus: ProjectStatus.IN_PROGRESS,
     comment: 'Initial TARA for the Phoenix banking application. Focus on external threats.',
@@ -390,4 +392,30 @@ Out of scope are:
             attackPotential: { time: 0, expertise: 0, knowledge: 0, access: 2, equipment: 0 },
         },
     ],
+    relatedDocuments: [
+        {
+            id: 'DOC_001',
+            authors: ['Security Team', 'Architecture Team'],
+            title: 'Phoenix System Architecture Specification',
+            version: '2.1',
+            url: 'https://example.com/docs/phoenix-architecture-v2.1.pdf',
+            comment: 'Comprehensive system architecture documentation including security boundaries and data flows.'
+        },
+        {
+            id: 'DOC_002',
+            authors: ['Compliance Office'],
+            title: 'Banking Regulations Compliance Guide',
+            version: '1.0',
+            url: 'https://example.com/docs/banking-compliance.pdf',
+            comment: 'Guide for ensuring compliance with financial industry regulations including PCI-DSS and GDPR.'
+        },
+        {
+            id: 'DOC_003',
+            authors: ['Alice Johnson'],
+            title: 'Threat Modeling Workshop Results',
+            version: 'draft',
+            url: '',
+            comment: 'Internal notes from the threat modeling workshop conducted on January 15, 2024.'
+        }
+    ]
 };

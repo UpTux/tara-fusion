@@ -11,29 +11,34 @@ import { AttackTreeEditor } from './AttackTreeEditor';
 import { AttackTreeImageGenerator } from './AttackTreeImageGenerator';
 import { CircumventTreesView } from './CircumventTreesView';
 import { DamageScenariosView } from './DamageScenariosView';
-import { BookOpenIcon } from './icons/BookOpenIcon';
-import { DownloadIcon } from './icons/DownloadIcon';
-import { MenuIcon } from './icons/MenuIcon';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { UploadIcon } from './icons/UploadIcon';
 import { ManagementSummaryView } from './ManagementSummaryView';
 import { MisuseCasesView } from './MisuseCasesView';
-import { GeminiThreatModal } from './modals/GeminiThreatModal';
+import { MitreAttackDatabaseView } from './MitreAttackDatabaseView';
 import { PlaceholderView } from './PlaceholderView';
 import { ProjectCockpit } from './ProjectCockpit';
 import { ProjectSidebar } from './ProjectSidebar';
 import { ProjectUsersView } from './ProjectUsersView';
 import { PropertiesPanel } from './PropertiesPanel';
+import { RelatedDocumentsView } from './RelatedDocumentsView';
 import { RequirementsCheckView } from './RequirementsCheckView';
 import { RiskTreatmentView } from './RiskTreatmentView';
 import { ScopeView } from './ScopeView';
 import { SecurityClaimsView } from './SecurityClaimsView';
 import { SecurityControlsView } from './SecurityControlsView';
 import { SecurityGoalsView } from './SecurityGoalsView';
+import { TechnicalAttackTreesView } from './TechnicalAttackTreesView';
 import { ThreatScenariosView } from './ThreatScenariosView';
 import { ThreatsView } from './ThreatsView';
 import { ToeConfigurationView } from './ToeConfigurationView';
 import { ToeDescriptionView } from './ToeDescriptionView';
+import { TraceabilityGraphView } from './TraceabilityGraphView';
+import { BookOpenIcon } from './icons/BookOpenIcon';
+import { DownloadIcon } from './icons/DownloadIcon';
+import { MenuIcon } from './icons/MenuIcon';
+import { SparklesIcon } from './icons/SparklesIcon';
+import { UploadIcon } from './icons/UploadIcon';
+import { ErrorModal } from './modals/ErrorModal';
+import { GeminiThreatModal } from './modals/GeminiThreatModal';
 
 interface ProjectViewProps {
   project: Project;
@@ -49,6 +54,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
   const [activeView, setActiveView] = useState<ProjectViewType>('Project Cockpit');
   const [isExporting, setIsExporting] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
   const isReadOnly = !permissions.canEditProject;
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
@@ -70,7 +76,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export needs:', error);
-      alert('Failed to export project needs data.');
+      setErrorModal({ isOpen: true, message: 'Failed to export project needs data.' });
     }
   };
 
@@ -88,7 +94,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         onUpdateProject(updatedProject);
       } catch (error) {
         console.error('Failed to import needs:', error);
-        alert('Failed to import needs.json. Please check the file format.');
+        setErrorModal({ isOpen: true, message: 'Failed to import needs.json. Please check the file format.' });
       }
     };
     reader.readAsText(file);
@@ -109,7 +115,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export project:', error);
-      alert('Failed to export project data.');
+      setErrorModal({ isOpen: true, message: 'Failed to export project data.' });
     }
   };
 
@@ -131,7 +137,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export Sphinx project:', error);
-      alert('Failed to export Sphinx project.');
+      setErrorModal({ isOpen: true, message: 'Failed to export Sphinx project.' });
     } finally {
       setIsExporting(false);
     }
@@ -149,7 +155,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         onImportProject(content);
       } catch (error) {
         console.error('Failed to import project:', error);
-        alert('Failed to import project file.');
+        setErrorModal({ isOpen: true, message: 'Failed to import project file.' });
       }
     };
     reader.readAsText(file);
@@ -263,6 +269,10 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <AttackLeavesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Circumvent Trees':
         return <CircumventTreesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
+      case 'Technical Attack Trees':
+        return <TechnicalAttackTreesView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
+      case 'MITRE ATT&CK Database':
+        return <MitreAttackDatabaseView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Security Goals':
         return <SecurityGoalsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Security Claims':
@@ -273,8 +283,12 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <RequirementsCheckView project={project} />;
       case 'Project Users':
         return <ProjectUsersView project={project} isProjectAdmin={permissions.isProjectAdmin} isOrgAdmin={permissions.isOrgAdmin} />;
+      case 'Traceability Graph':
+        return <TraceabilityGraphView project={project} />;
       case 'Management Summary':
         return <ManagementSummaryView project={project} onProjectChange={handleProjectDetailsChange} isReadOnly={isReadOnly} />;
+      case 'Related Documents':
+        return <RelatedDocumentsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       default:
         return <PlaceholderView title={activeView} />;
     }
@@ -417,6 +431,12 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         <AttackTreeImageGenerator
           project={project}
           onComplete={onImagesGeneratedForExport}
+        />
+      )}
+      {errorModal.isOpen && (
+        <ErrorModal
+          message={errorModal.message}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
         />
       )}
     </div>

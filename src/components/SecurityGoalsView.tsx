@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Project, SecurityGoal } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface SecurityGoalsViewProps {
   project: Project;
@@ -25,6 +26,7 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
   const [goals, setGoals] = useState<SecurityGoal[]>(project.securityGoals || []);
   const [selectedId, setSelectedId] = useState<string | null>(goals[0]?.id || null);
   const [editorState, setEditorState] = useState<SecurityGoal | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const currentGoals = project.securityGoals || [];
@@ -74,18 +76,23 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteRequest = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete Security Goal ${selectedId}? This will remove it from any linked Threat Scenarios.`)) {
-      const updatedGoals = goals.filter(g => g.id !== selectedId);
-      const updatedScenarios = (project.threatScenarios || []).map(ts => ({
-        ...ts,
-        securityGoalIds: (ts.securityGoalIds || []).filter(id => id !== selectedId)
-      }));
+    setIsDeleteModalOpen(true);
+  };
 
-      onUpdateProject(addHistoryEntry({ ...project, securityGoals: updatedGoals, threatScenarios: updatedScenarios }, `Deleted Security Goal ${selectedId}.`));
-      setSelectedId(updatedGoals[0]?.id || null);
-    }
+  const handleConfirmDelete = () => {
+    if (!selectedId) return;
+
+    const updatedGoals = goals.filter(g => g.id !== selectedId);
+    const updatedScenarios = (project.threatScenarios || []).map(ts => ({
+      ...ts,
+      securityGoalIds: (ts.securityGoalIds || []).filter(id => id !== selectedId)
+    }));
+
+    onUpdateProject(addHistoryEntry({ ...project, securityGoals: updatedGoals, threatScenarios: updatedScenarios }, `Deleted Security Goal ${selectedId}.`));
+    setSelectedId(updatedGoals[0]?.id || null);
+    setIsDeleteModalOpen(false);
   };
 
   const linkedScenarios = (project.threatScenarios || []).filter(ts => ts.securityGoalIds?.includes(selectedId || ''));
@@ -124,7 +131,7 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
           <div className="space-y-8">
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-bold text-vscode-text-primary">{editorState.id}: {editorState.name}</h2>
-              <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}><TrashIcon className="w-4 h-4 mr-2" />Delete</button>
+              <button onClick={handleDeleteRequest} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}><TrashIcon className="w-4 h-4 mr-2" />Delete</button>
             </div>
 
             <div className="bg-vscode-bg-sidebar p-4 rounded-lg border border-indigo-500/30">
@@ -161,6 +168,16 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
           <div className="flex items-center justify-center h-full text-vscode-text-secondary"><div className="text-center"><h3 className="text-lg">No Security Goal Selected</h3><p>Select a goal from the list or create a new one.</p></div></div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Security Goal"
+        message={`Are you sure you want to delete Security Goal ${selectedId}? This will remove it from any linked Threat Scenarios.`}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
     </div>
   );
 };

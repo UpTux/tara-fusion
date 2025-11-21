@@ -3,8 +3,14 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "src/**"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main, develop]
+    paths:
+      - "src/**"
+      - ".github/workflows/ci.yml"
 
 jobs:
   build:
@@ -16,10 +22,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
@@ -45,10 +51,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "25.x"
           cache: "npm"
@@ -78,10 +84,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "25.x"
           cache: "npm"

@@ -1,10 +1,11 @@
 
-
 import React, { useEffect, useState } from 'react';
 import { DamageScenario, Impact, Organization, Project } from '../types';
 import { CogIcon } from './icons/CogIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface DamageScenariosViewProps {
   project: Project;
@@ -31,6 +32,7 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
   const [selectedId, setSelectedId] = useState<string | null>(scenarios[0]?.id || null);
   const [editorState, setEditorState] = useState<DamageScenario | null>(null);
   const [isCategoryEditorOpen, setIsCategoryEditorOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const orgCategories = organization.impactCategorySettings?.categories || [];
   const projectCategories = project.impactCategorySettings?.categories;
@@ -91,14 +93,19 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
     onUpdateProject(updatedProject);
   };
 
-  const handleDelete = () => {
+  const handleDeleteRequest = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete Damage Scenario ${selectedId}?`)) {
-      const updatedScenarios = scenarios.filter(ds => ds.id !== selectedId);
-      const updatedProject = addHistoryEntry({ ...project, damageScenarios: updatedScenarios }, `Deleted Damage Scenario ${selectedId}.`);
-      onUpdateProject(updatedProject);
-      setSelectedId(updatedScenarios[0]?.id || null);
-    }
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedId) return;
+
+    const updatedScenarios = scenarios.filter(ds => ds.id !== selectedId);
+    const updatedProject = addHistoryEntry({ ...project, damageScenarios: updatedScenarios }, `Deleted Damage Scenario ${selectedId}.`);
+    onUpdateProject(updatedProject);
+    setSelectedId(updatedScenarios[0]?.id || null);
+    setIsDeleteModalOpen(false);
   };
 
   const handleSaveCategories = (newCategories: string[], newJustification: string) => {
@@ -173,7 +180,7 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
           <div className="space-y-8">
             <div className="flex justify-between items-start">
               <h2 className="text-2xl font-bold text-vscode-text-primary">{editorState.id}: {editorState.name}</h2>
-              <button onClick={handleDelete} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
+              <button onClick={handleDeleteRequest} className="flex items-center px-3 py-2 bg-red-800/50 text-red-300 rounded-md text-sm font-medium hover:bg-red-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled={isReadOnly}>
                 <TrashIcon className="w-4 h-4 mr-2" />
                 Delete
               </button>
@@ -224,6 +231,16 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Damage Scenario"
+        message={`Are you sure you want to delete Damage Scenario ${selectedId}?`}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
     </div>
   );
 };
@@ -240,6 +257,7 @@ const CategoryEditor: React.FC<{
   const [categories, setCategories] = useState((projectSettings?.categories || orgCategories).join('\n'));
   const [justification, setJustification] = useState(projectSettings?.justification || '');
   const isOverridden = !!projectSettings;
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
   const handleSaveClick = () => {
     const categoryList = categories.split('\n').map(c => c.trim()).filter(Boolean);
@@ -248,11 +266,11 @@ const CategoryEditor: React.FC<{
       return;
     }
     if (categoryList.length === 0) {
-      alert('You must provide at least one impact category.');
+      setErrorModal({ isOpen: true, message: 'You must provide at least one impact category.' });
       return;
     }
     if (justification.trim() === '') {
-      alert('You must provide a justification for overriding the organizational categories.');
+      setErrorModal({ isOpen: true, message: 'You must provide a justification for overriding the organizational categories.' });
       return;
     }
     onSave(categoryList, justification);
@@ -304,6 +322,12 @@ const CategoryEditor: React.FC<{
           Save Changes
         </button>
       </div>
+      {errorModal.isOpen && (
+        <ErrorModal
+          message={errorModal.message}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+        />
+      )}
     </div>
   );
 };

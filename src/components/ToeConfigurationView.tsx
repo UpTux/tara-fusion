@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Project, ToeConfiguration } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface ToeConfigurationViewProps {
   project: Project;
@@ -26,6 +27,7 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
   const [selectedId, setSelectedId] = useState<string | null>(configurations[0]?.id || null);
   const [editorState, setEditorState] = useState<ToeConfiguration | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   useEffect(() => {
     const currentConfigs = project.toeConfigurations || [];
@@ -99,12 +101,18 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
 
   const handleDelete = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete TOE Configuration ${selectedId}?`)) {
-      const updatedConfigs = configurations.filter(a => a.id !== selectedId);
-      const updatedProject = addHistoryEntry({ ...project, toeConfigurations: updatedConfigs }, `Deleted TOE Configuration ${selectedId}.`);
-      onUpdateProject(updatedProject);
-      setSelectedId(updatedConfigs[0]?.id || null);
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete TOE Configuration',
+      message: `Are you sure you want to delete TOE Configuration ${selectedId}?`,
+      onConfirm: () => {
+        const updatedConfigs = configurations.filter(a => a.id !== selectedId);
+        const updatedProject = addHistoryEntry({ ...project, toeConfigurations: updatedConfigs }, `Deleted TOE Configuration ${selectedId}.`);
+        onUpdateProject(updatedProject);
+        setSelectedId(updatedConfigs[0]?.id || null);
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   return (
@@ -203,6 +211,15 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
           </div>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

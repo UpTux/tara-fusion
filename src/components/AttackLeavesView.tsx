@@ -6,6 +6,8 @@ import { AttackPotentialTuple, NeedStatus, NeedType, Project, SphinxNeed } from 
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { UploadIcon } from './icons/UploadIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface AttackLeavesViewProps {
   project: Project;
@@ -30,6 +32,9 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) 
 );
 
 export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+  const [successModal, setSuccessModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+  const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   const attackLeaves = useMemo(() => {
     return project.needs
@@ -86,13 +91,22 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
           const updatedNeeds = [...project.needs, ...newLeaves];
           const updatedProject = addHistoryEntry({ ...project, needs: updatedNeeds }, `Imported ${newLeaves.length} attack leaves from threat catalog.`);
           onUpdateProject(updatedProject);
-          alert(`Successfully imported ${newLeaves.length} new attack leaves.`);
+          setSuccessModal({
+            isOpen: true,
+            message: `Successfully imported ${newLeaves.length} new attack leaves.`
+          });
         } else {
-          alert("No new attack leaves found in the catalog to import. They may already exist in the project.");
+          setErrorModal({
+            isOpen: true,
+            message: "No new attack leaves found in the catalog to import. They may already exist in the project."
+          });
         }
       } catch (error) {
         console.error('Failed to import threat catalog:', error);
-        alert(`Failed to import threat catalog. ${error instanceof Error ? error.message : 'Please check the file format.'}`);
+        setErrorModal({
+          isOpen: true,
+          message: `Failed to import threat catalog. ${error instanceof Error ? error.message : 'Please check the file format.'}`
+        });
       }
     };
     reader.readAsText(file);
@@ -164,30 +178,36 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
   const handleDelete = () => {
     if (isReadOnly || !selectedId) return;
 
-    if (window.confirm(`Are you sure you want to delete attack leaf ${selectedId}? This will remove it from all attack trees.`)) {
-      const newNeeds: SphinxNeed[] = [];
-      for (const need of project.needs) {
-        // Skip the need that is being deleted
-        if (need.id === selectedId) {
-          continue;
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Attack Leaf',
+      message: `Are you sure you want to delete attack leaf ${selectedId}? This will remove it from all attack trees.`,
+      onConfirm: () => {
+        const newNeeds: SphinxNeed[] = [];
+        for (const need of project.needs) {
+          // Skip the need that is being deleted
+          if (need.id === selectedId) {
+            continue;
+          }
+
+          // Check if the current need has links to the deleted need
+          if (need.links && need.links.includes(selectedId)) {
+            // If so, create a new need object with the link removed
+            newNeeds.push({
+              ...need,
+              links: need.links.filter(linkId => linkId !== selectedId),
+            });
+          } else {
+            // Otherwise, push the existing need object
+            newNeeds.push(need);
+          }
         }
 
-        // Check if the current need has links to the deleted need
-        if (need.links && need.links.includes(selectedId)) {
-          // If so, create a new need object with the link removed
-          newNeeds.push({
-            ...need,
-            links: need.links.filter(linkId => linkId !== selectedId),
-          });
-        } else {
-          // Otherwise, push the existing need object
-          newNeeds.push(need);
-        }
+        const updatedProject = addHistoryEntry({ ...project, needs: newNeeds }, `Deleted Attack Leaf ${selectedId}.`);
+        onUpdateProject(updatedProject);
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
       }
-
-      const updatedProject = addHistoryEntry({ ...project, needs: newNeeds }, `Deleted Attack Leaf ${selectedId}.`);
-      onUpdateProject(updatedProject);
-    }
+    });
   };
 
   return (
@@ -345,6 +365,44 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
           </div>
         )}
       </div>
+      {errorModal.isOpen && (
+        <ErrorModal
+          message={errorModal.message}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+        />
+      )}
+      {successModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setSuccessModal({ ...successModal, isOpen: false })}>
+          <div className="bg-vscode-bg-sidebar border border-green-500 rounded-lg shadow-xl w-full max-w-md flex flex-col animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-vscode-border flex items-center space-x-2 bg-green-900/20 rounded-t-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h2 className="text-lg font-bold text-green-500">Success</h2>
+            </div>
+            <div className="p-6">
+              <p className="text-vscode-text-primary">{successModal.message}</p>
+            </div>
+            <div className="flex justify-end space-x-4 p-4 border-t border-vscode-border bg-vscode-bg-sidebar rounded-b-lg">
+              <button
+                onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
+                className="px-4 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

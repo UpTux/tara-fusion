@@ -216,15 +216,32 @@ export interface SecurityClaim {
   // This relationship is maintained via ThreatScenario.securityClaimIds
 }
 
+export interface RelatedDocument {
+  id: string;
+  authors: string[];
+  title: string;
+  version: string;
+  url: string;
+  comment?: string;
+}
+
 export interface ImpactCategorySettings {
   categories: string[];
   justification?: string;
+}
+
+export enum TaraMethodology {
+  ATTACK_FEASIBILITY = 'Attack Feasibility Rating',
+  STRIDE = 'STRIDE',
+  LIKELIHOOD = 'Likelihood',
+  MORA = 'MoRA',
 }
 
 export interface Project {
   id: string;
   name: string;
   organizationId: string;
+  methodology: TaraMethodology; // New field for TARA methodology
   needs: SphinxNeed[];
   securityManager?: string;
   projectStatus?: ProjectStatus;
@@ -244,6 +261,7 @@ export interface Project {
   securityGoals?: SecurityGoal[];
   securityClaims?: SecurityClaim[];
   managementSummary?: string;
+  relatedDocuments?: RelatedDocument[];
 }
 
 export interface Organization {
@@ -299,6 +317,7 @@ export const projectViews = [
   '---',
   'Attack Trees',
   'Technical Attack Trees',
+  'MITRE ATT&CK Database',
   'Circumvent Trees',
   'Attack Leaves',
   '---',

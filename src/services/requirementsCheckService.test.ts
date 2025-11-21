@@ -5,7 +5,8 @@ import {
     Project,
     ProjectStatus,
     RiskTreatmentDecision,
-    SecurityProperty
+    SecurityProperty,
+    TaraMethodology,
 } from '../types';
 import {
     RequirementSeverity,
@@ -19,6 +20,7 @@ describe('Requirements Check Service', () => {
         id: 'test-proj',
         name: 'Test Project',
         organizationId: 'org-1',
+        methodology: TaraMethodology.ATTACK_FEASIBILITY,
         needs: [],
         projectStatus: ProjectStatus.IN_PROGRESS,
         history: [],

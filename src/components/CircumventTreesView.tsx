@@ -1,8 +1,10 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { NeedStatus, NeedType, Project, SecurityControl, SphinxNeed } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
+import { ErrorModal } from './modals/ErrorModal';
 
 interface CircumventTreesViewProps {
   project: Project;
@@ -11,6 +13,8 @@ interface CircumventTreesViewProps {
 }
 
 export const CircumventTreesView: React.FC<CircumventTreesViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
+  const [errorModal, setErrorModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+  const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   const circumventTreeRoots = useMemo(() =>
     project.needs.filter(n => n.tags?.includes('circumvent-root')),
@@ -67,21 +71,30 @@ export const CircumventTreesView: React.FC<CircumventTreesViewProps> = ({ projec
     if (!rootToDelete) return;
 
     if (rootToDelete.links && rootToDelete.links.length > 0) {
-      alert('Cannot delete a Circumvent Tree root that has children. Please go to the Attack Tree Editor and remove the links from this node first.');
+      setErrorModal({
+        isOpen: true,
+        message: 'Cannot delete a Circumvent Tree root that has children. Please go to the Attack Tree Editor and remove the links from this node first.'
+      });
       return;
     }
 
-    if (window.confirm(`Are you sure you want to delete the Circumvent Tree root ${rootId}? This will also unlink it from any parent nodes.`)) {
-      const updatedNeeds = project.needs
-        .filter(n => n.id !== rootId)
-        .map(n => ({
-          ...n,
-          links: (n.links || []).filter(linkId => linkId !== rootId)
-        }));
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Circumvent Tree',
+      message: `Are you sure you want to delete the Circumvent Tree root ${rootId}? This will also unlink it from any parent nodes.`,
+      onConfirm: () => {
+        const updatedNeeds = project.needs
+          .filter(n => n.id !== rootId)
+          .map(n => ({
+            ...n,
+            links: (n.links || []).filter(linkId => linkId !== rootId)
+          }));
 
-      const updatedProject = addHistoryEntry({ ...project, needs: updatedNeeds }, `Deleted Circumvent Tree root ${rootId}.`);
-      onUpdateProject(updatedProject);
-    }
+        const updatedProject = addHistoryEntry({ ...project, needs: updatedNeeds }, `Deleted Circumvent Tree root ${rootId}.`);
+        onUpdateProject(updatedProject);
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   return (
@@ -151,6 +164,21 @@ export const CircumventTreesView: React.FC<CircumventTreesViewProps> = ({ projec
           </tbody>
         </table>
       </div>
+      {errorModal.isOpen && (
+        <ErrorModal
+          message={errorModal.message}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+        />
+      )}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

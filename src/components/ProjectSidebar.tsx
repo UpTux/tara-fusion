@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { projectViews, ProjectViewType } from '../types';
 import { BeakerIcon } from './icons/BeakerIcon';
 import { ChartBarIcon } from './icons/ChartBarIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CubeIcon } from './icons/CubeIcon';
+import { DatabaseIcon } from './icons/DatabaseIcon';
 import { DocumentTextIcon } from './icons/DocumentTextIcon';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
 import { ViewfinderCircleIcon } from './icons/ViewfinderCircleIcon';
@@ -22,6 +24,9 @@ const getIconForView = (view: ProjectViewType) => {
     if (lowerView.includes('cockpit')) {
         return <ClockIcon />;
     }
+    if (lowerView.includes('mitre') || lowerView.includes('database')) {
+        return <DatabaseIcon />;
+    }
     if (lowerView.includes('misuse cases')) {
         return <BeakerIcon />;
     }
@@ -37,16 +42,31 @@ const getIconForView = (view: ProjectViewType) => {
     if (lowerView.includes('graph') || lowerView.includes('summary')) {
         return <ChartBarIcon />;
     }
+    if (lowerView.includes('related documents') || lowerView.includes('glossary')) {
+        return <DocumentTextIcon />;
+    }
     return <DocumentTextIcon />;
 };
 
 export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSelectView }) => {
+    const { t } = useTranslation();
+    const toCamelCase = (str: string) => {
+        return str
+            .split(' ')
+            .map((word, index) =>
+                index === 0
+                    ? word.toLowerCase()
+                    : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            )
+            .join('');
+    };
     return (
         <nav className="w-64 bg-vscode-bg-sidebar border-r border-vscode-border p-4 flex flex-col space-y-1 overflow-y-auto">
             {projectViews.map((view, index) => {
                 if (view === '---') {
                     return <div key={`spacer-${index}`} className="h-px bg-vscode-border my-2"></div>;
                 }
+                const translationKey = toCamelCase(view);
                 return (
                     <button
                         key={view}
@@ -62,7 +82,7 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSe
                         aria-current={activeView === view ? 'page' : undefined}
                     >
                         <IconWrapper>{getIconForView(view)}</IconWrapper>
-                        {view}
+                        {t(translationKey)}
                     </button>
                 );
             })}

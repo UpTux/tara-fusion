@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MisuseCase, Project } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface MisuseCasesViewProps {
   project: Project;
@@ -24,6 +25,7 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
   const [misuseCases, setMisuseCases] = useState<MisuseCase[]>(project.misuseCases || []);
   const [selectedId, setSelectedId] = useState<string | null>(misuseCases[0]?.id || null);
   const [editorState, setEditorState] = useState<MisuseCase | null>(null);
+  const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   const linkedThreatsMap = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -90,18 +92,24 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
 
   const handleDelete = () => {
     if (isReadOnly || !selectedId) return;
-    if (window.confirm(`Are you sure you want to delete misuse case ${selectedId}? This will also remove links from any threats.`)) {
-      const updatedMisuseCases = misuseCases.filter(a => a.id !== selectedId);
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Misuse Case',
+      message: `Are you sure you want to delete misuse case ${selectedId}? This will also remove links from any threats.`,
+      onConfirm: () => {
+        const updatedMisuseCases = misuseCases.filter(a => a.id !== selectedId);
 
-      const updatedThreats = (project.threats || []).map(t => ({
-        ...t,
-        misuseCaseIds: (t.misuseCaseIds || []).filter(mcId => mcId !== selectedId)
-      }));
+        const updatedThreats = (project.threats || []).map(t => ({
+          ...t,
+          misuseCaseIds: (t.misuseCaseIds || []).filter(mcId => mcId !== selectedId)
+        }));
 
-      const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases, threats: updatedThreats }, `Deleted misuse case ${selectedId}.`);
-      onUpdateProject(updatedProject);
-      setSelectedId(updatedMisuseCases[0]?.id || null);
-    }
+        const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases, threats: updatedThreats }, `Deleted misuse case ${selectedId}.`);
+        onUpdateProject(updatedProject);
+        setSelectedId(updatedMisuseCases[0]?.id || null);
+        setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   return (
@@ -186,6 +194,15 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
           </div>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Delete"
+        isDangerous={true}
+        onConfirm={confirmationModal.onConfirm}
+        onCancel={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

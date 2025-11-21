@@ -1,0 +1,67 @@
+# Dependabot configuration for TARA Fusion
+# Automatically checks for dependency updates and security vulnerabilities
+# https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "security"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"
+
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    # Separate PRs by dependency type
+    groups:
+      # Group production dependencies
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group development dependencies
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    # Security updates are always separate PRs
+    versioning-strategy: increase
+
+  # Docker dependencies (if using Dockerfile)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"

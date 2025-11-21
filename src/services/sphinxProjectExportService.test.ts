@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NeedStatus, NeedType, Project } from '../types';
+import { NeedStatus, NeedType, Project, TaraMethodology } from '../types';
 
 // Mock the template imports
 const mockConfPyTemplate = 'project = "{{PROJECT_NAME}}"';
@@ -104,6 +104,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: []
             };
 
@@ -118,6 +119,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -145,6 +147,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -183,6 +186,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -210,6 +214,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -266,6 +271,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -303,6 +309,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'CIR_001',
@@ -328,6 +335,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'REQ_001',
@@ -352,6 +360,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -389,6 +398,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -409,6 +419,202 @@ describe('sphinxProjectExportService', () => {
             expect(result).toMatch(/Attack Trees\n============\n/);
             // Check subsection header
             expect(result).toMatch(/Tree: Password Attack \(THR_001\)\n-+\n/);
+        });
+    });
+
+    describe('generateRelatedDocumentsRst', () => {
+        const rstListTable = (headers: string[], rows: string[][], title?: string, widths?: number[]): string => {
+            let rst = title ? `.. list-table:: ${title}\n` : `.. list-table::\n`;
+            rst += `   :header-rows: 1\n`;
+            if (widths) {
+                rst += `   :widths: ${widths.join(' ')}\n`;
+            }
+            rst += `\n`;
+
+            rst += `   * - ${headers.join('\n     - ')}\n`;
+
+            rows.forEach(row => {
+                rst += `   * - ${row.join('\n     - ')}\n`;
+            });
+
+            return rst + '\n';
+        };
+
+        const generateRelatedDocumentsRst = (project: Project): string => {
+            let content = rstHeader('Related Documents', 0);
+
+            if (!project.relatedDocuments || project.relatedDocuments.length === 0) {
+                content += 'No related documents have been defined for this project.\n\n';
+                return content;
+            }
+
+            content += 'The following documents are related to this threat analysis and risk assessment:\n\n';
+
+            const headers = ['ID', 'Title', 'Version', 'Authors', 'Link'];
+            const rows = project.relatedDocuments.map(doc => [
+                doc.id,
+                doc.title,
+                doc.version,
+                doc.authors.join(', '),
+                doc.url ? `:link:\`${doc.url}\`` : 'N/A'
+            ]);
+            content += rstListTable(headers, rows, undefined, [12, 25, 10, 25, 28]);
+
+            return content;
+        };
+
+        it('should generate RST for empty related documents', () => {
+            const project: Project = {
+                id: 'proj1',
+                name: 'Test Project',
+                organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
+                needs: []
+            };
+
+            const result = generateRelatedDocumentsRst(project);
+
+            expect(result).toContain('Related Documents');
+            expect(result).toContain('No related documents have been defined for this project.');
+        });
+
+        it('should generate RST for single related document', () => {
+            const project: Project = {
+                id: 'proj1',
+                name: 'Test Project',
+                organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
+                needs: [],
+                relatedDocuments: [
+                    {
+                        id: 'DOC_001',
+                        authors: ['John Doe'],
+                        title: 'Security Requirements',
+                        version: '1.0',
+                        url: 'https://example.com/doc.pdf',
+                        comment: 'Main requirements document'
+                    }
+                ]
+            };
+
+            const result = generateRelatedDocumentsRst(project);
+
+            expect(result).toContain('Related Documents');
+            expect(result).toContain('DOC_001');
+            expect(result).toContain('Security Requirements');
+            expect(result).toContain('1.0');
+            expect(result).toContain('John Doe');
+            expect(result).toContain(':link:`https://example.com/doc.pdf`');
+        });
+
+        it('should generate RST for multiple related documents', () => {
+            const project: Project = {
+                id: 'proj1',
+                name: 'Test Project',
+                organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
+                needs: [],
+                relatedDocuments: [
+                    {
+                        id: 'DOC_001',
+                        authors: ['John Doe', 'Jane Smith'],
+                        title: 'Security Requirements',
+                        version: '1.0',
+                        url: 'https://example.com/req.pdf'
+                    },
+                    {
+                        id: 'DOC_002',
+                        authors: ['Bob Johnson'],
+                        title: 'Architecture Document',
+                        version: '2.1',
+                        url: 'https://example.com/arch.pdf'
+                    }
+                ]
+            };
+
+            const result = generateRelatedDocumentsRst(project);
+
+            expect(result).toContain('DOC_001');
+            expect(result).toContain('DOC_002');
+            expect(result).toContain('John Doe, Jane Smith');
+            expect(result).toContain('Bob Johnson');
+            expect(result).toContain('Security Requirements');
+            expect(result).toContain('Architecture Document');
+        });
+
+        it('should handle documents without URLs', () => {
+            const project: Project = {
+                id: 'proj1',
+                name: 'Test Project',
+                organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
+                needs: [],
+                relatedDocuments: [
+                    {
+                        id: 'DOC_001',
+                        authors: ['John Doe'],
+                        title: 'Internal Notes',
+                        version: 'draft',
+                        url: ''
+                    }
+                ]
+            };
+
+            const result = generateRelatedDocumentsRst(project);
+
+            expect(result).toContain('DOC_001');
+            expect(result).toContain('Internal Notes');
+            expect(result).toContain('N/A');
+            expect(result).not.toContain(':link:');
+        });
+
+        it('should handle documents with multiple authors', () => {
+            const project: Project = {
+                id: 'proj1',
+                name: 'Test Project',
+                organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
+                needs: [],
+                relatedDocuments: [
+                    {
+                        id: 'DOC_001',
+                        authors: ['Alice', 'Bob', 'Charlie', 'Diana'],
+                        title: 'Collaborative Document',
+                        version: '3.0',
+                        url: 'https://example.com/collab.pdf'
+                    }
+                ]
+            };
+
+            const result = generateRelatedDocumentsRst(project);
+
+            expect(result).toContain('Alice, Bob, Charlie, Diana');
+        });
+
+        it('should generate proper RST table structure', () => {
+            const project: Project = {
+                id: 'proj1',
+                name: 'Test Project',
+                organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
+                needs: [],
+                relatedDocuments: [
+                    {
+                        id: 'DOC_001',
+                        authors: ['Author'],
+                        title: 'Test Doc',
+                        version: '1.0',
+                        url: 'https://example.com'
+                    }
+                ]
+            };
+
+            const result = generateRelatedDocumentsRst(project);
+
+            expect(result).toContain('.. list-table::');
+            expect(result).toContain(':header-rows: 1');
+            expect(result).toContain(':widths: 12 25 10 25 28');
+            expect(result).toMatch(/\* - ID\n\s+- Title\n\s+- Version\n\s+- Authors\n\s+- Link/);
         });
     });
 });

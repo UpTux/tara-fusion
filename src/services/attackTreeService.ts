@@ -3,110 +3,188 @@ import { calculateAP } from './riskService';
 
 type NeedsMap = Map<string, SphinxNeed>;
 
-function findAttackPathsRecursive(
+// Helper to combine two tuples by taking the MAX of each field (AND logic)
+function combineTuplesMax(t1: AttackPotentialTuple, t2: AttackPotentialTuple): AttackPotentialTuple {
+  return {
+    time: Math.max(t1.time, t2.time),
+    expertise: Math.max(t1.expertise, t2.expertise),
+    knowledge: Math.max(t1.knowledge, t2.knowledge),
+    access: Math.max(t1.access, t2.access),
+    equipment: Math.max(t1.equipment, t2.equipment),
+  };
+}
+
+interface NodeMetricsResult {
+  ap: number;
+  tuple: AttackPotentialTuple;
+  criticalPaths: string[][]; // List of paths (each path is a list of node IDs)
+}
+
+function calculateNodeMetricsBottomUp(
   nodeId: string,
   needsMap: NeedsMap,
-  memo: Map<string, string[][]>,
-  activeToeConfigs: Set<string>
-): string[][] {
-  const cached = memo.get(nodeId);
-  if (cached) {
-    return cached;
+  memo: Map<string, NodeMetricsResult | null>,
+  activeToeConfigs: Set<string>,
+  visiting: Set<string> // To detect cycles
+): NodeMetricsResult | null {
+  // Cycle detection
+  if (visiting.has(nodeId)) {
+    return null; // Treat cycle as invalid path
+  }
+
+  // Memoization
+  if (memo.has(nodeId)) {
+    return memo.get(nodeId) || null;
   }
 
   const node = needsMap.get(nodeId);
-  if (!node) return [];
+  if (!node) return null;
 
   // Check if node is deactivated by TOE configuration
   if (node.toeConfigurationIds && node.toeConfigurationIds.length > 0) {
     const isInactive = node.toeConfigurationIds.some(id => !activeToeConfigs.has(id));
     if (isInactive) {
-      memo.set(nodeId, []);
-      return []; // Prune this branch
+      memo.set(nodeId, null);
+      return null;
     }
   }
 
+  visiting.add(nodeId);
+
+  // Base case: Leaf node
   const isLeaf = node.type === NeedType.ATTACK && !node.logic_gate && !node.tags.includes('attack-root');
   if (isLeaf) {
-    return [[nodeId]];
+    const tuple = node.attackPotential || { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 };
+    const ap = calculateAP(tuple);
+    const result: NodeMetricsResult = {
+      ap,
+      tuple,
+      criticalPaths: [[nodeId]]
+    };
+    visiting.delete(nodeId);
+    memo.set(nodeId, result);
+    return result;
   }
 
+  // If not a leaf but has no links, treat as invalid/incomplete branch
   if (!node.links || node.links.length === 0) {
-    return isLeaf ? [[nodeId]] : [];
+    // Exception: If it's an attack-root with no children, it might be treated as a leaf if it has AP?
+    // But typically roots aggregate children. If a root has no children, it has no AP from children.
+    // Existing logic returned empty paths.
+    visiting.delete(nodeId);
+    memo.set(nodeId, null);
+    return null;
   }
 
-  if (node.logic_gate === 'OR') {
-    const paths = node.links.flatMap(childId => findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs));
-    memo.set(nodeId, paths);
-    return paths;
-  }
+  // Recursive step
+  const childResults: (NodeMetricsResult | null)[] = node.links.map(childId =>
+    calculateNodeMetricsBottomUp(childId, needsMap, memo, activeToeConfigs, visiting)
+  );
 
-  if (node.logic_gate === 'AND') {
-    const childPaths = node.links.map(childId => findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs));
+  // Filter out null results (pruned branches)
+  // If a child is null, it means that branch is invalid.
+  // For AND gate: If ANY child is invalid, the AND gate is invalid.
+  // For OR gate: If ALL children are invalid, the OR gate is invalid.
 
-    let combinedPaths: string[][] = [[]];
-    for (const paths of childPaths) {
-      if (paths.length === 0) continue;
-      const newCombinedPaths: string[][] = [];
-      for (const combined of combinedPaths) {
-        for (const p of paths) {
-          newCombinedPaths.push([...combined, ...p]);
+  let result: NodeMetricsResult | null = null;
+
+  // Default to AND if not specified (e.g. root node)
+  const logic = node.logic_gate || 'AND';
+
+  if (logic === 'OR') {
+    // OR Logic: Component-wise Min of valid children
+    const validChildren = childResults.filter((r): r is NodeMetricsResult => r !== null);
+
+    if (validChildren.length === 0) {
+      result = null;
+    } else {
+      // Calculate component-wise minimum tuple
+      const minTuple: AttackPotentialTuple = {
+        time: Infinity,
+        expertise: Infinity,
+        knowledge: Infinity,
+        access: Infinity,
+        equipment: Infinity
+      };
+
+      for (const child of validChildren) {
+        minTuple.time = Math.min(minTuple.time, child.tuple.time);
+        minTuple.expertise = Math.min(minTuple.expertise, child.tuple.expertise);
+        minTuple.knowledge = Math.min(minTuple.knowledge, child.tuple.knowledge);
+        minTuple.access = Math.min(minTuple.access, child.tuple.access);
+        minTuple.equipment = Math.min(minTuple.equipment, child.tuple.equipment);
+      }
+
+      const ap = calculateAP(minTuple);
+
+      // For critical paths, we still want to highlight the "easiest" path(s) in terms of total AP sum.
+      // Even though the parent AP is a mix, the attacker likely follows one path or another in reality,
+      // or we just need to show *some* path.
+      // Let's find the child with the minimum AP sum.
+      let minChildAP = Infinity;
+      for (const child of validChildren) {
+        if (child.ap < minChildAP) {
+          minChildAP = child.ap;
         }
       }
-      combinedPaths = newCombinedPaths;
-    }
-    memo.set(nodeId, combinedPaths);
-    return combinedPaths;
-  }
 
-  // Attack-root nodes without explicit logic gate should default to AND logic
-  if (node.tags.includes('attack-root') && node.links.length > 0) {
-    // Treat as AND: need to combine paths from all children
-    let combinedPaths: string[][] = [[]];
-    for (const childId of node.links) {
-      const childPaths = findAttackPathsRecursive(childId, needsMap, memo, activeToeConfigs);
-      if (childPaths.length === 0) {
-        memo.set(nodeId, []);
-        return [];
-      }
-      const newCombinedPaths: string[][] = [];
-      for (const existingPath of combinedPaths) {
-        for (const childPath of childPaths) {
-          newCombinedPaths.push([...existingPath, ...childPath]);
+      const minChildren = validChildren.filter(c => c.ap === minChildAP);
+
+      const combinedCriticalPaths: string[][] = [];
+      for (const child of minChildren) {
+        for (const path of child.criticalPaths) {
+          combinedCriticalPaths.push([nodeId, ...path]);
         }
       }
-      combinedPaths = newCombinedPaths;
+
+      result = {
+        ap,
+        tuple: minTuple,
+        criticalPaths: combinedCriticalPaths
+      };
     }
-    memo.set(nodeId, combinedPaths);
-    return combinedPaths;
+  } else {
+    // AND Logic: Max tuple of ALL children
+    // If any child is invalid (null), the AND gate cannot be satisfied.
+    if (childResults.some(r => r === null)) {
+      result = null;
+    } else {
+      const validChildren = childResults as NodeMetricsResult[];
+
+      // Combine tuples: Max of each field
+      const combinedTuple = validChildren.reduce((acc, curr) => combineTuplesMax(acc, curr.tuple), {
+        time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0
+      });
+
+      const ap = calculateAP(combinedTuple);
+
+      // Combine critical paths: Cartesian product of all children's critical paths
+      // Because ALL children must be attacked.
+      let combinedPaths: string[][] = [[]];
+      for (const child of validChildren) {
+        const newCombinedPaths: string[][] = [];
+        for (const existingPath of combinedPaths) {
+          for (const childPath of child.criticalPaths) {
+            newCombinedPaths.push([...existingPath, ...childPath]);
+          }
+        }
+        combinedPaths = newCombinedPaths;
+      }
+
+      // Add current node to all paths
+      const finalPaths = combinedPaths.map(path => [nodeId, ...path]);
+
+      result = {
+        ap,
+        tuple: combinedTuple,
+        criticalPaths: finalPaths
+      };
+    }
   }
 
-  return [];
-}
-
-
-function calculateAttackPathAP(pathLeaves: SphinxNeed[]): number {
-  if (pathLeaves.length === 0) return 0;
-
-  const maxTuple: AttackPotentialTuple = {
-    time: 0,
-    expertise: 0,
-    knowledge: 0,
-    access: 0,
-    equipment: 0,
-  };
-
-  for (const leaf of pathLeaves) {
-    if (leaf.attackPotential) {
-      maxTuple.time = Math.max(maxTuple.time, leaf.attackPotential.time);
-      maxTuple.expertise = Math.max(maxTuple.expertise, leaf.attackPotential.expertise);
-      maxTuple.knowledge = Math.max(maxTuple.knowledge, leaf.attackPotential.knowledge);
-      maxTuple.access = Math.max(maxTuple.access, leaf.attackPotential.access);
-      maxTuple.equipment = Math.max(maxTuple.equipment, leaf.attackPotential.equipment);
-    }
-  }
-
-  return calculateAP(maxTuple);
+  visiting.delete(nodeId);
+  memo.set(nodeId, result);
+  return result;
 }
 
 /**
@@ -149,7 +227,8 @@ export function calculateAttackTreeMetrics(
   includeCircumventTrees: boolean = false
 ): { attackPotential: number; criticalPaths: string[][] } | null {
   const needsMap = new Map(allNeeds.map(n => [n.id, n]));
-  const memo = new Map<string, string[][]>();
+  const memo = new Map<string, NodeMetricsResult | null>();
+  const visiting = new Set<string>();
 
   const activeToeConfigs = new Set(
     (toeConfigurations || []).filter(c => c.active).map(c => c.id)
@@ -168,30 +247,15 @@ export function calculateAttackTreeMetrics(
     })
   );
 
-  const attackPaths = findAttackPathsRecursive(rootId, filteredNeedsMap, memo, activeToeConfigs);
+  const result = calculateNodeMetricsBottomUp(rootId, filteredNeedsMap, memo, activeToeConfigs, visiting);
 
-  if (attackPaths.length === 0) {
+  if (!result) {
     return null;
   }
 
-  let minAP = Infinity;
-  const pathDetails: { path: string[], ap: number }[] = [];
-
-  for (const path of attackPaths) {
-    const uniqueLeaves = [...new Set(path)]; // Remove duplicate leaves if a node is reached twice
-    const leafNodes = uniqueLeaves.map(id => needsMap.get(id)).filter((node): node is SphinxNeed => node !== undefined);
-    const ap = calculateAttackPathAP(leafNodes);
-    minAP = Math.min(minAP, ap);
-    pathDetails.push({ path: uniqueLeaves, ap });
-  }
-
-  const criticalPaths = pathDetails
-    .filter(p => p.ap === minAP)
-    .map(p => p.path);
-
   return {
-    attackPotential: minAP,
-    criticalPaths: criticalPaths,
+    attackPotential: result.ap,
+    criticalPaths: result.criticalPaths,
   };
 }
 
@@ -231,42 +295,128 @@ export function isNodeInCircumventSubtree(nodeId: string, allNeeds: SphinxNeed[]
   return false;
 }
 
-export function traceCriticalPaths(rootId: string, criticalLeafSets: string[][], allNeeds: SphinxNeed[]): Set<string> {
-  const childToParentsMap = new Map<string, string[]>();
-  allNeeds.forEach(need => {
-    (need.links || []).forEach(link => {
-      if (!childToParentsMap.has(link)) {
-        childToParentsMap.set(link, []);
-      }
-      const parents = childToParentsMap.get(link);
-      if (parents) {
-        parents.push(need.id);
-      }
-    });
-  });
+/**
+ * Check if a node is part of a technical tree subtree
+ */
+export function isNodeInTechnicalSubtree(nodeId: string, allNeeds: SphinxNeed[]): boolean {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [];
 
-  const allCriticalNodes = new Set<string>();
+  // Find all technical tree roots
+  const technicalRoots = allNeeds.filter(n => n.tags.includes('technical-root'));
 
-  for (const leafSet of criticalLeafSets) {
-    const queue = [...leafSet];
-    const visited = new Set<string>(leafSet);
+  // For each technical tree root, traverse its subtree
+  for (const root of technicalRoots) {
+    queue.push(root.id);
+    visited.clear();
 
     while (queue.length > 0) {
       const currentId = queue.shift();
-      if (!currentId) continue;
-      allCriticalNodes.add(currentId);
+      if (!currentId || visited.has(currentId)) continue;
 
-      if (currentId === rootId) continue;
+      visited.add(currentId);
 
-      const parents = childToParentsMap.get(currentId) || [];
-      for (const parentId of parents) {
-        if (!visited.has(parentId)) {
-          visited.add(parentId);
-          queue.push(parentId);
-        }
+      if (currentId === nodeId) {
+        return true;
+      }
+
+      const currentNode = needsMap.get(currentId);
+      if (currentNode?.links) {
+        queue.push(...currentNode.links);
       }
     }
   }
+
+  return false;
+}
+
+/**
+ * Find the technical tree root that a node belongs to (if any)
+ */
+export function findTechnicalTreeRoot(nodeId: string, allNeeds: SphinxNeed[]): SphinxNeed | null {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [];
+
+  // Find all technical tree roots
+  const technicalRoots = allNeeds.filter(n => n.tags.includes('technical-root'));
+
+  // For each technical tree root, traverse its subtree
+  for (const root of technicalRoots) {
+    queue.push(root.id);
+    visited.clear();
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId || visited.has(currentId)) continue;
+
+      visited.add(currentId);
+
+      if (currentId === nodeId) {
+        return root;
+      }
+
+      const currentNode = needsMap.get(currentId);
+      if (currentNode?.links) {
+        queue.push(...currentNode.links);
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Find the circumvent tree root that a node belongs to (if any)
+ */
+export function findCircumventTreeRoot(nodeId: string, allNeeds: SphinxNeed[]): SphinxNeed | null {
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [];
+
+  // Find all circumvent tree roots
+  const circumventRoots = allNeeds.filter(n => n.tags.includes('circumvent-root'));
+
+  // For each circumvent tree root, traverse its subtree
+  for (const root of circumventRoots) {
+    queue.push(root.id);
+    visited.clear();
+
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId || visited.has(currentId)) continue;
+
+      visited.add(currentId);
+
+      if (currentId === nodeId) {
+        return root;
+      }
+
+      const currentNode = needsMap.get(currentId);
+      if (currentNode?.links) {
+        queue.push(...currentNode.links);
+      }
+    }
+  }
+
+  return null;
+}
+
+export function traceCriticalPaths(rootId: string, criticalPaths: string[][], allNeeds: SphinxNeed[]): Set<string> {
+  // The new criticalPaths structure already contains full paths from root to leaves (or vice versa, depending on construction).
+  // In calculateNodeMetricsBottomUp, we constructed paths as [nodeId, ...childPath].
+  // So they are full paths.
+  // We just need to collect all unique nodes from these paths.
+
+  const allCriticalNodes = new Set<string>();
+
+  for (const path of criticalPaths) {
+    for (const nodeId of path) {
+      allCriticalNodes.add(nodeId);
+    }
+  }
+
   return allCriticalNodes;
 }
 
@@ -285,10 +435,11 @@ export function calculateNodeMetrics(
 } | null {
   const needsMap = new Map(allNeeds.map(n => [n.id, n]));
   const node = needsMap.get(nodeId);
-
   if (!node || node.type !== NeedType.ATTACK) {
     return null;
   }
+  const memo = new Map<string, NodeMetricsResult | null>();
+  const visiting = new Set<string>();
 
   const activeToeConfigs = new Set(
     (toeConfigurations || []).filter(c => c.active).map(c => c.id)
@@ -307,11 +458,9 @@ export function calculateNodeMetrics(
     })
   );
 
-  // Check if this node has any attack paths
-  const memo = new Map<string, string[][]>();
-  const attackPaths = findAttackPathsRecursive(nodeId, filteredNeedsMap, memo, activeToeConfigs);
+  const result = calculateNodeMetricsBottomUp(nodeId, filteredNeedsMap, memo, activeToeConfigs, visiting);
 
-  if (attackPaths.length === 0) {
+  if (!result) {
     return {
       attackPotential: Infinity,
       attackPotentialTuple: { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 },
@@ -319,43 +468,38 @@ export function calculateNodeMetrics(
     };
   }
 
-  // Calculate the minimum AP and the corresponding attack potential tuple
-  let minAP = Infinity;
-  let minAPTuple: AttackPotentialTuple = { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 };
+  return {
+    attackPotential: result.ap,
+    attackPotentialTuple: result.tuple,
+    hasSubtree: true
+  };
+}
 
-  for (const path of attackPaths) {
-    const uniqueLeaves = [...new Set(path)];
-    const leafNodes = uniqueLeaves.map(id => needsMap.get(id)).filter((n): n is SphinxNeed => n !== undefined);
+/**
+ * Detects if adding a link from sourceId to targetId would create a cycle.
+ * Returns true if a cycle would be created (i.e., source is reachable from target).
+ */
+export function detectCycle(sourceId: string, targetId: string, allNeeds: SphinxNeed[]): boolean {
+  if (sourceId === targetId) return true;
 
-    // Calculate the max tuple for this path (AND logic across leaves)
-    const pathTuple: AttackPotentialTuple = {
-      time: 0,
-      expertise: 0,
-      knowledge: 0,
-      access: 0,
-      equipment: 0,
-    };
+  const needsMap = new Map(allNeeds.map(n => [n.id, n]));
+  const visited = new Set<string>();
+  const queue: string[] = [targetId];
 
-    for (const leaf of leafNodes) {
-      if (leaf.attackPotential) {
-        pathTuple.time = Math.max(pathTuple.time, leaf.attackPotential.time);
-        pathTuple.expertise = Math.max(pathTuple.expertise, leaf.attackPotential.expertise);
-        pathTuple.knowledge = Math.max(pathTuple.knowledge, leaf.attackPotential.knowledge);
-        pathTuple.access = Math.max(pathTuple.access, leaf.attackPotential.access);
-        pathTuple.equipment = Math.max(pathTuple.equipment, leaf.attackPotential.equipment);
-      }
-    }
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (!currentId) continue;
 
-    const pathAP = calculateAP(pathTuple);
-    if (pathAP < minAP) {
-      minAP = pathAP;
-      minAPTuple = pathTuple;
+    if (currentId === sourceId) return true;
+
+    if (visited.has(currentId)) continue;
+    visited.add(currentId);
+
+    const node = needsMap.get(currentId);
+    if (node?.links) {
+      queue.push(...node.links);
     }
   }
 
-  return {
-    attackPotential: minAP,
-    attackPotentialTuple: minAPTuple,
-    hasSubtree: true
-  };
+  return false;
 }
