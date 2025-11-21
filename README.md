@@ -10,7 +10,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/patdhlk/tara-fusion)](https://github.com/uptux/tara-fusion/issues)
 [![GitHub stars](https://img.shields.io/github/stars/patdhlk/tara-fusion)](https://github.com/uptux/tara-fusion/stargazers)
 
-TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis and Risk Assessment (TARA)** for security-critical systems. It combines traditional TARA methodologies with Threat intelligence using Google's Gemini API, providing an integrated environment for security analysis, risk assessment, and documentation generation.
+TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis and Risk Assessment (TARA)** for security-critical systems.
 
 **Available as:**
 
@@ -24,7 +24,7 @@ TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis a
 TARA Fusion streamlines the security assessment process by providing:
 
 - **Visual Attack Tree Editor** - Create and visualize attack paths with an intuitive graphical interface
-- **Threat Generation** - Leverage Gemini AI to discover potential threats and attack scenarios
+- **Threat Generation - PLANNED** - Leverage (local-only) AI to discover potential threats and attack scenarios
 - **Comprehensive Risk Management** - Track threats, assets, damage scenarios, and mitigation strategies
 - **Multi-User Collaboration** - Role-based access control for teams and organizations
 - **Documentation Export** - Generate sphinx-needs compatible documentation for integration with technical documentation systems
@@ -99,7 +99,6 @@ TARA Fusion streamlines the security assessment process by providing:
 
 - **Node.js** (v18 or higher recommended)
 - **npm** or **yarn**
-- **Gemini API Key** (for AI-powered features)
 
 ### Installation
 
@@ -116,23 +115,13 @@ TARA Fusion streamlines the security assessment process by providing:
    npm install
    ```
 
-3. **Configure environment**
-
-   Create a `.env.local` file in the root directory:
-
-   ```env
-   VITE_GEMINI_API_KEY=your_gemini_api_key_here
-   ```
-
-   Get your Gemini API key from: <https://aistudio.google.com/app/apikey>
-
-4. **Start the development server**
+3. **Start the development server**
 
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
+4. **Open your browser**
 
    Navigate to `http://localhost:5173` (or the URL shown in your terminal)
 
