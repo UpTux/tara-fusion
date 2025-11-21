@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NeedStatus, NeedType, Project } from '../types';
+import { NeedStatus, NeedType, Project, TaraMethodology } from '../types';
 
 // Mock the template imports
 const mockConfPyTemplate = 'project = "{{PROJECT_NAME}}"';
@@ -104,6 +104,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: []
             };
 
@@ -118,6 +119,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -145,6 +147,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -183,6 +186,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -210,6 +214,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -266,6 +271,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -303,6 +309,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'CIR_001',
@@ -328,6 +335,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'REQ_001',
@@ -352,6 +360,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -389,6 +398,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [
                     {
                         id: 'THR_001',
@@ -458,6 +468,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: []
             };
 
@@ -472,6 +483,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [],
                 relatedDocuments: [
                     {
@@ -500,6 +512,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [],
                 relatedDocuments: [
                     {
@@ -534,6 +547,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [],
                 relatedDocuments: [
                     {
@@ -559,6 +573,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [],
                 relatedDocuments: [
                     {
@@ -581,6 +596,7 @@ describe('sphinxProjectExportService', () => {
                 id: 'proj1',
                 name: 'Test Project',
                 organizationId: 'org1',
+                methodology: TaraMethodology.ATTACK_FEASIBILITY,
                 needs: [],
                 relatedDocuments: [
                     {

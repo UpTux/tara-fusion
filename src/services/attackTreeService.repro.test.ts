@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AttackPotentialTuple, NeedType, SphinxNeed } from '../types';
+import { AttackPotentialTuple, NeedStatus, NeedType, SphinxNeed } from '../types';
 import { calculateAttackTreeMetrics } from './attackTreeService';
 
 const createNeed = (
@@ -14,7 +14,7 @@ const createNeed = (
     title: `Title for ${id}`,
     description: `Description for ${id}`,
     type,
-    status: 'open',
+    status: NeedStatus.OPEN,
     tags,
     links,
     logic_gate,
