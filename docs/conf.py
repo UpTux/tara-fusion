@@ -13,8 +13,8 @@ from datetime import datetime
 project = 'TARA Fusion'
 copyright = f'{datetime.now().year}, TARA Fusion Team'
 author = 'TARA Fusion Team'
-release = '0.2.0'
-version = '0.2.0'
+release = '0.2.1'
+version = '0.2.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
