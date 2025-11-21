@@ -349,7 +349,7 @@ jobs:
           # Verify SLSA provenance (requires slsa-verifier)
           slsa-verifier verify-artifact \
             --provenance-path *.intoto.jsonl \
-            --source-uri github.com/patdhlk/tara-fusion \
+            --source-uri github.com/uptux/tara-fusion \
             tara-fusion-${{ needs.build.outputs.version }}.tar.gz
           ```
 

@@ -111,7 +111,7 @@ function createMenu() {
           label: 'Learn More',
           click: async () => {
             const { shell } = require('electron');
-            await shell.openExternal('https://github.com/patdhlk/tara-fusion');
+            await shell.openExternal('https://github.com/uptux/tara-fusion');
           }
         }
       ]

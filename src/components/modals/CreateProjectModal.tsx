@@ -54,7 +54,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         <label className="block text-sm font-medium text-vscode-text-secondary mb-3">
                             TARA Methodology
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {/* Attack Feasibility Rating - Active */}
                             <div
                                 className={`border rounded-md p-4 cursor-pointer transition-all ${selectedMethodology === TaraMethodology.ATTACK_FEASIBILITY
@@ -93,6 +93,17 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                 </div>
                                 <p className="text-xs text-vscode-text-secondary">
                                     Risk assessment based on Likelihood and Impact matrices.
+                                </p>
+                            </div>
+
+                            {/* MoRA - Disabled Placeholder */}
+                            <div className="border border-vscode-border/50 rounded-md p-4 opacity-50 cursor-not-allowed bg-vscode-bg-input/30">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="font-semibold text-vscode-text-secondary">MoRA</span>
+                                    <span className="text-[10px] uppercase border border-vscode-border px-1 rounded text-vscode-text-secondary">Coming Soon</span>
+                                </div>
+                                <p className="text-xs text-vscode-text-secondary">
+                                    Modular Risk Assessment for flexible, component-based threat analysis.
                                 </p>
                             </div>
                         </div>

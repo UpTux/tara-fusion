@@ -1,8 +1,33 @@
 {
-  "name": "tara-fusion---ai-powered-threat-analysis",
-  "private": true,
-  "version": "0.0.0",
+  "name": "tara-fusion",
+  "version": "0.1.0",
+  "description": "AI-Powered Threat Analysis & Risk Assessment tool for security-critical systems",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uptux/tara-fusion.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uptux/tara-fusion/issues"
+  },
+  "homepage": "https://github.com/uptux/tara-fusion#readme",
+  "keywords": [
+    "threat-analysis",
+    "risk-assessment",
+    "tara",
+    "security",
+    "attack-trees",
+    "iso-21434",
+    "cybersecurity",
+    "threat-modeling",
+    "ai",
+    "gemini"
+  ],
+  "author": {
+    "name": "TARA Fusion Team",
+    "email": "info@tara-fusion.com"
+  },
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

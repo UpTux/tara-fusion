@@ -1,15 +1,19 @@
 # TARA Fusion - AI-Powered Threat Analysis & Risk Assessment
 
-[![CI](https://github.com/patdhlk/tara-fusion/actions/workflows/ci.yml/badge.svg)](https://github.com/patdhlk/tara-fusion/actions/workflows/ci.yml)
+[![CI](https://github.com/uptux/tara-fusion/actions/workflows/ci.yml/badge.svg)](https://github.com/uptux/tara-fusion/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/github/patdhlk/tara-fusion/graph/badge.svg?token=GWIX6DAEBT)](https://codecov.io/github/patdhlk/tara-fusion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.2-61dafb)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6.2-646cff)](https://vitejs.dev/)
-[![codecov](https://codecov.io/github/patdhlk/tara-fusion/graph/badge.svg?token=GWIX6DAEBT)](https://codecov.io/github/patdhlk/tara-fusion)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GitHub issues](https://img.shields.io/github/issues/patdhlk/tara-fusion)](https://github.com/uptux/tara-fusion/issues)
+[![GitHub stars](https://img.shields.io/github/stars/patdhlk/tara-fusion)](https://github.com/uptux/tara-fusion/stargazers)
 
 TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis and Risk Assessment (TARA)** for security-critical systems. It combines traditional TARA methodologies with AI-powered threat intelligence using Google's Gemini API, providing an integrated environment for security analysis, risk assessment, and documentation generation.
 
 **Available as:**
+
 - 🌐 **Web Application** - Run in any modern browser
 - 💻 **Desktop Application** - Native app for macOS, Windows, and Linux (see [Electron App](#electron-desktop-app))
 
@@ -102,7 +106,7 @@ TARA Fusion streamlines the security assessment process by providing:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/patdhlk/tara-fusion.git
+   git clone https://github.com/uptux/tara-fusion.git
    cd tara-fusion
    ```
 
@@ -176,7 +180,7 @@ TARA Fusion is also available as a native desktop application for macOS, Windows
 
 #### Download Desktop App
 
-Download pre-built desktop apps from the [Releases](https://github.com/patdhlk/tara-fusion/releases) page:
+Download pre-built desktop apps from the [Releases](https://github.com/uptux/tara-fusion/releases) page:
 
 - **macOS**: Download `.dmg` file for your architecture (Intel, Apple Silicon, or Universal)
 - **Windows**: Download `.exe` installer for your architecture (x64 or ARM64)
@@ -274,13 +278,34 @@ For more details, see the [app/README.md](app/README.md).
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or suggesting ideas, your help is appreciated.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Quick Start
+
+1. **Fork the repository** on GitHub
+2. **Clone your fork**: `git clone https://github.com/YOUR_USERNAME/tara-fusion.git`
+3. **Create a branch**: `git checkout -b feature/your-feature-name`
+4. **Make your changes** and commit them with clear messages
+5. **Push to your fork**: `git push origin feature/your-feature-name`
+6. **Open a Pull Request** against the `main` branch
+
+### Guidelines
+
+Please read our [Contributing Guide](CONTRIBUTING.md) for detailed information on:
+
+- Development setup and workflow
+- Coding standards and best practices
+- Testing requirements
+- Commit message conventions
+- Pull request process
+
+### Code of Conduct
+
+This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
+### Good First Issues
+
+New to the project? Look for issues labeled [`good first issue`](https://github.com/uptux/tara-fusion/labels/good%20first%20issue) - these are great starting points for contributors.
 
 ---
 
@@ -297,10 +322,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 🔒 Security
+
+Found a security vulnerability? Please read our [Security Policy](SECURITY.md) for responsible disclosure guidelines. Do not report security issues publicly.
+
+---
+
 ## 📧 Contact & Support
 
-- **Repository**: [github.com/patdhlk/tara-fusion](https://github.com/patdhlk/tara-fusion)
-- **Issues**: [GitHub Issues](https://github.com/patdhlk/tara-fusion/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/uptux/tara-fusion/issues)
+- **Discussions**: [Ask questions and share ideas](https://github.com/uptux/tara-fusion/discussions)
+- **Email**: <info@tara-fusion.com>
+- **Security Issues**: See [SECURITY.md](SECURITY.md)
+
+---
+
+## 📜 Citation
+
+If you use TARA Fusion in your research or project, please cite:
+
+```bibtex
+@software{tara_fusion,
+  title = {TARA Fusion: AI-Powered Threat Analysis \& Risk Assessment},
+  author = {TARA Fusion Team},
+  year = {2025},
+  url = {https://github.com/uptux/tara-fusion},
+  license = {MIT}
+}
+```
 
 ---
 

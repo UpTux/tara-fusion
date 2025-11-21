@@ -1,0 +1,41 @@
+[project]
+name = "tara-fusion-docs"
+version = "0.1.0"
+description = "Documentation for TARA Fusion - AI-Powered Threat Analysis & Risk Assessment"
+authors = [{ name = "TARA Fusion Team", email = "info@tara-fusion.com" }]
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+dependencies = [
+    "furo>=2024.1.29",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-design>=0.6.1",
+    "myst-parser>=2.0.0",
+    "sphinx-needs>=6.1.0",
+    "sphinx-code-tabs>=0.5.5",
+    "sphinxcontrib-typer>=0.5.1",
+    "sphinxcontrib-video>=0.4.1",
+    "furo>=2024.5.6",
+
+]
+
+[project.optional-dependencies]
+dev = ["sphinx-autobuild>=2024.2.4"]
+
+[project.urls]
+Homepage = "https://github.com/uptux/tara-fusion"
+Documentation = "https://patdhlk.github.io/tara-fusion"
+Repository = "https://github.com/uptux/tara-fusion"
+Issues = "https://github.com/uptux/tara-fusion/issues"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = []
+
+[tool.sphinx]
+source-dir = "."
+build-dir = "_build"

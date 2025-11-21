@@ -77,27 +77,27 @@ jobs:
         run: |
           # Find and hash all distributable files
           find . -type f \( -name "*.dmg" -o -name "*.zip" \) > files.txt
-          
+
           # Separate by architecture
           grep "x64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-x64.txt || true
           grep "arm64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-arm64.txt || true
           grep "universal" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-universal.txt || true
-          
+
           cd ..
-          
+
           # Generate base64-encoded hashes for provenance
           if [ -f checksums-mac-x64.txt ]; then
             echo "hashes-x64=$(cat checksums-mac-x64.txt | base64 -w0 2>/dev/null || cat checksums-mac-x64.txt | base64)" >> $GITHUB_OUTPUT
           fi
-          
+
           if [ -f checksums-mac-arm64.txt ]; then
             echo "hashes-arm64=$(cat checksums-mac-arm64.txt | base64 -w0 2>/dev/null || cat checksums-mac-arm64.txt | base64)" >> $GITHUB_OUTPUT
           fi
-          
+
           if [ -f checksums-mac-universal.txt ]; then
             echo "hashes-universal=$(cat checksums-mac-universal.txt | base64 -w0 2>/dev/null || cat checksums-mac-universal.txt | base64)" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "## 🍎 macOS Build Checksums" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat checksums-mac-*.txt 2>/dev/null || echo "No checksums generated"
@@ -171,22 +171,22 @@ jobs:
         run: |
           # Find and hash all distributable files
           find . -type f \( -name "*.exe" -o -name "*.zip" \) > files.txt
-          
+
           # Separate by architecture
           grep "x64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-x64.txt || true
           grep "arm64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-arm64.txt || true
-          
+
           cd ..
-          
+
           # Generate base64-encoded hashes for provenance
           if [ -f checksums-win-x64.txt ]; then
             echo "hashes-x64=$(cat checksums-win-x64.txt | base64 -w0)" >> $GITHUB_OUTPUT
           fi
-          
+
           if [ -f checksums-win-arm64.txt ]; then
             echo "hashes-arm64=$(cat checksums-win-arm64.txt | base64 -w0)" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "## 🪟 Windows Build Checksums" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat checksums-win-*.txt 2>/dev/null || echo "No checksums generated"
@@ -258,22 +258,22 @@ jobs:
         run: |
           # Find and hash all distributable files
           find . -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" \) > files.txt
-          
+
           # Separate by architecture
           grep "x64\|amd64\|x86_64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-x64.txt || true
           grep "arm64\|aarch64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-arm64.txt || true
-          
+
           cd ..
-          
+
           # Generate base64-encoded hashes for provenance
           if [ -f checksums-linux-x64.txt ]; then
             echo "hashes-x64=$(cat checksums-linux-x64.txt | base64 -w0)" >> $GITHUB_OUTPUT
           fi
-          
+
           if [ -f checksums-linux-arm64.txt ]; then
             echo "hashes-arm64=$(cat checksums-linux-arm64.txt | base64 -w0)" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "## 🐧 Linux Build Checksums" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat checksums-linux-*.txt 2>/dev/null || echo "No checksums generated"
@@ -309,12 +309,12 @@ jobs:
         id: combine
         run: |
           find artifacts -name "checksums-*.txt" -exec cat {} \; > all-checksums.txt
-          
+
           echo "## 🔐 Combined Checksums for All Platforms" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat all-checksums.txt
           echo '```' >> $GITHUB_STEP_SUMMARY
-          
+
           # Create base64 encoded hashes for SLSA provenance
           echo "hashes=$(cat all-checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
@@ -340,7 +340,14 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: [build-mac, build-windows, build-linux, provenance, generate-combined-hashes]
+    needs:
+      [
+        build-mac,
+        build-windows,
+        build-linux,
+        provenance,
+        generate-combined-hashes,
+      ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -362,14 +369,14 @@ jobs:
       - name: Organize artifacts
         run: |
           mkdir -p release-artifacts
-          
+
           # Copy all build artifacts
           find artifacts -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" \) -exec cp {} release-artifacts/ \;
-          
+
           # Copy checksum files
           find artifacts -name "checksums-*.txt" -exec cp {} release-artifacts/ \;
           find artifacts -name "all-checksums.txt" -exec cp {} release-artifacts/ \;
-          
+
           # List all files
           echo "## 📦 Release Artifacts" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
@@ -418,7 +425,7 @@ jobs:
           # Verify SLSA provenance (requires slsa-verifier)
           slsa-verifier verify-artifact \
             --provenance-path *.intoto.jsonl \
-            --source-uri github.com/patdhlk/tara-fusion \
+            --source-uri github.com/uptux/tara-fusion \
             <artifact-filename>
           ```
 
@@ -446,7 +453,7 @@ jobs:
           3. Follow the installation wizard
 
           #### Linux
-          
+
           **AppImage** (easiest):
           ```bash
           chmod +x TARA-Fusion-*.AppImage
@@ -497,7 +504,7 @@ jobs:
 
           ---
 
-          For more information, visit: https://github.com/patdhlk/tara-fusion
+          For more information, visit: https://github.com/uptux/tara-fusion
           EOF
           cat release_notes.md
 

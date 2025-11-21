@@ -7,9 +7,23 @@
     "name": "TARA Fusion Team",
     "email": "info@tara-fusion.com"
   },
-  "homepage": "https://github.com/patdhlk/tara-fusion",
+  "homepage": "https://github.com/uptux/tara-fusion",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uptux/tara-fusion.git",
+    "directory": "app"
+  },
+  "bugs": {
+    "url": "https://github.com/uptux/tara-fusion/issues"
+  },
+  "keywords": [
+    "electron",
+    "desktop-app",
+    "tara",
+    "threat-analysis",
+    "security"
+  ],
   "license": "MIT",
-  "private": true,
   "scripts": {
     "start": "electron .",
     "dev": "electron .",

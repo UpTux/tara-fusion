@@ -26,3 +26,26 @@ dist-web
 
 src/.env
 src/coverage
+
+# sphinx documentation build
+docs/_build/
+
+# coverage files
+.coverage
+coverage.xml
+
+# python generated files
+.ruff_cache
+.pytest_cache
+.mypy_cache
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+
+# lock files
+requirements.lock
+requirements-dev.lock

@@ -234,6 +234,7 @@ export enum TaraMethodology {
   ATTACK_FEASIBILITY = 'Attack Feasibility Rating',
   STRIDE = 'STRIDE',
   LIKELIHOOD = 'Likelihood',
+  MORA = 'MoRA',
 }
 
 export interface Project {
