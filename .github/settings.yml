@@ -1,0 +1,59 @@
+# GitHub Repository Settings for SLSA Level 3 Compliance
+# This file can be used with the Probot Settings app or as a reference
+# for manual configuration
+
+repository:
+  name: tara-fusion
+  description: "TARA Fusion - Threat Analysis & Risk Assessment"
+  homepage: https://github.com/uptux/tara-fusion
+  topics:
+    - security
+    - threat-analysis
+    - risk-assessment
+    - tara
+    - slsa
+    - supply-chain-security
+    - cybersecurity
+    - CRA
+    - cyber-resilience-act
+  private: false
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+  default_branch: main
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+
+# Branch Protection Rules for SLSA Level 3
+branches:
+  - name: main
+    protection:
+      # Required for SLSA Level 3
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+        require_last_push_approval: true
+
+      # Required status checks
+      required_status_checks:
+        strict: true
+        contexts:
+          - "build (20.x)"
+          - "build (22.x)"
+          - "build (25.x)"
+          - "lint"
+
+      # Additional protections
+      enforce_admins: false # Allow admins to bypass for emergency fixes
+      required_linear_history: false
+      allow_force_pushes: false
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: true
+
+      # Require signed commits (recommended for L3)
+      required_signatures: false # Optional, but recommended
