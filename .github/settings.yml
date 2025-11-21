@@ -4,8 +4,8 @@
 
 repository:
   name: tara-fusion
-  description: "TARA Fusion - AI-Powered Threat Analysis & Risk Assessment"
-  homepage: https://github.com/patdhlk/tara-fusion
+  description: "TARA Fusion - Threat Analysis & Risk Assessment"
+  homepage: https://github.com/uptux/tara-fusion
   topics:
     - security
     - threat-analysis
@@ -13,6 +13,9 @@ repository:
     - tara
     - slsa
     - supply-chain-security
+    - cybersecurity
+    - CRA
+    - cyber-resilience-act
   private: false
   has_issues: true
   has_projects: true
@@ -20,7 +23,7 @@ repository:
   has_downloads: true
   default_branch: main
   allow_squash_merge: true
-  allow_merge_commit: true
+  allow_merge_commit: false
   allow_rebase_merge: true
   delete_branch_on_merge: true
 
@@ -43,7 +46,6 @@ branches:
           - "build (22.x)"
           - "build (25.x)"
           - "lint"
-          - "security"
 
       # Additional protections
       enforce_admins: false # Allow admins to bypass for emergency fixes
@@ -55,17 +57,3 @@ branches:
 
       # Require signed commits (recommended for L3)
       required_signatures: false # Optional, but recommended
-
-  - name: develop
-    protection:
-      required_pull_request_reviews:
-        required_approving_review_count: 1
-        dismiss_stale_reviews: true
-      required_status_checks:
-        strict: true
-        contexts:
-          - "build (20.x)"
-          - "lint"
-      enforce_admins: false
-      allow_force_pushes: false
-      allow_deletions: false
