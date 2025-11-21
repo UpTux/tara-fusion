@@ -207,37 +207,7 @@ For more details, see the [app/README.md](app/README.md).
 
 ---
 
-## 🔐 Security & Supply Chain
-
-TARA Fusion is **SLSA Level 3 compliant**, providing the highest level of supply chain security:
-
-- ✅ **Fully Scripted Build**: Automated build process via GitHub Actions
-- ✅ **Provenance Generation**: Every release includes SLSA Level 3 attestation
-- ✅ **Non-Forgeable Provenance**: Cryptographically signed with Sigstore
-- ✅ **Build Isolation**: Hardened build platform with GitHub-hosted runners
-- ✅ **Verified Artifacts**: All releases include SHA-256 checksums
-- ✅ **Reproducible Builds**: Locked dependencies ensure consistency
-- ✅ **Branch Protection**: Required reviews and status checks
-- ✅ **Transparent Audit Trail**: Complete build process documentation
-
-### Verifying Release Artifacts
-
-```bash
-# Verify checksums
-sha256sum -c checksums.txt
-
-# Verify SLSA provenance (requires slsa-verifier)
-slsa-verifier verify-artifact \
-  --provenance-path *.intoto.jsonl \
-  --source-uri github.com/patdhlk/tara-fusion \
-  tara-fusion-*.tar.gz
-```
-
-For detailed security information, see [SECURITY.md](SECURITY.md).
-
----
-
-## �📖 Usage Guide
+## 📖 Usage Guide
 
 ### Creating Your First TARA Project
 
