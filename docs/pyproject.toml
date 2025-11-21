@@ -1,7 +1,7 @@
 [project]
 name = "tara-fusion-docs"
 version = "0.1.0"
-description = "Documentation for TARA Fusion - AI-Powered Threat Analysis & Risk Assessment"
+description = "Documentation for TARA Fusion - Threat Analysis & Risk Assessment"
 authors = [{ name = "TARA Fusion Team", email = "info@tara-fusion.com" }]
 requires-python = ">=3.10"
 readme = "README.md"

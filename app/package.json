@@ -1,7 +1,7 @@
 {
   "name": "tara-fusion-electron",
   "version": "0.1.0",
-  "description": "TARA Fusion - AI-Powered Threat Analysis & Risk Assessment Desktop App",
+  "description": "TARA Fusion - Threat Analysis & Risk Assessment Desktop App",
   "main": "main.js",
   "author": {
     "name": "TARA Fusion Team",
@@ -130,7 +130,7 @@
       "category": "Development",
       "maintainer": "TARA Fusion Team <info@tarafusion.com>",
       "vendor": "TARA Fusion Team",
-      "synopsis": "AI-Powered Threat Analysis & Risk Assessment"
+      "synopsis": "Threat Analysis & Risk Assessment"
     },
     "nsis": {
       "oneClick": false,

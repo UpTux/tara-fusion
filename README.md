@@ -1,4 +1,4 @@
-# TARA Fusion - AI-Powered Threat Analysis & Risk Assessment
+# TARA Fusion - Threat Analysis & Risk Assessment
 
 [![CI](https://github.com/uptux/tara-fusion/actions/workflows/ci.yml/badge.svg)](https://github.com/uptux/tara-fusion/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/patdhlk/tara-fusion/graph/badge.svg?token=GWIX6DAEBT)](https://codecov.io/github/patdhlk/tara-fusion)
@@ -10,7 +10,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/patdhlk/tara-fusion)](https://github.com/uptux/tara-fusion/issues)
 [![GitHub stars](https://img.shields.io/github/stars/patdhlk/tara-fusion)](https://github.com/uptux/tara-fusion/stargazers)
 
-TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis and Risk Assessment (TARA)** for security-critical systems. It combines traditional TARA methodologies with AI-powered threat intelligence using Google's Gemini API, providing an integrated environment for security analysis, risk assessment, and documentation generation.
+TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis and Risk Assessment (TARA)** for security-critical systems. It combines traditional TARA methodologies with Threat intelligence using Google's Gemini API, providing an integrated environment for security analysis, risk assessment, and documentation generation.
 
 **Available as:**
 
@@ -24,7 +24,7 @@ TARA Fusion is a comprehensive web-based tool for conducting **Threat Analysis a
 TARA Fusion streamlines the security assessment process by providing:
 
 - **Visual Attack Tree Editor** - Create and visualize attack paths with an intuitive graphical interface
-- **AI-Powered Threat Generation** - Leverage Gemini AI to discover potential threats and attack scenarios
+- **Threat Generation** - Leverage Gemini AI to discover potential threats and attack scenarios
 - **Comprehensive Risk Management** - Track threats, assets, damage scenarios, and mitigation strategies
 - **Multi-User Collaboration** - Role-based access control for teams and organizations
 - **Documentation Export** - Generate sphinx-needs compatible documentation for integration with technical documentation systems
@@ -263,7 +263,7 @@ For more details, see the [app/README.md](app/README.md).
 
 ### AI & Services
 
-- **Google Gemini API** - AI-powered threat analysis
+- **Google Gemini API** - Threat analysis
 - **html-to-image** - Export attack trees as images
 - **JSZip** - Project packaging and export
 
@@ -343,7 +343,7 @@ If you use TARA Fusion in your research or project, please cite:
 
 ```bibtex
 @software{tara_fusion,
-  title = {TARA Fusion: AI-Powered Threat Analysis \& Risk Assessment},
+  title = {TARA Fusion: Threat Analysis \& Risk Assessment},
   author = {TARA Fusion Team},
   year = {2025},
   url = {https://github.com/uptux/tara-fusion},
