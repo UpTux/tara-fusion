@@ -25,7 +25,7 @@ dev = ["sphinx-autobuild>=2024.2.4"]
 
 [project.urls]
 Homepage = "https://github.com/uptux/tara-fusion"
-Documentation = "https://patdhlk.github.io/tara-fusion"
+Documentation = "https://docs.tara-fusion.com"
 Repository = "https://github.com/uptux/tara-fusion"
 Issues = "https://github.com/uptux/tara-fusion/issues"
 
