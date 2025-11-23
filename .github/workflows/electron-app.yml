@@ -192,7 +192,7 @@ jobs:
           cat files.txt
 
           # Separate by architecture - check for actual patterns in filenames
-          # Windows builds: "TARA Fusion Setup 0.2.1.exe" (default/x64) and "*-arm64-win.zip", "*-win.zip"
+          # Windows builds: "TARA Fusion Setup 0.2.2.exe" (default/x64) and "*-arm64-win.zip", "*-win.zip"
           grep -E "(Setup.*\.exe|win\.zip)" files.txt | grep -v "arm64" | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-x64.txt || true
           grep "arm64.*win" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-arm64.txt || true
 

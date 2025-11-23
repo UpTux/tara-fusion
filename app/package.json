@@ -1,6 +1,6 @@
 {
   "name": "tara-fusion-electron",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TARA Fusion - Threat Analysis & Risk Assessment Desktop App",
   "main": "main.js",
   "author": {
