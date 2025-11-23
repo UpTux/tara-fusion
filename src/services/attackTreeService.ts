@@ -92,35 +92,13 @@ function calculateNodeMetricsBottomUp(
   const logic = node.logic_gate || 'AND';
 
   if (logic === 'OR') {
-    // OR Logic: Component-wise Min of valid children
+    // OR Logic: Use the complete tuple from the child with minimum Attack Potential
     const validChildren = childResults.filter((r): r is NodeMetricsResult => r !== null);
 
     if (validChildren.length === 0) {
       result = null;
     } else {
-      // Calculate component-wise minimum tuple
-      const minTuple: AttackPotentialTuple = {
-        time: Infinity,
-        expertise: Infinity,
-        knowledge: Infinity,
-        access: Infinity,
-        equipment: Infinity
-      };
-
-      for (const child of validChildren) {
-        minTuple.time = Math.min(minTuple.time, child.tuple.time);
-        minTuple.expertise = Math.min(minTuple.expertise, child.tuple.expertise);
-        minTuple.knowledge = Math.min(minTuple.knowledge, child.tuple.knowledge);
-        minTuple.access = Math.min(minTuple.access, child.tuple.access);
-        minTuple.equipment = Math.min(minTuple.equipment, child.tuple.equipment);
-      }
-
-      const ap = calculateAP(minTuple);
-
-      // For critical paths, we still want to highlight the "easiest" path(s) in terms of total AP sum.
-      // Even though the parent AP is a mix, the attacker likely follows one path or another in reality,
-      // or we just need to show *some* path.
-      // Let's find the child with the minimum AP sum.
+      // Find the child(ren) with the minimum Attack Potential
       let minChildAP = Infinity;
       for (const child of validChildren) {
         if (child.ap < minChildAP) {
@@ -128,8 +106,15 @@ function calculateNodeMetricsBottomUp(
         }
       }
 
+      // Get all children that have the minimum AP (there could be ties)
       const minChildren = validChildren.filter(c => c.ap === minChildAP);
 
+      // Use the tuple from the first child with minimum AP
+      // (if there are ties, they all have the same AP so it doesn't matter which we choose)
+      const selectedTuple = minChildren[0].tuple;
+      const ap = minChildren[0].ap;
+
+      // Combine critical paths from all children with minimum AP
       const combinedCriticalPaths: string[][] = [];
       for (const child of minChildren) {
         for (const path of child.criticalPaths) {
@@ -139,7 +124,7 @@ function calculateNodeMetricsBottomUp(
 
       result = {
         ap,
-        tuple: minTuple,
+        tuple: selectedTuple,
         criticalPaths: combinedCriticalPaths
       };
     }

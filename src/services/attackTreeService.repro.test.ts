@@ -30,8 +30,8 @@ const createNeed = (
     section_name: 'test',
 });
 
-describe('Attack Tree Service - OR Gate Component-wise Minimum', () => {
-    it('should calculate component-wise minimum for OR gate', () => {
+describe('Attack Tree Service - OR Gate Minimum AP Node', () => {
+    it('should use complete tuple from child with minimum Attack Potential', () => {
         // Child 1: (1, 0, 3, 0, 0) -> AP = 4
         const child1 = createNeed('child1', NeedType.ATTACK, [], undefined, {
             time: 1, expertise: 0, knowledge: 3, access: 0, equipment: 0
@@ -42,22 +42,13 @@ describe('Attack Tree Service - OR Gate Component-wise Minimum', () => {
             time: 0, expertise: 0, knowledge: 0, access: 5, equipment: 0
         });
 
-        // Parent OR: 
-        // Time: min(1, 0) = 0
-        // Expertise: min(0, 0) = 0
-        // Knowledge: min(3, 0) = 0
-        // Access: min(0, 5) = 0
-        // Equipment: min(0, 0) = 0
-        // Result Tuple: (0, 0, 0, 0, 0) -> AP = 0
+        // Parent OR: Should use child1's complete tuple since it has minimum AP (4 < 5)
+        // Result Tuple: (1, 0, 3, 0, 0) -> AP = 4
         const parent = createNeed('parent', NeedType.ATTACK, ['child1', 'child2'], 'OR', undefined, ['attack-root']);
 
         const metrics = calculateAttackTreeMetrics('parent', [parent, child1, child2]);
 
         expect(metrics).not.toBeNull();
-        expect(metrics?.attackPotential).toBe(0);
-
-        // Check the tuple implicitly by checking AP. 
-        // Ideally I would check the tuple directly but calculateAttackTreeMetrics returns { ap, criticalPaths }.
-        // calculateNodeMetrics returns the tuple.
+        expect(metrics?.attackPotential).toBe(4); // Uses child1's AP, not component-wise minimum
     });
 });
