@@ -578,27 +578,28 @@ describe('attackTreeService', () => {
         it('should handle tree with all infeasible paths', () => {
             const needs: SphinxNeed[] = [
                 createAttackNode('root', ['leaf1', 'leaf2'], undefined, 'OR', ['attack-root']),
-                createAttackNode('leaf1', [], { time: 99, expertise: 1, knowledge: 1, access: 1, equipment: 1 }),
-                createAttackNode('leaf2', [], { time: 1, expertise: 99, knowledge: 1, access: 1, equipment: 1 }),
+                createAttackNode('leaf1', [], { time: 99, expertise: 1, knowledge: 1, access: 1, equipment: 1 }), // Any value = 99 means AP = 99 (infeasible)
+                createAttackNode('leaf2', [], { time: 1, expertise: 99, knowledge: 1, access: 1, equipment: 1 }), // Any value = 99 means AP = 99 (infeasible)
             ];
 
             const result = calculateAttackTreeMetrics('root', needs);
 
             expect(result).not.toBeNull();
-            expect(result!.attackPotential).toBe(5); // Component-wise min of (99,1,1,1,1) and (1,99,1,1,1) is (1,1,1,1,1) -> 5
+            // Both children are infeasible (AP=99), so OR node uses complete tuple from first child
+            expect(result!.attackPotential).toBe(99);
         });
 
         it('should handle mixed feasible and infeasible paths', () => {
             const needs: SphinxNeed[] = [
                 createAttackNode('root', ['leaf1', 'leaf2'], undefined, 'OR', ['attack-root']),
-                createAttackNode('leaf1', [], { time: 99, expertise: 1, knowledge: 1, access: 1, equipment: 1 }), // Infeasible
+                createAttackNode('leaf1', [], { time: 99, expertise: 1, knowledge: 1, access: 1, equipment: 1 }), // Infeasible, AP = 103
                 createAttackNode('leaf2', [], { time: 2, expertise: 2, knowledge: 2, access: 2, equipment: 2 }), // Feasible, AP = 10
             ];
 
             const result = calculateAttackTreeMetrics('root', needs);
 
             expect(result).not.toBeNull();
-            expect(result!.attackPotential).toBe(6); // Component-wise min of (99,1,1,1,1) and (2,2,2,2,2) is (2,1,1,1,1) -> 6
+            expect(result!.attackPotential).toBe(10); // Uses leaf2's complete tuple (2,2,2,2,2) since it has minimum AP
         });
 
         it('should handle attack-root node with implicit AND logic', () => {
