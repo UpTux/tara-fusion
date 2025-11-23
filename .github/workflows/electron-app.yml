@@ -70,6 +70,10 @@ jobs:
           npm run build:mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EP_DRAFT: false
+          EP_PRE_RELEASE: false
+          PUBLISH: never
 
       - name: Generate checksums
         id: hash
@@ -80,22 +84,28 @@ jobs:
 
           # Separate by architecture
           grep "x64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-x64.txt || true
-          grep "arm64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-arm64.txt || true
+          grep "arm64" files.txt | grep -v "universal" | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-arm64.txt || true
           grep "universal" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-mac-universal.txt || true
 
           cd ..
 
-          # Generate base64-encoded hashes for provenance
-          if [ -f checksums-mac-x64.txt ]; then
+          # Generate base64-encoded hashes for provenance - only if files have content
+          if [ -s checksums-mac-x64.txt ]; then
             echo "hashes-x64=$(cat checksums-mac-x64.txt | base64 -w0 2>/dev/null || cat checksums-mac-x64.txt | base64)" >> $GITHUB_OUTPUT
+          else
+            rm -f checksums-mac-x64.txt
           fi
 
-          if [ -f checksums-mac-arm64.txt ]; then
+          if [ -s checksums-mac-arm64.txt ]; then
             echo "hashes-arm64=$(cat checksums-mac-arm64.txt | base64 -w0 2>/dev/null || cat checksums-mac-arm64.txt | base64)" >> $GITHUB_OUTPUT
+          else
+            rm -f checksums-mac-arm64.txt
           fi
 
-          if [ -f checksums-mac-universal.txt ]; then
+          if [ -s checksums-mac-universal.txt ]; then
             echo "hashes-universal=$(cat checksums-mac-universal.txt | base64 -w0 2>/dev/null || cat checksums-mac-universal.txt | base64)" >> $GITHUB_OUTPUT
+          else
+            rm -f checksums-mac-universal.txt
           fi
 
           echo "## 🍎 macOS Build Checksums" >> $GITHUB_STEP_SUMMARY
@@ -163,6 +173,11 @@ jobs:
       - name: Build Electron app for Windows
         working-directory: ./app
         run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EP_DRAFT: false
+          EP_PRE_RELEASE: false
+          PUBLISH: never
 
       - name: Generate checksums
         id: hash
@@ -172,19 +187,28 @@ jobs:
           # Find and hash all distributable files
           find . -type f \( -name "*.exe" -o -name "*.zip" \) > files.txt
 
-          # Separate by architecture
-          grep "x64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-x64.txt || true
-          grep "arm64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-arm64.txt || true
+          # Debug: show what files we found
+          echo "Files found:"
+          cat files.txt
+
+          # Separate by architecture - check for actual patterns in filenames
+          # Windows builds: "TARA Fusion Setup 0.2.1.exe" (default/x64) and "*-arm64-win.zip", "*-win.zip"
+          grep -E "(Setup.*\.exe|win\.zip)" files.txt | grep -v "arm64" | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-x64.txt || true
+          grep "arm64.*win" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-win-arm64.txt || true
 
           cd ..
 
-          # Generate base64-encoded hashes for provenance
-          if [ -f checksums-win-x64.txt ]; then
+          # Only create output if files have content
+          if [ -s checksums-win-x64.txt ]; then
             echo "hashes-x64=$(cat checksums-win-x64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          else
+            rm -f checksums-win-x64.txt
           fi
 
-          if [ -f checksums-win-arm64.txt ]; then
+          if [ -s checksums-win-arm64.txt ]; then
             echo "hashes-arm64=$(cat checksums-win-arm64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          else
+            rm -f checksums-win-arm64.txt
           fi
 
           echo "## 🪟 Windows Build Checksums" >> $GITHUB_STEP_SUMMARY
@@ -251,6 +275,11 @@ jobs:
       - name: Build Electron app for Linux
         working-directory: ./app
         run: npm run build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EP_DRAFT: false
+          EP_PRE_RELEASE: false
+          PUBLISH: never
 
       - name: Generate checksums
         id: hash
@@ -260,18 +289,22 @@ jobs:
           find . -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" \) > files.txt
 
           # Separate by architecture
-          grep "x64\|amd64\|x86_64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-x64.txt || true
-          grep "arm64\|aarch64" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-arm64.txt || true
+          grep -E "(x64|amd64|x86_64)" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-x64.txt || true
+          grep -E "(arm64|aarch64)" files.txt | xargs -I {} sh -c 'sha256sum "{}"' > ../checksums-linux-arm64.txt || true
 
           cd ..
 
-          # Generate base64-encoded hashes for provenance
-          if [ -f checksums-linux-x64.txt ]; then
+          # Generate base64-encoded hashes for provenance - only if files have content
+          if [ -s checksums-linux-x64.txt ]; then
             echo "hashes-x64=$(cat checksums-linux-x64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          else
+            rm -f checksums-linux-x64.txt
           fi
 
-          if [ -f checksums-linux-arm64.txt ]; then
+          if [ -s checksums-linux-arm64.txt ]; then
             echo "hashes-arm64=$(cat checksums-linux-arm64.txt | base64 -w0)" >> $GITHUB_OUTPUT
+          else
+            rm -f checksums-linux-arm64.txt
           fi
 
           echo "## 🐧 Linux Build Checksums" >> $GITHUB_STEP_SUMMARY
