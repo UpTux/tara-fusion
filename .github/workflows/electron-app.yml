@@ -114,7 +114,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: tara-fusion-electron-macos-${{ steps.version.outputs.version }}
           path: |
@@ -217,7 +217,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: tara-fusion-electron-windows-${{ steps.version.outputs.version }}
           path: |
@@ -313,7 +313,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: tara-fusion-electron-linux-${{ steps.version.outputs.version }}
           path: |
@@ -352,7 +352,7 @@ jobs:
           echo "hashes=$(cat all-checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Upload combined checksums
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: combined-checksums-${{ needs.build-linux.outputs.version }}
           path: all-checksums.txt

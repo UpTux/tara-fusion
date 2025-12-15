@@ -105,7 +105,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: tara-fusion-dist-${{ steps.version.outputs.version }}
           path: |
@@ -240,7 +240,7 @@ jobs:
           echo "Total files: $(ls -1 sbom-* | wc -l)" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: sbom-${{ needs.build.outputs.version }}
           path: |
