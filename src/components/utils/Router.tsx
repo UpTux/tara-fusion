@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../../App";
-import Signin from "../auth/Signin";
-import Signup from "../auth/Signup";
+import Signin from "@/components/auth/Signin";
+import Signup from "@/components/auth/Signup";
 import { PrivateRoute } from "./PrivateRoute";
 
 export const router = createBrowserRouter([

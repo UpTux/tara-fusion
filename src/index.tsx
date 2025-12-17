@@ -5,7 +5,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import "./i18n";
 import { router } from "./components/utils/Router";
 import { RouterProvider } from "react-router-dom";
-import { AuthContextProvider } from "./components/auth/AuthContext";
+import { AuthContextProvider } from "@/components/auth/AuthContext";
 import { isElectron } from "./utils/platform";
 
 const rootElement = document.getElementById("root");

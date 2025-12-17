@@ -26,7 +26,7 @@ import {
   TaraMethodology,
   User,
 } from "./types";
-import { UserAuth } from "./components/auth/AuthContext";
+import { UserAuth } from "@/components/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { isElectron } from "./utils/platform";
 
