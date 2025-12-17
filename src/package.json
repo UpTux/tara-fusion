@@ -51,6 +51,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-i18next": "^16.5.0",
+    "react-router-dom": "^7.11.0",
     "reactflow": "^11.11.4"
   },
   "devDependencies": {
