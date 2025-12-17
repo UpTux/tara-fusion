@@ -28,6 +28,7 @@ import {
 } from "./types";
 import { UserAuth } from "./components/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { isElectron } from "./utils/platform";
 
 const defaultImpactCategories: ImpactCategorySettings = {
   categories: [
@@ -91,6 +92,7 @@ export default function App() {
     ProjectMembership[]
   >([]);
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [isDemoDataLoaded, setIsDemoDataLoaded] = useState<boolean>(false);
 
   const [activeMainView, setActiveMainView] = useState<"projects" | "users">(
     "projects"
@@ -136,6 +138,7 @@ export default function App() {
     setProjects(initialProjects);
     setProjectMemberships(initialProjectMemberships);
     setCurrentUserId(initialUsers[0]?.id || "");
+    setIsDemoDataLoaded(true);
   }, []);
 
   const handleCreateFresh = useCallback((username: string, orgName: string) => {
@@ -439,6 +442,7 @@ export default function App() {
         activeView={activeMainView}
         onSelectView={setActiveMainView}
         projectMemberships={projectMemberships}
+        isDemoDataLoaded={isDemoDataLoaded}
       />
       <main className="flex-1 flex flex-col bg-vscode-bg-panel">
         <header className="flex items-center justify-between p-4 border-b border-vscode-border bg-vscode-bg-sidebar flex-shrink-0">
@@ -449,36 +453,33 @@ export default function App() {
             {/*<span className="font-semibold text-indigo-300">{currentUser.name}</span>*/}
             <ThemeSwitcher />
             <LanguageSwitcher />
-            {
-              /*isAuthenticated */ session ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-vscode-text-secondary">
-                    {t("viewingAs")}
-                  </span>
-                  <div className="">
-                    <span className="font-semibold">
-                      {session?.user?.email}
-                    </span>
-                  </div>
-                  <button
-                    className="px-4 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50"
-                    onClick={handleSignOut}
-                  >
-                    Sign Out
-                  </button>
+
+            {!isElectron() && /*isAuthenticated */ session ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-vscode-text-secondary">
+                  {t("viewingAs")}
+                </span>
+                <div className="">
+                  <span className="font-semibold">{session?.user?.email}</span>
                 </div>
-              ) : (
-                <div className="action-card">
-                  {/*<LoginButton />*/}{" "}
-                  <button
-                    className="px-4 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50"
-                    onClick={() => navigate("/signin")}
-                  >
-                    Sign In
-                  </button>
-                </div>
-              )
-            }
+                <button
+                  className="px-4 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="action-card">
+                {/*<LoginButton />*/}{" "}
+                <button
+                  className="px-4 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50"
+                  onClick={() => navigate("/signin")}
+                >
+                  Sign In
+                </button>
+              </div>
+            )}
             {/* {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-vscode-text-secondary">

@@ -6,6 +6,7 @@ import "./i18n";
 import { router } from "./components/utils/Router";
 import { RouterProvider } from "react-router-dom";
 import { AuthContextProvider } from "./components/auth/AuthContext";
+import { isElectron } from "./utils/platform";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -16,9 +17,13 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ThemeProvider>
-      <AuthContextProvider>
-        <RouterProvider router={router} />
-      </AuthContextProvider>
+      {isElectron() ? (
+        <App />
+      ) : (
+        <AuthContextProvider>
+          <RouterProvider router={router} />
+        </AuthContextProvider>
+      )}
     </ThemeProvider>
   </React.StrictMode>
 );
