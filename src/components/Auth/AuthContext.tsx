@@ -13,7 +13,7 @@ export const AuthContextProvider = ({ children }) => {
       password,
     });
     if (error) {
-      console.log("Error signing up:", error.message);
+      //console.log("Error signing up:", error.message);
       return { success: false, error };
     }
     return { success: true, data };
@@ -27,18 +27,18 @@ export const AuthContextProvider = ({ children }) => {
         password,
       });
       if (error) {
-        console.log("Error signing in:", error.message);
+        //console.log("Error signing in:", error.message);
         return { success: false, error };
       }
       return { success: true, data };
     } catch (error) {
-      console.log("An error occurred:", error.message);
+      //console.log("An error occurred:", error.message);
       return { success: false, error };
     }
   };
 
   useEffect(() => {
-    const session = supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
     supabase.auth.onAuthStateChange((_event, session) => {
@@ -49,7 +49,7 @@ export const AuthContextProvider = ({ children }) => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.log("Error signing out:", error);
+      //console.log("Error signing out:", error);
     }
   };
 

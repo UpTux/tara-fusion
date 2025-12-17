@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import React from "react";
 import { UserAuth } from "./AuthContext";
-import { ShowPasswordIcon } from "../icons/showPasswordIcon";
+import { ShowPasswordIcon } from "../icons/ShowPasswordIcon";
 import { HidePasswordIcon } from "../icons/HidePasswordIcon";
 
 export default function Signin() {
