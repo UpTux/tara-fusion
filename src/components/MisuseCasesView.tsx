@@ -22,9 +22,12 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (p
 );
 
 export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
-  const [misuseCases, setMisuseCases] = useState<MisuseCase[]>(project.misuseCases || []);
-  const [selectedId, setSelectedId] = useState<string | null>(misuseCases[0]?.id || null);
-  const [editorState, setEditorState] = useState<MisuseCase | null>(null);
+  const [misuseCases, setMisuseCases] = useState<MisuseCase[]>(() => project.misuseCases || []);
+  const [selectedId, setSelectedId] = useState<string | null>(() => (project.misuseCases || [])[0]?.id || null);
+  const [editorState, setEditorState] = useState<MisuseCase | null>(() => {
+    const firstCase = (project.misuseCases || [])[0];
+    return firstCase ? { ...firstCase } : null;
+  });
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   const linkedThreatsMap = useMemo(() => {
@@ -42,17 +45,13 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
   }, [project.misuseCases, project.threats]);
 
   useEffect(() => {
-    const currentMisuseCases = project.misuseCases || [];
-    setMisuseCases(currentMisuseCases);
-    if (!selectedId && currentMisuseCases.length > 0) {
-      setSelectedId(currentMisuseCases[0].id)
+    const selectedCase = (project.misuseCases || []).find(a => a.id === selectedId);
+    const newEditorState = selectedCase ? { ...selectedCase } : null;
+    if (JSON.stringify(editorState) !== JSON.stringify(newEditorState)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(newEditorState);
     }
-  }, [project.misuseCases, selectedId]);
-
-  useEffect(() => {
-    const selected = misuseCases.find(a => a.id === selectedId);
-    setEditorState(selected ? { ...selected } : null);
-  }, [selectedId, misuseCases]);
+  }, [selectedId, project.misuseCases, editorState]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -61,7 +60,7 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
 
   const handleAdd = useCallback(() => {
     if (isReadOnly) return;
-    const existingIds = new Set(misuseCases.map(a => a.id));
+    const existingIds = new Set((project.misuseCases || []).map(a => a.id));
     let i = 1;
     let newId = `MC_${String(i).padStart(3, '0')}`;
     while (existingIds.has(newId)) { i++; newId = `MC_${String(i).padStart(3, '0')}`; }
@@ -73,18 +72,18 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
       comment: ''
     };
 
-    const updatedMisuseCases = [...misuseCases, newMisuseCase];
+    const updatedMisuseCases = [...(project.misuseCases || []), newMisuseCase];
     const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases }, `Created misuse case ${newId}.`);
     onUpdateProject(updatedProject);
     setSelectedId(newId);
-  }, [misuseCases, project, onUpdateProject, isReadOnly]);
+  }, [project.misuseCases, project, onUpdateProject, isReadOnly]);
 
   const handleUpdate = (field: keyof MisuseCase, value: any) => {
     if (isReadOnly || !editorState) return;
 
-    const original = misuseCases.find(a => a.id === editorState.id);
+    const original = (project.misuseCases || []).find(a => a.id === editorState.id);
     if (original && JSON.stringify(original[field]) !== JSON.stringify(value)) {
-      const updatedMisuseCases = misuseCases.map(a => a.id === editorState.id ? { ...editorState, [field]: value } : a);
+      const updatedMisuseCases = (project.misuseCases || []).map(a => a.id === editorState.id ? { ...editorState, [field]: value } : a);
       const updatedProject = addHistoryEntry({ ...project, misuseCases: updatedMisuseCases }, `Updated ${field} for misuse case ${editorState.id}.`);
       onUpdateProject(updatedProject);
     }
@@ -97,7 +96,7 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
       title: 'Delete Misuse Case',
       message: `Are you sure you want to delete misuse case ${selectedId}? This will also remove links from any threats.`,
       onConfirm: () => {
-        const updatedMisuseCases = misuseCases.filter(a => a.id !== selectedId);
+        const updatedMisuseCases = (project.misuseCases || []).filter(a => a.id !== selectedId);
 
         const updatedThreats = (project.threats || []).map(t => ({
           ...t,

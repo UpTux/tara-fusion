@@ -563,6 +563,7 @@ export const TraceabilityGraphView: React.FC<TraceabilityGraphViewProps> = ({ pr
 
     // Re-apply filters when TOE config selection changes
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         handleFilterChange(selectedFilter);
     }, [selectedToeConfigs, handleFilterChange, selectedFilter]);
 

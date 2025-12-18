@@ -27,24 +27,23 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (p
 
 export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
     const { t } = useTranslation();
-    const [documents, setDocuments] = useState<RelatedDocument[]>(project.relatedDocuments || []);
-    const [selectedId, setSelectedId] = useState<string | null>(documents[0]?.id || null);
-    const [editorState, setEditorState] = useState<RelatedDocument | null>(null);
+    const [selectedId, setSelectedId] = useState<string | null>(() => (project.relatedDocuments || [])[0]?.id || null);
+    const [editorState, setEditorState] = useState<RelatedDocument | null>(() => {
+        const docs = project.relatedDocuments || [];
+        const first = docs[0];
+        return first ? { ...first } : null;
+    });
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
     const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     useEffect(() => {
-        const currentDocuments = project.relatedDocuments || [];
-        setDocuments(currentDocuments);
-        if (!selectedId && currentDocuments.length > 0) {
-            setSelectedId(currentDocuments[0].id);
-        }
-    }, [project.relatedDocuments, selectedId]);
-
-    useEffect(() => {
+        const documents = project.relatedDocuments || [];
         const selected = documents.find(d => d.id === selectedId);
-        setEditorState(selected ? { ...selected } : null);
-    }, [selectedId, documents]);
+        if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(editorState)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setEditorState(selected ? { ...selected } : null);
+        }
+    }, [selectedId, project.relatedDocuments]);
 
     const addHistoryEntry = (proj: Project, message: string): Project => {
         const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -53,6 +52,7 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
 
     const handleAdd = () => {
         if (isReadOnly) return;
+        const documents = project.relatedDocuments || [];
         const existingIds = new Set(documents.map(d => d.id));
         let i = 1;
         let newId = `DOC_${String(i).padStart(3, '0')}`;
@@ -77,6 +77,7 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
         if (isReadOnly || !editorState) return;
         setEditorState(prev => prev ? { ...prev, [field]: value } : null);
 
+        const documents = project.relatedDocuments || [];
         const originalDocument = documents.find(d => d.id === editorState.id);
         if (!originalDocument || JSON.stringify(originalDocument[field]) === JSON.stringify(value)) {
             return;
@@ -100,6 +101,7 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
             title: t('deleteDocument'),
             message: t('confirmDeleteDocument', { id }),
             onConfirm: () => {
+                const documents = project.relatedDocuments || [];
                 const updatedDocuments = documents.filter(d => d.id !== id);
                 const updatedProject = addHistoryEntry({ ...project, relatedDocuments: updatedDocuments }, `Deleted Related Document ${id}.`);
                 onUpdateProject(updatedProject);
@@ -133,13 +135,13 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
 
             <div className="flex-1 flex overflow-hidden">
                 <div className="w-1/3 border-r border-vscode-border overflow-y-auto">
-                    {documents.length === 0 ? (
+                    {(project.relatedDocuments || []).length === 0 ? (
                         <div className="p-4 text-center text-vscode-text-secondary text-sm">
                             {t('noDocumentsYet')}
                         </div>
                     ) : (
                         <div>
-                            {documents.map(doc => (
+                            {(project.relatedDocuments || []).map(doc => (
                                 <div
                                     key={doc.id}
                                     onClick={() => setSelectedId(doc.id)}

@@ -75,24 +75,23 @@ const MultiSelectDropdown: React.FC<{ options: { id: string, name: string }[], s
 };
 
 export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
-  const [scenarios, setScenarios] = useState<ThreatScenario[]>(project.threatScenarios || []);
-  const [selectedId, setSelectedId] = useState<string | null>(scenarios[0]?.id || null);
-  const [editorState, setEditorState] = useState<ThreatScenario | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => (project.threatScenarios || [])[0]?.id || null);
+  const [editorState, setEditorState] = useState<ThreatScenario | null>(() => {
+    const scenarios = project.threatScenarios || [];
+    const first = scenarios[0];
+    return first ? { ...first } : null;
+  });
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   useEffect(() => {
-    const currentScenarios = project.threatScenarios || [];
-    setScenarios(currentScenarios);
-    if ((!selectedId && currentScenarios.length > 0) || (selectedId && !currentScenarios.some(s => s.id === selectedId))) {
-      setSelectedId(currentScenarios[0]?.id || null)
-    }
-  }, [project.threatScenarios, selectedId]);
-
-  useEffect(() => {
+    const scenarios = project.threatScenarios || [];
     const selected = scenarios.find(ds => ds.id === selectedId);
-    setEditorState(selected ? { ...selected } : null);
-  }, [selectedId, scenarios]);
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(editorState)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(selected ? { ...selected } : null);
+    }
+  }, [selectedId, project.threatScenarios]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -102,6 +101,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
   const handleUpdate = (field: keyof ThreatScenario, value: any) => {
     if (isReadOnly || !editorState) return;
 
+    const scenarios = project.threatScenarios || [];
     const originalScenario = scenarios.find(ds => ds.id === editorState.id);
     if (!originalScenario || JSON.stringify(originalScenario[field]) === JSON.stringify(value)) {
       setEditorState(prev => prev ? { ...prev, [field]: value } : null);
@@ -127,6 +127,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
       title: 'Delete Threat Scenario',
       message: `Are you sure you want to delete Threat Scenario ${selectedId}? This will also remove the link from the parent threat.`,
       onConfirm: () => {
+        const scenarios = project.threatScenarios || [];
         const scenarioToDelete = scenarios.find(ds => ds.id === selectedId);
         if (!scenarioToDelete) return;
 
@@ -211,7 +212,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
 
 
   const scenariosWithRisk = useMemo(() => {
-    return scenarios.map(ts => {
+    return (project.threatScenarios || []).map(ts => {
       const impact = calculateHighestImpact(ts.damageScenarioIds, project.damageScenarios || []);
 
       // Check if this threat scenario has a corresponding attack tree
@@ -235,7 +236,7 @@ export const ThreatScenariosView: React.FC<ThreatScenariosViewProps> = ({ projec
       const risk = calculateRiskLevel(rating, impact);
       return { ...ts, risk };
     })
-  }, [scenarios, project.damageScenarios, project.needs, project.toeConfigurations]);
+  }, [project.threatScenarios, project.damageScenarios, project.needs, project.toeConfigurations]);
 
   return (
     <div className="flex h-full text-vscode-text-primary">
