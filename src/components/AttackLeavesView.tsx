@@ -52,8 +52,11 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
       .sort((a, b) => a.id.localeCompare(b.id)); // Sort by ID
   }, [project.needs]);
 
-  const [selectedId, setSelectedId] = useState<string | null>(attackLeaves[0]?.id || null);
-  const [editorState, setEditorState] = useState<SphinxNeed | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => attackLeaves[0]?.id || null);
+  const [editorState, setEditorState] = useState<SphinxNeed | null>(() => {
+    const firstLeaf = attackLeaves[0];
+    return firstLeaf ? { ...firstLeaf } : null;
+  });
 
   const linkingNodes = useMemo(() => {
     if (!selectedId) return [];
@@ -61,15 +64,13 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
   }, [selectedId, project.needs]);
 
   useEffect(() => {
-    if ((!selectedId && attackLeaves.length > 0) || (selectedId && !attackLeaves.some(l => l.id === selectedId))) {
-      setSelectedId(attackLeaves[0]?.id || null);
-    }
-  }, [attackLeaves, selectedId]);
-
-  useEffect(() => {
     const selectedLeaf = project.needs.find(n => n.id === selectedId);
-    setEditorState(selectedLeaf ? { ...selectedLeaf } : null);
-  }, [selectedId, project.needs]);
+    const newEditorState = selectedLeaf ? { ...selectedLeaf } : null;
+    if (JSON.stringify(editorState) !== JSON.stringify(newEditorState)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(newEditorState);
+    }
+  }, [selectedId, project.needs, editorState]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];

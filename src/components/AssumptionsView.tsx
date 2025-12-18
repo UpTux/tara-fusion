@@ -23,23 +23,19 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (p
 );
 
 export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
-  const [assumptions, setAssumptions] = useState<Assumption[]>(project.assumptions || []);
-  const [selectedId, setSelectedId] = useState<string | null>(assumptions[0]?.id || null);
+  const [selectedId, setSelectedId] = useState<string | null>((project.assumptions || [])[0]?.id || null);
   const [editorState, setEditorState] = useState<Assumption | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
   useEffect(() => {
-    setAssumptions(project.assumptions || []);
-    if (!selectedId && (project.assumptions || []).length > 0) {
-      setSelectedId((project.assumptions || [])[0]?.id)
+    const selected = (project.assumptions || []).find(a => a.id === selectedId);
+    if (selected && JSON.stringify(selected) !== JSON.stringify(editorState)) {
+      setEditorState({ ...selected }); // eslint-disable-line react-hooks/set-state-in-effect
+    } else if (!selected && editorState) {
+      setEditorState(null);
     }
-  }, [project.assumptions, selectedId]);
-
-  useEffect(() => {
-    const selected = assumptions.find(a => a.id === selectedId);
-    setEditorState(selected ? { ...selected } : null);
-  }, [selectedId, assumptions]);
+  }, [selectedId, project.assumptions]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -48,7 +44,7 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
 
   const handleAdd = useCallback(() => {
     if (isReadOnly) return;
-    const existingIds = new Set(assumptions.map(a => a.id));
+    const existingIds = new Set((project.assumptions || []).map(a => a.id));
     let i = 1;
     let newId = `ASS_${String(i).padStart(3, '0')}`;
     while (existingIds.has(newId)) {
@@ -64,11 +60,11 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
       comment: ''
     };
 
-    const updatedAssumptions = [...assumptions, newAssumption];
+    const updatedAssumptions = [...(project.assumptions || []), newAssumption];
     const updatedProject = addHistoryEntry({ ...project, assumptions: updatedAssumptions }, `Created assumption ${newId}.`);
     onUpdateProject(updatedProject);
     setSelectedId(newId);
-  }, [assumptions, project, onUpdateProject, isReadOnly]);
+  }, [project, onUpdateProject, isReadOnly]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -87,14 +83,14 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
   const handleUpdate = (field: keyof Assumption, value: any) => {
     if (isReadOnly || !editorState) return;
 
-    const originalAssumption = assumptions.find(a => a.id === editorState.id);
+    const originalAssumption = (project.assumptions || []).find(a => a.id === editorState.id);
     if (!originalAssumption || JSON.stringify(originalAssumption[field]) === JSON.stringify(value)) {
       // If the value hasn't changed, just update local state without saving
       setEditorState(prev => prev ? { ...prev, [field]: value } : null);
       return;
     }
 
-    const updatedAssumptions = assumptions.map(a => a.id === editorState.id ? { ...editorState, [field]: value } : a);
+    const updatedAssumptions = (project.assumptions || []).map(a => a.id === editorState.id ? { ...editorState, [field]: value } : a);
     const updatedProject = addHistoryEntry({ ...project, assumptions: updatedAssumptions }, `Updated ${field} for assumption ${editorState.id}.`);
     onUpdateProject(updatedProject);
   };
@@ -116,7 +112,7 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
       title: 'Delete Assumption',
       message: `Are you sure you want to delete assumption ${selectedId}?`,
       onConfirm: () => {
-        const updatedAssumptions = assumptions.filter(a => a.id !== selectedId);
+        const updatedAssumptions = (project.assumptions || []).filter(a => a.id !== selectedId);
         const updatedProject = addHistoryEntry({ ...project, assumptions: updatedAssumptions }, `Deleted assumption ${selectedId}.`);
         onUpdateProject(updatedProject);
         setSelectedId(updatedAssumptions[0]?.id || null);
@@ -145,7 +141,7 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
               </tr>
             </thead>
             <tbody>
-              {assumptions.map(ass => (
+              {(project.assumptions || []).map(ass => (
                 <tr
                   key={ass.id}
                   onClick={() => setSelectedId(ass.id)}
