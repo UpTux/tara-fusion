@@ -1,13 +1,27 @@
-import { createContext, useEffect, useState, useContext } from "react";
+import { createContext, useEffect, useState, useContext, ReactNode } from "react";
 import { supabase } from "./supabaseClient";
+import { Session, AuthError } from "@supabase/supabase-js";
 
-const AuthContext = createContext(null);
+interface AuthResponse {
+  success: boolean;
+  data?: any;
+  error?: AuthError;
+}
 
-export const AuthContextProvider = ({ children }) => {
-  const [session, setSession] = useState(undefined);
+interface AuthContextType {
+  session: Session | null | undefined;
+  signUpNewUser: (email: string, password: string) => Promise<AuthResponse>;
+  signInUser: (email: string, password: string) => Promise<AuthResponse>;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   // sign up
-  const signUpNewUser = async (email, password) => {
+  const signUpNewUser = async (email: string, password: string): Promise<AuthResponse> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -20,7 +34,7 @@ export const AuthContextProvider = ({ children }) => {
   };
 
   // sign in
-  const signInUser = async (email, password) => {
+  const signInUser = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -33,7 +47,7 @@ export const AuthContextProvider = ({ children }) => {
       return { success: true, data };
     } catch (error) {
       //console.log("An error occurred:", error.message);
-      return { success: false, error };
+      return { success: false, error: error as AuthError };
     }
   };
 
@@ -62,7 +76,7 @@ export const AuthContextProvider = ({ children }) => {
   );
 };
 
-export const UserAuth = () => {
+export const UserAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("UserAuth must be used within AuthContextProvider");

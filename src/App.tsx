@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { InitializationView } from "./components/InitializationView";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
@@ -397,7 +398,7 @@ export default function App() {
   const { session, signOut } = UserAuth();
   const navigate = useNavigate();
 
-  const handleSignOut = async (e) => {
+  const handleSignOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     try {
       await signOut();
@@ -450,11 +451,10 @@ export default function App() {
             {mainViewTitle}
           </h1>
           <div className="flex items-center space-x-2 text-sm">
-            {/*<span className="font-semibold text-indigo-300">{currentUser.name}</span>*/}
             <ThemeSwitcher />
             <LanguageSwitcher />
 
-            {!isElectron() && /*isAuthenticated */ session ? (
+            {!isElectron() && session ? (
               <div className="flex items-center space-x-4">
                 <span className="text-vscode-text-secondary">
                   {t("viewingAs")}
@@ -471,7 +471,7 @@ export default function App() {
               </div>
             ) : (
               <div className="action-card">
-                {/*<LoginButton />*/}{" "}
+                {" "}
                 <button
                   className="px-4 py-1.5 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50"
                   onClick={() => navigate("/signin")}
@@ -480,21 +480,6 @@ export default function App() {
                 </button>
               </div>
             )}
-            {/* {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-vscode-text-secondary">
-                  {t("viewingAs")}
-                </span>
-                <div className="">
-                  <Profile />
-                </div>
-                <LogoutButton />
-              </div>
-            ) : (
-              <div className="action-card">
-                <LoginButton />
-              </div>
-            )} */}
           </div>
         </header>
 

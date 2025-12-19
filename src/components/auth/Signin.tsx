@@ -71,7 +71,7 @@ export default function Signin() {
         </div>
         {error && <p className="text-red-600 mb-2">{error}</p>}
         <p>
-          don't have an account?{" "}
+          Don't have an account?{" "}
           <Link className="text-blue-500" to="/signup">
             Sign Up
           </Link>

@@ -31,6 +31,8 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
   useEffect(() => {
     const selected = (project.assumptions || []).find(a => a.id === selectedId);
     if (selected && JSON.stringify(selected) !== JSON.stringify(editorState)) {
+      // Safe to set state here: we're syncing editor state with external project changes.
+      // The equality guard prevents infinite loops, and this is the intended synchronization point.
       setEditorState({ ...selected }); // eslint-disable-line react-hooks/set-state-in-effect
     } else if (!selected && editorState) {
       setEditorState(null);

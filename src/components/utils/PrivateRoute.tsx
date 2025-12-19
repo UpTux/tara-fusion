@@ -2,7 +2,11 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { UserAuth } from "@/components/auth/AuthContext";
 
-export const PrivateRoute = ({ children }) => {
+type PrivateRouteProps = {
+  children: React.ReactNode;
+};
+
+export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const { session } = UserAuth();
 
   if (session === undefined) {

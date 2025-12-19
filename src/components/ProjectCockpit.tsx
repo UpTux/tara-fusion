@@ -39,9 +39,7 @@ export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProje
     if (JSON.stringify({ project: project.name, manager: project.securityManager, comment: project.comment }) !== JSON.stringify({ project: name, manager: securityManager, comment })) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(project.name);
-       
       setSecurityManager(project.securityManager || '');
-       
       setComment(project.comment || '');
     }
   }, [project.name, project.securityManager, project.comment]);
