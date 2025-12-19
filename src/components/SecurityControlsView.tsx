@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Project, SecurityControl } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -32,12 +32,14 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+  const lastSyncedRef = useRef<SecurityControl | null>(editorState);
   useEffect(() => {
     const controls = project.securityControls || [];
     const selected = controls.find(sc => sc.id === selectedId);
-    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(editorState)) {
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
     }
   }, [selectedId, project.securityControls]);
 

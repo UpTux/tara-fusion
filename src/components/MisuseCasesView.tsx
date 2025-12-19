@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MisuseCase, Project } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -44,14 +44,19 @@ export const MisuseCasesView: React.FC<MisuseCasesViewProps> = ({ project, onUpd
     return map;
   }, [project.misuseCases, project.threats]);
 
+  // Track last upstream-synced snapshot to avoid circular deps and unnecessary effect runs
+  const lastSyncedRef = useRef<MisuseCase | null>(editorState);
+
   useEffect(() => {
-    const selectedCase = (project.misuseCases || []).find(a => a.id === selectedId);
-    const newEditorState = selectedCase ? { ...selectedCase } : null;
-    if (JSON.stringify(editorState) !== JSON.stringify(newEditorState)) {
+    // Intentionally omit editorState from deps: this effect synchronizes local editor from upstream
+    // selection/data changes only. Local edits should not re-trigger this synchronization.
+    const selectedCase = (project.misuseCases || []).find(a => a.id === selectedId) || null;
+    if (JSON.stringify(selectedCase) !== JSON.stringify(lastSyncedRef.current)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setEditorState(newEditorState);
+      setEditorState(selectedCase ? { ...selectedCase } : null);
+      lastSyncedRef.current = selectedCase ? { ...selectedCase } : null;
     }
-  }, [selectedId, project.misuseCases, editorState]);
+  }, [selectedId, project.misuseCases]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];

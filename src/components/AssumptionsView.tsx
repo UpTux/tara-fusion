@@ -1,6 +1,6 @@
 
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Assumption, Project } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -28,14 +28,17 @@ export const AssumptionsView: React.FC<AssumptionsViewProps> = ({ project, onUpd
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+  // Track last upstream-synced snapshot to avoid circular deps and unnecessary effect runs
+  const lastSyncedRef = useRef<Assumption | null>(editorState);
+
   useEffect(() => {
-    const selected = (project.assumptions || []).find(a => a.id === selectedId);
-    if (selected && JSON.stringify(selected) !== JSON.stringify(editorState)) {
-      // Safe to set state here: we're syncing editor state with external project changes.
-      // The equality guard prevents infinite loops, and this is the intended synchronization point.
-      setEditorState({ ...selected }); // eslint-disable-line react-hooks/set-state-in-effect
-    } else if (!selected && editorState) {
-      setEditorState(null);
+    // Intentionally omit editorState from deps: this effect synchronizes local editor from upstream
+    // selection/data changes only. Local edits should not re-trigger this synchronization.
+    const selected = (project.assumptions || []).find(a => a.id === selectedId) || null;
+    if (JSON.stringify(selected) !== JSON.stringify(lastSyncedRef.current)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
     }
   }, [selectedId, project.assumptions]);
 

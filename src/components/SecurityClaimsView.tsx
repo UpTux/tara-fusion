@@ -69,12 +69,15 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const lastSyncedRef = useRef<SecurityClaim | null>(editorState);
+
   useEffect(() => {
     const claims = project.securityClaims || [];
     const selected = claims.find(c => c.id === selectedId);
-    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(editorState)) {
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
     }
   }, [selectedId, project.securityClaims]);
 

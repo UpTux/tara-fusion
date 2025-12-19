@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DamageScenario, Impact, Organization, Project } from '../types';
 import { CogIcon } from './icons/CogIcon';
 import { PlusIcon } from './icons/PlusIcon';
@@ -41,14 +41,32 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
   const projectCategories = project.impactCategorySettings?.categories;
   const activeCategories = projectCategories || orgCategories;
 
+  // Track last upstream-synced snapshot to avoid circular deps and unnecessary effect runs
+  const lastSyncedRef = useRef<DamageScenario | null>(editorState);
+  const isDamageScenarioEqual = (a: DamageScenario | null, b: DamageScenario | null) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    return (
+      a.id === b.id &&
+      a.name === b.name &&
+      a.description === b.description &&
+      a.impactCategory === b.impactCategory &&
+      a.impact === b.impact &&
+      a.reasoning === b.reasoning &&
+      a.comment === b.comment
+    );
+  };
+
   useEffect(() => {
-    const selectedScenario = (project.damageScenarios || []).find(ds => ds.id === selectedId);
-    const newEditorState = selectedScenario ? { ...selectedScenario } : null;
-    if (JSON.stringify(editorState) !== JSON.stringify(newEditorState)) {
+    // Intentionally omit editorState from deps: this effect synchronizes local editor from upstream
+    // selection/data changes only. Local edits should not re-trigger this synchronization.
+    const selectedScenario = (project.damageScenarios || []).find(ds => ds.id === selectedId) || null;
+    if (!isDamageScenarioEqual(selectedScenario, lastSyncedRef.current)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setEditorState(newEditorState);
+      setEditorState(selectedScenario ? { ...selectedScenario } : null);
+      lastSyncedRef.current = selectedScenario ? { ...selectedScenario } : null;
     }
-  }, [selectedId, project.damageScenarios, editorState]);
+  }, [selectedId, project.damageScenarios]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];

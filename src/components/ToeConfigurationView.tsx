@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Project, ToeConfiguration } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -32,12 +32,18 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+  // Keep the last upstream-synced snapshot to avoid circular deps in the effect.
+  // Intentionally exclude editorState from deps; we only react to upstream changes.
+  const lastSyncedRef = useRef<ToeConfiguration | null>(editorState);
+
   useEffect(() => {
     const configs = project.toeConfigurations || [];
     const selected = configs.find(a => a.id === selectedId);
-    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(editorState)) {
+    // Sync editorState from upstream when the selected snapshot differs from last synced.
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
     }
   }, [selectedId, project.toeConfigurations]);
 
@@ -225,3 +231,4 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
     </div>
   );
 };
+

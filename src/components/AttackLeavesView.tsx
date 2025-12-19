@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { accessOptions, equipmentOptions, expertiseOptions, knowledgeOptions, timeOptions } from '../services/feasibilityOptions';
 import { calculateAP, getAttackFeasibilityRating, getFeasibilityRatingColor } from '../services/riskService';
 import { importFromThreatCatalogXml } from '../services/threatCatalogService';
@@ -63,14 +63,38 @@ export const AttackLeavesView: React.FC<AttackLeavesViewProps> = ({ project, onU
     return project.needs.filter(n => n.links?.includes(selectedId));
   }, [selectedId, project.needs]);
 
+  // Track last upstream-synced snapshot to avoid circular deps and unnecessary effect runs
+  const lastSyncedRef = useRef<SphinxNeed | null>(editorState);
+  const isAttackLeafEqual = (a: SphinxNeed | null, b: SphinxNeed | null) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    const tagsEqual = (a.tags || []).length === (b.tags || []).length && (a.tags || []).every((t, i) => t === (b.tags || [])[i]);
+    const linksEqual = (a.links || []).length === (b.links || []).length && (a.links || []).every((t, i) => t === (b.links || [])[i]);
+    const apA = a.attackPotential || { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 };
+    const apB = b.attackPotential || { time: 0, expertise: 0, knowledge: 0, access: 0, equipment: 0 };
+    const apEqual = apA.time === apB.time && apA.expertise === apB.expertise && apA.knowledge === apB.knowledge && apA.access === apB.access && apA.equipment === apB.equipment;
+    return (
+      a.id === b.id &&
+      a.type === b.type &&
+      a.title === b.title &&
+      a.description === b.description &&
+      a.status === b.status &&
+      tagsEqual &&
+      linksEqual &&
+      apEqual
+    );
+  };
+
   useEffect(() => {
-    const selectedLeaf = project.needs.find(n => n.id === selectedId);
-    const newEditorState = selectedLeaf ? { ...selectedLeaf } : null;
-    if (JSON.stringify(editorState) !== JSON.stringify(newEditorState)) {
+    // Intentionally omit editorState from deps: this effect synchronizes local editor from upstream
+    // selection/data changes only. Local edits should not re-trigger this synchronization.
+    const selectedLeaf = project.needs.find(n => n.id === selectedId) || null;
+    if (!isAttackLeafEqual(selectedLeaf, lastSyncedRef.current)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setEditorState(newEditorState);
+      setEditorState(selectedLeaf ? { ...selectedLeaf } : null);
+      lastSyncedRef.current = selectedLeaf ? { ...selectedLeaf } : null;
     }
-  }, [selectedId, project.needs, editorState]);
+  }, [selectedId, project.needs]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];

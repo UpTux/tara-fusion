@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Project, RelatedDocument } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
@@ -36,12 +36,14 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
     const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+    const lastSyncedRef = useRef<RelatedDocument | null>(editorState);
     useEffect(() => {
         const documents = project.relatedDocuments || [];
         const selected = documents.find(d => d.id === selectedId);
-        if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(editorState)) {
+        if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setEditorState(selected ? { ...selected } : null);
+            lastSyncedRef.current = selected ? { ...selected } : null;
         }
     }, [selectedId, project.relatedDocuments]);
 
@@ -75,11 +77,11 @@ export const RelatedDocumentsView: React.FC<RelatedDocumentsViewProps> = ({ proj
 
     const handleUpdate = (field: keyof RelatedDocument, value: any) => {
         if (isReadOnly || !editorState) return;
-        setEditorState(prev => prev ? { ...prev, [field]: value } : null);
 
         const documents = project.relatedDocuments || [];
         const originalDocument = documents.find(d => d.id === editorState.id);
         if (!originalDocument || JSON.stringify(originalDocument[field]) === JSON.stringify(value)) {
+            setEditorState(prev => prev ? { ...prev, [field]: value } : null);
             return;
         }
 

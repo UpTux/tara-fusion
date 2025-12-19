@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Project, SecurityGoal } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -31,12 +31,15 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const lastSyncedRef = useRef<SecurityGoal | null>(editorState);
+
   useEffect(() => {
     const goals = project.securityGoals || [];
     const selected = goals.find(g => g.id === selectedId);
-    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(editorState)) {
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
     }
   }, [selectedId, project.securityGoals]);
 
@@ -69,12 +72,16 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
   const handleUpdate = (field: keyof SecurityGoal, value: any) => {
     if (isReadOnly || !editorState) return;
 
+    setEditorState(prev => prev ? { ...prev, [field]: value } : null);
+
     const goals = project.securityGoals || [];
     const original = goals.find(g => g.id === editorState.id);
-    if (original && JSON.stringify(original[field]) !== JSON.stringify(value)) {
-      const updatedGoals = goals.map(g => g.id === editorState.id ? { ...editorState, [field]: value } : g);
-      onUpdateProject(addHistoryEntry({ ...project, securityGoals: updatedGoals }, `Updated ${field} for Security Goal ${editorState.id}.`));
+    if (!original || JSON.stringify(original[field]) === JSON.stringify(value)) {
+      return;
     }
+
+    const updatedGoals = goals.map(g => g.id === editorState.id ? { ...editorState, [field]: value } : g);
+    onUpdateProject(addHistoryEntry({ ...project, securityGoals: updatedGoals }, `Updated ${field} for Security Goal ${editorState.id}.`));
   };
 
   const handleDeleteRequest = () => {
