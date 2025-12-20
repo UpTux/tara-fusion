@@ -36,15 +36,15 @@ export default function Signin() {
     <div className="flex justify-center items-center h-screen ">
       <form onSubmit={handleSignIn} className="max-w-md m-auto w-4/5">
         <h1 className="text-2xl mb-6 font-bold">Sign In</h1>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col ">
           <input
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 bg-vscode-bg-input border border-vscode-border rounded-lg text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent"
+            className="w-full mb-6 px-4 py-2 bg-vscode-bg-input border border-vscode-border rounded-lg text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent"
             type="email"
             placeholder="Email"
             required
           />
-          <div className="relative">
+          <div className="relative mb-2">
             <input
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 bg-vscode-bg-input border border-vscode-border rounded-lg text-vscode-text-primary focus:outline-none focus:ring-2 focus:ring-vscode-accent pr-12"
@@ -61,6 +61,9 @@ export default function Signin() {
               {showPassword ? <HidePasswordIcon /> : <ShowPasswordIcon />}
             </button>
           </div>
+          <Link to="/reset-password" className="text-sm text-blue-500 hover:underline mb-8">
+            Forgot Password?
+          </Link>
           <button
             className="px-4 py-2 mb-2 rounded-md text-xs font-semibold transition-colors disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-indigo-600/50"
             type="submit"

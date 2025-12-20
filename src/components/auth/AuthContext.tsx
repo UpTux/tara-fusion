@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState, useContext, ReactNode } from "react";
 import { supabase } from "./supabaseClient";
-import { Session, AuthError } from "@supabase/supabase-js";
+import { Session, AuthError, AuthChangeEvent } from "@supabase/supabase-js";
 
 interface AuthResponse {
   success: boolean;
@@ -10,15 +10,21 @@ interface AuthResponse {
 
 interface AuthContextType {
   session: Session | null | undefined;
+  authEvent: AuthChangeEvent | null;
+  isPasswordRecovery: boolean;
   signUpNewUser: (email: string, password: string) => Promise<AuthResponse>;
   signInUser: (email: string, password: string) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<AuthResponse>;
+  updatePassword: (password: string) => Promise<AuthResponse>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [authEvent, setAuthEvent] = useState<AuthChangeEvent | null>(null);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState<boolean>(false);
 
   // sign up
   const signUpNewUser = async (email: string, password: string): Promise<AuthResponse> => {
@@ -55,9 +61,21 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setAuthEvent(event);
+        setSession(session);
+        
+        if (event === "PASSWORD_RECOVERY") {
+          setIsPasswordRecovery(true);
+        } 
+      }
+    );
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -67,9 +85,40 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/update-password`,
+    });
+    if (error) {
+      return { success: false, error };
+    }
+    return { success: true, data };
+  };
+
+  const updatePassword = async (password: string): Promise<AuthResponse> => {
+    const { data, error } = await supabase.auth.updateUser({
+      password: password,
+    });
+    if (error) {
+      return { success: false, error };
+    }
+    // Clear the PASSWORD_RECOVERY flag after successful update
+    setIsPasswordRecovery(false);
+    return { success: true, data };
+  };
+
   return (
     <AuthContext.Provider
-      value={{ session, signUpNewUser, signInUser, signOut }}
+      value={{ 
+        session, 
+        authEvent,
+        isPasswordRecovery,
+        signUpNewUser, 
+        signInUser, 
+        signOut, 
+        resetPassword,
+        updatePassword
+      }}
     >
       {children}
     </AuthContext.Provider>
