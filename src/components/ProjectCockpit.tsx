@@ -30,16 +30,19 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) 
 
 export const ProjectCockpit: React.FC<ProjectCockpitProps> = ({ project, onProjectChange, isReadOnly }) => {
   const { t } = useTranslation();
-  const [name, setName] = useState(project.name);
-  const [securityManager, setSecurityManager] = useState(project.securityManager || '');
-  const [comment, setComment] = useState(project.comment || '');
+  const [name, setName] = useState(() => project.name);
+  const [securityManager, setSecurityManager] = useState(() => project.securityManager || '');
+  const [comment, setComment] = useState(() => project.comment || '');
 
   // Update local state if project prop changes from outside
   useEffect(() => {
-    setName(project.name);
-    setSecurityManager(project.securityManager || '');
-    setComment(project.comment || '');
-  }, [project]);
+    if (JSON.stringify({ project: project.name, manager: project.securityManager, comment: project.comment }) !== JSON.stringify({ project: name, manager: securityManager, comment })) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setName(project.name);
+      setSecurityManager(project.securityManager || '');
+      setComment(project.comment || '');
+    }
+  }, [project.name, project.securityManager, project.comment]);
 
   const handleBlur = (field: keyof Project, value: any) => {
     if (isReadOnly) return;

@@ -25,19 +25,26 @@ export const PieChart: React.FC<PieChartProps> = ({ data }) => {
     const total = data.reduce((sum, item) => sum + item.value, 0);
     if (total === 0) return <div className="text-center text-vscode-text-secondary">No data to display.</div>;
 
-    let cumulativePercentage = 0;
-
     const getCoordinatesForPercent = (percent: number) => {
         const x = Math.cos(2 * Math.PI * percent);
         const y = Math.sin(2 * Math.PI * percent);
         return [x, y];
     };
 
-    const slices = data.map(item => {
+    // Pre-calculate cumulative percentages
+    const cumulativePercentages: number[] = data.reduce((acc, item, index) => {
+        const prevCumulative = index === 0 ? 0 : acc[index - 1];
         const percentage = item.value / total;
-        const [startX, startY] = getCoordinatesForPercent(cumulativePercentage);
-        cumulativePercentage += percentage;
-        const [endX, endY] = getCoordinatesForPercent(cumulativePercentage);
+        return [...acc, prevCumulative + percentage];
+    }, [] as number[]);
+
+    const slices = data.map((item, index) => {
+        const percentage = item.value / total;
+        const startCumulative = index === 0 ? 0 : cumulativePercentages[index - 1];
+        const endCumulative = cumulativePercentages[index];
+        
+        const [startX, startY] = getCoordinatesForPercent(startCumulative);
+        const [endX, endY] = getCoordinatesForPercent(endCumulative);
         const largeArcFlag = percentage > 0.5 ? 1 : 0;
 
         const path = `M ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} L 0 0`;

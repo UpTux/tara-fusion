@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DamageScenario, Impact, Organization, Project } from '../types';
 import { CogIcon } from './icons/CogIcon';
 import { PlusIcon } from './icons/PlusIcon';
@@ -28,9 +28,12 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (props) 
 );
 
 export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ project, organization, onUpdateProject, isReadOnly }) => {
-  const [scenarios, setScenarios] = useState<DamageScenario[]>(project.damageScenarios || []);
-  const [selectedId, setSelectedId] = useState<string | null>(scenarios[0]?.id || null);
-  const [editorState, setEditorState] = useState<DamageScenario | null>(null);
+  const [scenarios, setScenarios] = useState<DamageScenario[]>(() => project.damageScenarios || []);
+  const [selectedId, setSelectedId] = useState<string | null>(() => (project.damageScenarios || [])[0]?.id || null);
+  const [editorState, setEditorState] = useState<DamageScenario | null>(() => {
+    const firstScenario = (project.damageScenarios || [])[0];
+    return firstScenario ? { ...firstScenario } : null;
+  });
   const [isCategoryEditorOpen, setIsCategoryEditorOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -38,18 +41,32 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
   const projectCategories = project.impactCategorySettings?.categories;
   const activeCategories = projectCategories || orgCategories;
 
-  useEffect(() => {
-    const currentScenarios = project.damageScenarios || [];
-    setScenarios(currentScenarios);
-    if (!selectedId && currentScenarios.length > 0) {
-      setSelectedId(currentScenarios[0].id)
-    }
-  }, [project.damageScenarios, selectedId]);
+  // Track last upstream-synced snapshot to avoid circular deps and unnecessary effect runs
+  const lastSyncedRef = useRef<DamageScenario | null>(editorState);
+  const isDamageScenarioEqual = (a: DamageScenario | null, b: DamageScenario | null) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    return (
+      a.id === b.id &&
+      a.name === b.name &&
+      a.description === b.description &&
+      a.impactCategory === b.impactCategory &&
+      a.impact === b.impact &&
+      a.reasoning === b.reasoning &&
+      a.comment === b.comment
+    );
+  };
 
   useEffect(() => {
-    const selected = scenarios.find(ds => ds.id === selectedId);
-    setEditorState(selected ? { ...selected } : null);
-  }, [selectedId, scenarios]);
+    // Intentionally omit editorState from deps: this effect synchronizes local editor from upstream
+    // selection/data changes only. Local edits should not re-trigger this synchronization.
+    const selectedScenario = (project.damageScenarios || []).find(ds => ds.id === selectedId) || null;
+    if (!isDamageScenarioEqual(selectedScenario, lastSyncedRef.current)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(selectedScenario ? { ...selectedScenario } : null);
+      lastSyncedRef.current = selectedScenario ? { ...selectedScenario } : null;
+    }
+  }, [selectedId, project.damageScenarios]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -58,7 +75,7 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
 
   const handleAdd = () => {
     if (isReadOnly) return;
-    const existingIds = new Set(scenarios.map(a => a.id));
+    const existingIds = new Set((project.damageScenarios || []).map(a => a.id));
     let i = 1;
     let newId = `DS_${String(i).padStart(3, '0')}`;
     while (existingIds.has(newId)) { i++; newId = `DS_${String(i).padStart(3, '0')}`; }
@@ -73,7 +90,7 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
       comment: ''
     };
 
-    const updatedScenarios = [...scenarios, newScenario];
+    const updatedScenarios = [...(project.damageScenarios || []), newScenario];
     const updatedProject = addHistoryEntry({ ...project, damageScenarios: updatedScenarios }, `Created Damage Scenario ${newId}.`);
     onUpdateProject(updatedProject);
     setSelectedId(newId);
@@ -82,13 +99,13 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
   const handleUpdate = (field: keyof DamageScenario, value: any) => {
     if (isReadOnly || !editorState) return;
 
-    const originalScenario = scenarios.find(ds => ds.id === editorState.id);
+    const originalScenario = (project.damageScenarios || []).find(ds => ds.id === editorState.id);
     if (!originalScenario || JSON.stringify(originalScenario[field]) === JSON.stringify(value)) {
       setEditorState(prev => prev ? { ...prev, [field]: value } : null);
       return;
     }
 
-    const updatedScenarios = scenarios.map(ds => ds.id === editorState.id ? { ...editorState, [field]: value } : ds);
+    const updatedScenarios = (project.damageScenarios || []).map(ds => ds.id === editorState.id ? { ...editorState, [field]: value } : ds);
     const updatedProject = addHistoryEntry({ ...project, damageScenarios: updatedScenarios }, `Updated ${field} for Damage Scenario ${editorState.id}.`);
     onUpdateProject(updatedProject);
   };
@@ -101,7 +118,7 @@ export const DamageScenariosView: React.FC<DamageScenariosViewProps> = ({ projec
   const handleConfirmDelete = () => {
     if (!selectedId) return;
 
-    const updatedScenarios = scenarios.filter(ds => ds.id !== selectedId);
+    const updatedScenarios = (project.damageScenarios || []).filter(ds => ds.id !== selectedId);
     const updatedProject = addHistoryEntry({ ...project, damageScenarios: updatedScenarios }, `Deleted Damage Scenario ${selectedId}.`);
     onUpdateProject(updatedProject);
     setSelectedId(updatedScenarios[0]?.id || null);

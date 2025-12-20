@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Project, SecurityControl } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -23,24 +23,25 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (p
 );
 
 export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
-  const [securityControls, setSecurityControls] = useState<SecurityControl[]>(project.securityControls || []);
-  const [selectedId, setSelectedId] = useState<string | null>(securityControls[0]?.id || null);
-  const [editorState, setEditorState] = useState<SecurityControl | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => (project.securityControls || [])[0]?.id || null);
+  const [editorState, setEditorState] = useState<SecurityControl | null>(() => {
+    const controls = project.securityControls || [];
+    const first = controls[0];
+    return first ? { ...first } : null;
+  });
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+  const lastSyncedRef = useRef<SecurityControl | null>(editorState);
   useEffect(() => {
-    const currentControls = project.securityControls || [];
-    setSecurityControls(currentControls);
-    if (!selectedId && currentControls.length > 0) {
-      setSelectedId(currentControls[0].id)
+    const controls = project.securityControls || [];
+    const selected = controls.find(sc => sc.id === selectedId);
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
     }
-  }, [project.securityControls, selectedId]);
-
-  useEffect(() => {
-    const selected = securityControls.find(sc => sc.id === selectedId);
-    setEditorState(selected ? { ...selected } : null);
-  }, [selectedId, securityControls]);
+  }, [selectedId, project.securityControls]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -49,6 +50,7 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
 
   const handleAdd = () => {
     if (isReadOnly) return;
+    const securityControls = project.securityControls || [];
     const existingIds = new Set(securityControls.map(a => a.id));
     let i = 1;
     let newId = `SC_${String(i).padStart(3, '0')}`;
@@ -75,6 +77,7 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
   const handleUpdate = (field: keyof SecurityControl, value: any) => {
     if (isReadOnly || !editorState) return;
 
+    const securityControls = project.securityControls || [];
     const originalControl = securityControls.find(sc => sc.id === editorState.id);
     if (!originalControl || JSON.stringify(originalControl[field]) === JSON.stringify(value)) {
       setEditorState(prev => prev ? { ...prev, [field]: value } : null);
@@ -103,6 +106,7 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
       title: 'Delete Security Control',
       message: `Are you sure you want to delete Security Control ${selectedId}?`,
       onConfirm: () => {
+        const securityControls = project.securityControls || [];
         const updatedControls = securityControls.filter(sc => sc.id !== selectedId);
         const updatedProject = addHistoryEntry({ ...project, securityControls: updatedControls }, `Deleted Security Control ${selectedId}.`);
         onUpdateProject(updatedProject);
@@ -133,7 +137,7 @@ export const SecurityControlsView: React.FC<SecurityControlsViewProps> = ({ proj
               </tr>
             </thead>
             <tbody>
-              {securityControls.map(sc => (
+              {(project.securityControls || []).map(sc => (
                 <tr
                   key={sc.id}
                   onClick={() => setSelectedId(sc.id)}

@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Project, ToeConfiguration } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -23,24 +23,29 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (p
 );
 
 export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
-  const [configurations, setConfigurations] = useState<ToeConfiguration[]>(project.toeConfigurations || []);
-  const [selectedId, setSelectedId] = useState<string | null>(configurations[0]?.id || null);
-  const [editorState, setEditorState] = useState<ToeConfiguration | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => (project.toeConfigurations || [])[0]?.id || null);
+  const [editorState, setEditorState] = useState<ToeConfiguration | null>(() => {
+    const configs = project.toeConfigurations || [];
+    const first = configs[0];
+    return first ? { ...first } : null;
+  });
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [confirmationModal, setConfirmationModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
-  useEffect(() => {
-    const currentConfigs = project.toeConfigurations || [];
-    setConfigurations(currentConfigs);
-    if (!selectedId && currentConfigs.length > 0) {
-      setSelectedId(currentConfigs[0].id)
-    }
-  }, [project.toeConfigurations, selectedId]);
+  // Keep the last upstream-synced snapshot to avoid circular deps in the effect.
+  // Intentionally exclude editorState from deps; we only react to upstream changes.
+  const lastSyncedRef = useRef<ToeConfiguration | null>(editorState);
 
   useEffect(() => {
-    const selected = configurations.find(a => a.id === selectedId);
-    setEditorState(selected ? { ...selected } : null);
-  }, [selectedId, configurations]);
+    const configs = project.toeConfigurations || [];
+    const selected = configs.find(a => a.id === selectedId);
+    // Sync editorState from upstream when the selected snapshot differs from last synced.
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
+    }
+  }, [selectedId, project.toeConfigurations]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -49,6 +54,7 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
 
   const handleAdd = () => {
     if (isReadOnly) return;
+    const configurations = project.toeConfigurations || [];
     const existingIds = new Set(configurations.map(a => a.id));
     let i = 1;
     let newId = `TOE_CONF_${String(i).padStart(3, '0')}`;
@@ -74,6 +80,7 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
   const handleUpdate = (field: keyof ToeConfiguration, value: any) => {
     if (isReadOnly || !editorState) return;
 
+    const configurations = project.toeConfigurations || [];
     const originalConfig = configurations.find(a => a.id === editorState.id);
     if (!originalConfig || JSON.stringify(originalConfig[field]) === JSON.stringify(value)) {
       setEditorState(prev => prev ? { ...prev, [field]: value } : null);
@@ -106,6 +113,7 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
       title: 'Delete TOE Configuration',
       message: `Are you sure you want to delete TOE Configuration ${selectedId}?`,
       onConfirm: () => {
+        const configurations = project.toeConfigurations || [];
         const updatedConfigs = configurations.filter(a => a.id !== selectedId);
         const updatedProject = addHistoryEntry({ ...project, toeConfigurations: updatedConfigs }, `Deleted TOE Configuration ${selectedId}.`);
         onUpdateProject(updatedProject);
@@ -135,7 +143,7 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
               </tr>
             </thead>
             <tbody>
-              {configurations.map(conf => (
+              {(project.toeConfigurations || []).map(conf => (
                 <tr
                   key={conf.id}
                   onClick={() => setSelectedId(conf.id)}
@@ -223,3 +231,4 @@ export const ToeConfigurationView: React.FC<ToeConfigurationViewProps> = ({ proj
     </div>
   );
 };
+
