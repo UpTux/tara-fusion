@@ -237,6 +237,41 @@ export enum TaraMethodology {
   MORA = 'MoRA',
 }
 
+// STRIDE Threat Categories (Microsoft's threat modeling framework)
+export enum StrideCategory {
+  SPOOFING = 'Spoofing',
+  TAMPERING = 'Tampering',
+  REPUDIATION = 'Repudiation',
+  INFORMATION_DISCLOSURE = 'Information Disclosure',
+  DENIAL_OF_SERVICE = 'Denial of Service',
+  ELEVATION_OF_PRIVILEGE = 'Elevation of Privilege',
+}
+
+// DREAD Risk Rating factors (each rated 1-10)
+export interface DreadRating {
+  damage: number;        // Damage potential: How much damage could the attack cause?
+  reproducibility: number; // Reproducibility: How easy is it to reproduce the attack?
+  exploitability: number;  // Exploitability: How easy is it to launch the attack?
+  affectedUsers: number;   // Affected users: How many users are affected?
+  discoverability: number; // Discoverability: How easy is it to discover the vulnerability?
+}
+
+// STRIDE-specific threat extending the base Threat interface
+export interface StrideThreat {
+  id: string;
+  name: string;
+  description: string;
+  strideCategory: StrideCategory;
+  assetId: string;
+  affectedComponent: string;
+  threatAgent: string;
+  attackVector: string;
+  dpiaDreadRating: DreadRating;
+  mitigations: string[];
+  status: 'Identified' | 'In Analysis' | 'Mitigated' | 'Accepted' | 'Transferred';
+  comment: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -262,6 +297,7 @@ export interface Project {
   securityClaims?: SecurityClaim[];
   managementSummary?: string;
   relatedDocuments?: RelatedDocument[];
+  strideThreats?: StrideThreat[]; // STRIDE methodology threats with DREAD ratings
 }
 
 export interface Organization {
@@ -300,6 +336,79 @@ export interface ProjectMembership {
 }
 
 
+// Base project views (common to all methodologies)
+export const baseProjectViews = [
+  'Project Cockpit',
+  'TOE Description',
+  'Scope',
+  'Assumptions',
+  'TOE Configuration',
+  'Security Controls',
+  'Misuse Cases',
+  '---',
+  'Damage Scenarios',
+  'Assets',
+] as const;
+
+// Attack Feasibility methodology-specific views
+export const attackFeasibilityViews = [
+  'Threats',
+  'Threat Scenarios',
+  '---',
+  'Attack Trees',
+  'Technical Attack Trees',
+  'Attack Filter',
+  'MITRE ATT&CK Database',
+  'Circumvent Trees',
+  'Attack Leaves',
+  '---',
+  'Security Claims',
+  'Security Goals',
+  'Risk Treatment',
+] as const;
+
+// STRIDE DREAD methodology-specific views
+export const strideDreadViews = [
+  'STRIDE Threats',
+  'DREAD Assessment',
+  '---',
+  'MITRE ATT&CK Database',
+  '---',
+  'Security Claims',
+  'Security Goals',
+  'Risk Treatment',
+] as const;
+
+// Common end views (shared by all methodologies)
+export const endProjectViews = [
+  '---',
+  'TARA Validation',
+  'Project Users',
+  'Traceability Graph',
+  'Management Summary',
+  'Glossary',
+  'Related Documents',
+] as const;
+
+// Helper function to get views based on methodology
+export const getProjectViewsForMethodology = (methodology: TaraMethodology): readonly string[] => {
+  const views: string[] = [...baseProjectViews];
+
+  switch (methodology) {
+    case TaraMethodology.STRIDE:
+      views.push(...strideDreadViews);
+      break;
+    case TaraMethodology.ATTACK_FEASIBILITY:
+    default:
+      views.push(...attackFeasibilityViews);
+      break;
+  }
+
+  views.push(...endProjectViews);
+  return views;
+};
+
+// Full list of all possible views (for backwards compatibility)
 export const projectViews = [
   'Project Cockpit',
   'TOE Description',
@@ -320,6 +429,9 @@ export const projectViews = [
   'MITRE ATT&CK Database',
   'Circumvent Trees',
   'Attack Leaves',
+  '---',
+  'STRIDE Threats',
+  'DREAD Assessment',
   '---',
   'Security Claims',
   'Security Goals',

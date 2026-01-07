@@ -3,7 +3,7 @@ import { Permissions } from '../services/permissionService';
 import { exportProjectToJson } from '../services/projectImportExportService';
 import { exportToNeedsJson, importFromNeedsJson } from '../services/sphinxNeedsService';
 import { exportProjectToSphinxZip } from '../services/sphinxProjectExportService';
-import { Organization, Project, ProjectViewType, SphinxNeed } from '../types';
+import { Organization, Project, ProjectViewType, SphinxNeed, TaraMethodology } from '../types';
 import { AssetsView } from './AssetsView';
 import { AssumptionsView } from './AssumptionsView';
 import { AttackLeavesView } from './AttackLeavesView';
@@ -11,6 +11,7 @@ import { AttackTreeEditor } from './AttackTreeEditor';
 import { AttackTreeImageGenerator } from './AttackTreeImageGenerator';
 import { CircumventTreesView } from './CircumventTreesView';
 import { DamageScenariosView } from './DamageScenariosView';
+import { DreadAssessmentView } from './DreadAssessmentView';
 import { ManagementSummaryView } from './ManagementSummaryView';
 import { MisuseCasesView } from './MisuseCasesView';
 import { MitreAttackDatabaseView } from './MitreAttackDatabaseView';
@@ -26,6 +27,7 @@ import { ScopeView } from './ScopeView';
 import { SecurityClaimsView } from './SecurityClaimsView';
 import { SecurityControlsView } from './SecurityControlsView';
 import { SecurityGoalsView } from './SecurityGoalsView';
+import { StrideThreatsView } from './StrideThreatsView';
 import { TechnicalAttackTreesView } from './TechnicalAttackTreesView';
 import { ThreatScenariosView } from './ThreatScenariosView';
 import { ThreatsView } from './ThreatsView';
@@ -279,6 +281,10 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         return <SecurityClaimsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
       case 'Risk Treatment':
         return <RiskTreatmentView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
+      case 'STRIDE Threats':
+        return <StrideThreatsView project={project} onUpdateProject={onUpdateProject} isReadOnly={isReadOnly} />;
+      case 'DREAD Assessment':
+        return <DreadAssessmentView project={project} />;
       case 'TARA Validation':
         return <RequirementsCheckView project={project} />;
       case 'Project Users':
@@ -415,7 +421,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ project, organization,
         </div>
       </div>
       <div className="flex-1 flex overflow-hidden">
-        <ProjectSidebar activeView={activeView} onSelectView={setActiveView} />
+        <ProjectSidebar activeView={activeView} onSelectView={setActiveView} methodology={project.methodology} />
         <main className="flex-1 flex flex-col overflow-y-auto">
           {renderActiveView()}
         </main>
