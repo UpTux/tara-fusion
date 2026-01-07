@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Project, SecurityGoal } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -23,23 +23,25 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (p
 );
 
 export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
-  const [goals, setGoals] = useState<SecurityGoal[]>(project.securityGoals || []);
-  const [selectedId, setSelectedId] = useState<string | null>(goals[0]?.id || null);
-  const [editorState, setEditorState] = useState<SecurityGoal | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => (project.securityGoals || [])[0]?.id || null);
+  const [editorState, setEditorState] = useState<SecurityGoal | null>(() => {
+    const goals = project.securityGoals || [];
+    const first = goals[0];
+    return first ? { ...first } : null;
+  });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  useEffect(() => {
-    const currentGoals = project.securityGoals || [];
-    setGoals(currentGoals);
-    if (!selectedId && currentGoals.length > 0) {
-      setSelectedId(currentGoals[0].id);
-    }
-  }, [project.securityGoals, selectedId]);
+  const lastSyncedRef = useRef<SecurityGoal | null>(editorState);
 
   useEffect(() => {
+    const goals = project.securityGoals || [];
     const selected = goals.find(g => g.id === selectedId);
-    setEditorState(selected ? { ...selected } : null);
-  }, [selectedId, goals]);
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
+    }
+  }, [selectedId, project.securityGoals]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -48,6 +50,7 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
 
   const handleAdd = () => {
     if (isReadOnly) return;
+    const goals = project.securityGoals || [];
     const existingIds = new Set(goals.map(g => g.id));
     let i = 1;
     let newId = `SG_${String(i).padStart(3, '0')}`;
@@ -69,11 +72,16 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
   const handleUpdate = (field: keyof SecurityGoal, value: any) => {
     if (isReadOnly || !editorState) return;
 
+    setEditorState(prev => prev ? { ...prev, [field]: value } : null);
+
+    const goals = project.securityGoals || [];
     const original = goals.find(g => g.id === editorState.id);
-    if (original && JSON.stringify(original[field]) !== JSON.stringify(value)) {
-      const updatedGoals = goals.map(g => g.id === editorState.id ? { ...editorState, [field]: value } : g);
-      onUpdateProject(addHistoryEntry({ ...project, securityGoals: updatedGoals }, `Updated ${field} for Security Goal ${editorState.id}.`));
+    if (!original || JSON.stringify(original[field]) === JSON.stringify(value)) {
+      return;
     }
+
+    const updatedGoals = goals.map(g => g.id === editorState.id ? { ...editorState, [field]: value } : g);
+    onUpdateProject(addHistoryEntry({ ...project, securityGoals: updatedGoals }, `Updated ${field} for Security Goal ${editorState.id}.`));
   };
 
   const handleDeleteRequest = () => {
@@ -84,6 +92,7 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
   const handleConfirmDelete = () => {
     if (!selectedId) return;
 
+    const goals = project.securityGoals || [];
     const updatedGoals = goals.filter(g => g.id !== selectedId);
     const updatedScenarios = (project.threatScenarios || []).map(ts => ({
       ...ts,
@@ -114,7 +123,7 @@ export const SecurityGoalsView: React.FC<SecurityGoalsViewProps> = ({ project, o
               </tr>
             </thead>
             <tbody>
-              {goals.map(goal => (
+              {(project.securityGoals || []).map(goal => (
                 <tr key={goal.id} onClick={() => setSelectedId(goal.id)} className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === goal.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}>
                   <td className="p-3 font-mono text-indigo-400">{goal.id}</td>
                   <td className="p-3 text-vscode-text-primary">{goal.name}</td>

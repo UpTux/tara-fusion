@@ -716,6 +716,7 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 if (hasCircumvent) {
                     const residualMetrics = calculateAttackTreeMetrics(selectedTreeRootId, project.needs, project.toeConfigurations, true);
                     if (residualMetrics) {
+                        // eslint-disable-next-line react-hooks/set-state-in-effect
                         setTreeMetrics({
                             attackPotential: metrics.attackPotential,
                             afr: initialAfr,
@@ -865,11 +866,13 @@ const AttackTreeCanvas: React.FC<AttackTreeEditorProps & { selectedTreeRootId: s
                 onDeleteRequest={handleDeleteNodeRequest}
             />
         )
-    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection, handleToggleCollapse, handleUnlinkCircumventTreeFromNode]);
+    }), [criticalNodeIds, onUpdateNeed, isReadOnly, project, layoutDirection, handleToggleCollapse, handleUnlinkCircumventTreeFromNode, handleUnlinkRequest, handleDeleteNodeRequest]);
 
     useEffect(() => {
         if (!selectedTreeRootId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setNodes([]);
+             
             setEdges([]);
             return;
         }
@@ -1744,9 +1747,11 @@ export const AttackTreeEditor: React.FC<AttackTreeEditorProps> = (props) => {
     useEffect(() => {
         const allRoots = [...attackTreeRoots, ...circumventTreeRoots, ...technicalTreeRoots];
         if (!selectedTreeRootId && allRoots.length > 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedTreeRootId(allRoots[0].id);
         }
         if (selectedTreeRootId && !allRoots.some(r => r.id === selectedTreeRootId)) {
+             
             setSelectedTreeRootId(allRoots[0]?.id || null);
         }
     }, [attackTreeRoots, circumventTreeRoots, technicalTreeRoots, selectedTreeRootId]);

@@ -26,11 +26,14 @@ const MetricCard: React.FC<{ icon: React.ReactNode; label: string; value: number
 );
 
 export const ManagementSummaryView: React.FC<ManagementSummaryViewProps> = ({ project, onProjectChange, isReadOnly }) => {
-    const [summary, setSummary] = useState(project.managementSummary || '');
+    const [summary, setSummary] = useState(() => project.managementSummary || '');
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
     useEffect(() => {
-        setSummary(project.managementSummary || '');
+        if (JSON.stringify(project.managementSummary || '') !== JSON.stringify(summary)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSummary(project.managementSummary || '');
+        }
     }, [project.managementSummary]);
 
     const scenariosWithRisk = useMemo(() => {

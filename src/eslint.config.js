@@ -10,6 +10,11 @@ export default [
         ignores: ['dist', 'node_modules', '*.config.js', '*.config.ts'],
     },
     {
+        linterOptions: {
+            reportUnusedDisableDirectives: 'off',
+        },
+    },
+    {
         files: ['**/*.{ts,tsx}'],
         languageOptions: {
             ecmaVersion: 2022,

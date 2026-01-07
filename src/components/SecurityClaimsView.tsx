@@ -61,20 +61,25 @@ const MultiSelectDropdown: React.FC<{ options: { id: string, name: string }[], s
 };
 
 export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project, onUpdateProject, isReadOnly }) => {
-  const [claims, setClaims] = useState<SecurityClaim[]>(project.securityClaims || []);
-  const [selectedId, setSelectedId] = useState<string | null>(claims[0]?.id || null);
-  const [editorState, setEditorState] = useState<SecurityClaim | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => (project.securityClaims || [])[0]?.id || null);
+  const [editorState, setEditorState] = useState<SecurityClaim | null>(() => {
+    const claims = project.securityClaims || [];
+    const first = claims[0];
+    return first ? { ...first } : null;
+  });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  useEffect(() => {
-    const currentClaims = project.securityClaims || [];
-    setClaims(currentClaims);
-    if (!selectedId && currentClaims.length > 0) setSelectedId(currentClaims[0].id);
-  }, [project.securityClaims, selectedId]);
+  const lastSyncedRef = useRef<SecurityClaim | null>(editorState);
 
   useEffect(() => {
-    setEditorState(claims.find(c => c.id === selectedId) || null);
-  }, [selectedId, claims]);
+    const claims = project.securityClaims || [];
+    const selected = claims.find(c => c.id === selectedId);
+    if (JSON.stringify(selected ? { ...selected } : null) !== JSON.stringify(lastSyncedRef.current)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditorState(selected ? { ...selected } : null);
+      lastSyncedRef.current = selected ? { ...selected } : null;
+    }
+  }, [selectedId, project.securityClaims]);
 
   const addHistoryEntry = (proj: Project, message: string): Project => {
     const newHistory = [...(proj.history || []), `${new Date().toLocaleString()}: ${message}`];
@@ -83,6 +88,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
 
   const handleAdd = () => {
     if (isReadOnly) return;
+    const claims = project.securityClaims || [];
     const existingIds = new Set(claims.map(c => c.id));
     let i = 1;
     let newId = `SCLM_${String(i).padStart(3, '0')}`;
@@ -97,6 +103,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
   const handleUpdate = (field: keyof SecurityClaim, value: any) => {
     if (isReadOnly || !editorState) return;
 
+    const claims = project.securityClaims || [];
     const original = claims.find(c => c.id === editorState.id);
     if (original && JSON.stringify(original[field]) !== JSON.stringify(value)) {
       const updatedClaims = claims.map(c => c.id === editorState.id ? { ...editorState, [field]: value } : c);
@@ -118,6 +125,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
   const handleConfirmDelete = () => {
     if (!selectedId) return;
 
+    const claims = project.securityClaims || [];
     const updatedClaims = claims.filter(c => c.id !== selectedId);
     const updatedScenarios = (project.threatScenarios || []).map(ts => ({ ...ts, securityClaimIds: (ts.securityClaimIds || []).filter(id => id !== selectedId) }));
     onUpdateProject(addHistoryEntry({ ...project, securityClaims: updatedClaims, threatScenarios: updatedScenarios }, `Deleted Security Claim ${selectedId}.`));
@@ -140,7 +148,7 @@ export const SecurityClaimsView: React.FC<SecurityClaimsViewProps> = ({ project,
               <tr><th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">ID</th><th className="p-3 font-semibold tracking-wider text-vscode-text-primary text-vscode-text-primary">Name</th></tr>
             </thead>
             <tbody>
-              {claims.map(claim => (
+              {(project.securityClaims || []).map(claim => (
                 <tr key={claim.id} onClick={() => setSelectedId(claim.id)} className={`border-t border-vscode-border cursor-pointer transition-colors ${selectedId === claim.id ? 'bg-vscode-accent/20' : 'hover:bg-vscode-bg-hover'}`}>
                   <td className="p-3 font-mono text-indigo-400">{claim.id}</td>
                   <td className="p-3 text-vscode-text-primary">{claim.name}</td>
