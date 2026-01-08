@@ -11,7 +11,7 @@ import {
   strideCategoryDescriptions,
   suggestMitigations,
 } from '../services/strideDreadService';
-import { generateStrideThreatsForProject, generateQuickThreat } from '../services/strideThreatGenerator';
+import { generateStrideThreatsForProject } from '../services/strideThreatGenerator';
 import { getRiskColor } from '../services/riskService';
 import { Asset, DreadRating, Project, StrideCategory, StrideThreat } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';

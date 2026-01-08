@@ -9,7 +9,7 @@ import {
   getStrideCategoryLetter,
   sortThreatsByRisk,
 } from '../services/strideDreadService';
-import { getRiskColor, riskLevelOrder } from '../services/riskService';
+import { getRiskColor } from '../services/riskService';
 import { Project, RiskLevel, StrideCategory, StrideThreat } from '../types';
 
 interface DreadAssessmentViewProps {

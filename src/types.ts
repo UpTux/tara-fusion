@@ -391,10 +391,13 @@ export const endProjectViews = [
 ] as const;
 
 // Helper function to get views based on methodology
-export const getProjectViewsForMethodology = (methodology: TaraMethodology): readonly string[] => {
+export const getProjectViewsForMethodology = (methodology?: TaraMethodology): readonly string[] => {
   const views: string[] = [...baseProjectViews];
 
-  switch (methodology) {
+  // Default to ATTACK_FEASIBILITY if methodology is undefined (for backward compatibility)
+  const effectiveMethodology = methodology ?? TaraMethodology.ATTACK_FEASIBILITY;
+
+  switch (effectiveMethodology) {
     case TaraMethodology.STRIDE:
       views.push(...strideDreadViews);
       break;

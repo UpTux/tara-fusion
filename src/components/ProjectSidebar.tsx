@@ -71,11 +71,12 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSe
                 if (view === '---') {
                     return <div key={`spacer-${index}`} className="h-px bg-vscode-border my-2"></div>;
                 }
+                const viewAsType = view as ProjectViewType;
                 const translationKey = toCamelCase(view);
                 return (
                     <button
                         key={view}
-                        onClick={() => onSelectView(view)}
+                        onClick={() => onSelectView(viewAsType)}
                         className={`
                             w-full text-left px-3 py-2 rounded-md text-sm font-medium flex items-center group
                             transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-inset focus:ring-vscode-accent
@@ -86,7 +87,7 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ activeView, onSe
                         `}
                         aria-current={activeView === view ? 'page' : undefined}
                     >
-                        <IconWrapper>{getIconForView(view)}</IconWrapper>
+                        <IconWrapper>{getIconForView(viewAsType)}</IconWrapper>
                         {t(translationKey)}
                     </button>
                 );
