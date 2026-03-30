@@ -41,17 +41,17 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/genai": "^1.33.0",
+    "@google/genai": "^1.47.0",
     "@mitre-attack/attack-data-model": "main",
-    "@supabase/supabase-js": "^2.87.1",
+    "@supabase/supabase-js": "^2.100.1",
     "html-to-image": "^1.11.13",
     "i18next": "^25.7.3",
-    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-browser-languagedetector": "^8.2.1",
     "jszip": "^3.10.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "react-i18next": "^16.5.0",
-    "react-router-dom": "^7.11.0",
+    "react-router-dom": "^7.13.2",
     "reactflow": "^11.11.4"
   },
   "devDependencies": {
