@@ -542,7 +542,7 @@ jobs:
           cat release_notes.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.generate-combined-hashes.outputs.version }}
           name: Electron App Release ${{ needs.generate-combined-hashes.outputs.version }}
